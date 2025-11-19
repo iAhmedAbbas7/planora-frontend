@@ -1,14 +1,18 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLogout } from "../../hooks/useAuth";
+import { useAuthStore } from "../../store/useAuthStore";
 import { User, Settings, LogOut, Palette } from "lucide-react";
 
 // <== DROPDOWN COMPONENT ==>
 const Dropdown = (): JSX.Element => {
   // NAVIGATE HOOK
   const navigate = useNavigate();
-  // GET USER DATA FROM LOCAL STORAGE (UI ONLY - NO API)
-  const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
+  // AUTH STORE
+  const { user } = useAuthStore();
+  // LOGOUT MUTATION
+  const logoutMutation = useLogout();
   // DROPDOWN ITEMS ARRAY
   const items = [
     {
@@ -34,10 +38,8 @@ const Dropdown = (): JSX.Element => {
   ];
   // HANDLE LOGOUT FUNCTION
   const handleLogout = (): void => {
-    // CLEAR LOCAL STORAGE (UI ONLY - NO API)
-    localStorage.removeItem("authUser");
-    // NAVIGATE TO LOGIN PAGE
-    navigate("/login");
+    // CALL LOGOUT MUTATION
+    logoutMutation.mutate();
   };
   // RETURNING THE DROPDOWN COMPONENT
   return (
@@ -47,15 +49,15 @@ const Dropdown = (): JSX.Element => {
       <header className="flex items-center gap-3 p-4 border-b border-[var(--border)]">
         {/* USER AVATAR */}
         <span className="bg-[var(--accent-color)] w-10 h-10 rounded-full flex items-center justify-center text-white font-medium">
-          {authUser.name ? authUser.name.charAt(0).toUpperCase() : "U"}
+          {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
         </span>
         {/* USER INFO CONTAINER */}
         <div className="flex flex-col">
           {/* USER NAME */}
-          <p className="font-medium">{authUser.name || "User"}</p>
+          <p className="font-medium">{user?.name || "User"}</p>
           {/* USER EMAIL */}
           <p className="text-[var(--light-text)] text-sm truncate">
-            {authUser.email || "user@example.com"}
+            {user?.email || "user@example.com"}
           </p>
         </div>
       </header>

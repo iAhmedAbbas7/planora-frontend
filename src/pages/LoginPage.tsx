@@ -1,7 +1,10 @@
 // <== IMPORTS ==>
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useLogin } from "../hooks/useAuth";
+import { useAuthStore } from "../store/useAuthStore";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
-import { useState, ChangeEvent, FormEvent, JSX } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent, JSX } from "react";
 
 // <== LOGIN INFO TYPE INTERFACE ==>
 type LoginInfo = {
@@ -18,6 +21,14 @@ const LoginPage = (): JSX.Element => {
     email: "",
     password: "",
   });
+  // LOGIN MUTATION
+  const loginMutation = useLogin();
+  // AUTH STORE
+  const { setLoggingOut } = useAuthStore();
+  // RESET LOGGING OUT FLAG WHEN LOGIN PAGE MOUNTS
+  useEffect(() => {
+    setLoggingOut(false);
+  }, [setLoggingOut]);
   // HANDLE CHANGE FUNCTION
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     // GET NAME AND VALUE FROM EVENT
@@ -36,12 +47,12 @@ const LoginPage = (): JSX.Element => {
     const { email, password } = loginInfo;
     // CHECK IF EMAIL AND PASSWORD ARE FILLED
     if (!email || !password) {
-      // SHOW ERROR MESSAGE
-      alert("Email and password are required");
+      // SHOW ERROR TOAST
+      toast.error("Email and password are required");
       return;
     }
-    // LOG LOGIN INFO (API INTEGRATION WILL BE ADDED LATER)
-    console.log("Login info:", loginInfo);
+    // CALL LOGIN MUTATION
+    loginMutation.mutate({ email, password });
   };
   // RETURNING THE LOGIN PAGE COMPONENT
   return (
@@ -101,8 +112,12 @@ const LoginPage = (): JSX.Element => {
             />
           </div>
           {/* SUBMIT BUTTON */}
-          <button className="w-full py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition cursor-pointer text-sm sm:text-base">
-            Login
+          <button
+            type="submit"
+            disabled={loginMutation.isPending}
+            className="w-full py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+          >
+            {loginMutation.isPending ? "Logging in..." : "Login"}
           </button>
         </form>
         {/* SIGN UP LINK */}

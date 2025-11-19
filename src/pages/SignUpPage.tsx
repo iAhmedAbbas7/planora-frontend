@@ -1,5 +1,7 @@
 // <== IMPORTS ==>
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useSignup } from "../hooks/useAuth";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { useState, ChangeEvent, FormEvent, JSX } from "react";
 
@@ -21,6 +23,8 @@ const SignUpPage = (): JSX.Element => {
     email: "",
     password: "",
   });
+  // SIGNUP MUTATION
+  const signupMutation = useSignup();
   // HANDLE CHANGE FUNCTION
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     // GET NAME AND VALUE FROM EVENT
@@ -36,12 +40,12 @@ const SignUpPage = (): JSX.Element => {
     const { name, email, password } = signupInfo;
     // CHECK IF ALL FIELDS ARE FILLED
     if (!name || !email || !password) {
-      // SHOW ERROR MESSAGE
-      alert("All fields are required");
+      // SHOW ERROR TOAST
+      toast.error("All fields are required");
       return;
     }
-    // LOG SIGN UP INFO (API INTEGRATION WILL BE ADDED LATER)
-    console.log("Sign up info:", signupInfo);
+    // CALL SIGNUP MUTATION
+    signupMutation.mutate({ name, email, password });
   };
   // RETURNING THE SIGN UP PAGE COMPONENT
   return (
@@ -135,8 +139,12 @@ const SignUpPage = (): JSX.Element => {
             </label>
           </div>
           {/* SUBMIT BUTTON */}
-          <button className="w-full py-2.5 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition text-sm sm:text-base font-medium cursor-pointer">
-            Sign Up
+          <button
+            type="submit"
+            disabled={signupMutation.isPending}
+            className="w-full py-2.5 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition text-sm sm:text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {signupMutation.isPending ? "Creating account..." : "Sign Up"}
           </button>
         </form>
         {/* LOGIN LINK */}

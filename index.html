@@ -12,8 +12,63 @@
     />
     <!-- TILE -->
     <title>PlanOra</title>
+    <!-- STYLES -->
+    <style>
+      /* FULL SCREEN SPLASH SHOWN BEFORE REACT MOUNTS */
+      #splash {
+        inset: 0;
+        opacity: 1;
+        display: flex;
+        z-index: 99999;
+        position: fixed;
+        visibility: visible;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        -webkit-font-smoothing: antialiased;
+        transition: opacity 500ms ease, visibility 500ms ease;
+      }
+      /* HIDDEN SPLASH STYLES */
+      #splash.splash-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      /* SPLASH CONTENT STYLES */
+      #splash-content {
+        gap: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      /* MAIN PLAN-ORA LOGO STYLES */
+      #planora-logo {
+        width: 120px;
+        height: 120px;
+        opacity: 0;
+        animation: fadeInOut 2s ease-in-out infinite;
+      }
+      @keyframes fadeInOut {
+        0% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+    </style>
   </head>
   <body>
+    <!-- SPLASH SCREEN - RENDERED BEFORE ANY JS RUNS -->
+    <div id="splash" aria-hidden="false" role="status" aria-live="polite">
+      <div id="splash-content">
+        <img id="planora-logo" src="/LOGO-PURPLE.png" alt="PlanOra Logo" />
+      </div>
+    </div>
     <!-- MAIN ROOT ELEMENT -->
     <div id="root"></div>
     <!-- MAIN JS FILE FOR REACT -->

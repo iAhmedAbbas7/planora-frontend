@@ -7,61 +7,92 @@ import Dashboard from "./pages/Dashboard";
 import TasksPage from "./pages/TasksPage";
 import SignUpPage from "./pages/SignUpPage";
 import LandingPage from "./pages/LandingPage";
+import RootLayout from "./layouts/RootLayout";
 import SettingsPage from "./pages/SettingsPage";
+import AccessDenied from "./pages/AccessDenied";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotificationsPage from "./pages/NotificationsPage";
+import PublicRoute from "./components/common/PublicRoute";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // <== APP ROUTER ==>
 const appRouter = createBrowserRouter([
-  // <== PUBLIC ROUTE ==>
+  // <== ROOT LAYOUT ROUTE ==>
   {
-    path: "/",
-    element: <LandingPage />,
-  },
-  // <== LOGIN ROUTE ==>
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  // <== SIGN UP ROUTE ==>
-  {
-    path: "/register",
-    element: <SignUpPage />,
-  },
-  // <== DASHBOARD LAYOUT ROUTE ==>
-  {
-    element: <DashboardLayout />,
+    element: <RootLayout />,
     children: [
-      // <== DASHBOARD ROUTE ==>
+      // <== PUBLIC ROUTE ==>
       {
-        path: "/dashboard",
-        element: <Dashboard />,
+        path: "/",
+        element: (
+          <PublicRoute>
+            <LandingPage />
+          </PublicRoute>
+        ),
       },
-      // <== PROJECTS ROUTE ==>
+      // <== LOGIN ROUTE ==>
       {
-        path: "/projects",
-        element: <Projects />,
+        path: "/login",
+        element: (
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        ),
       },
-      // <== TASKS ROUTE ==>
+      // <== SIGN UP ROUTE ==>
       {
-        path: "/tasks",
-        element: <TasksPage />,
+        path: "/register",
+        element: (
+          <PublicRoute>
+            <SignUpPage />
+          </PublicRoute>
+        ),
       },
-      // <== TRASH ROUTE ==>
+      // <== ACCESS DENIED ROUTE ==>
       {
-        path: "/trash",
-        element: <Trash />,
+        path: "/access-denied",
+        element: <AccessDenied />,
       },
-      // <== SETTINGS ROUTE ==>
+      // <== DASHBOARD LAYOUT ROUTE ==>
       {
-        path: "/settings",
-        element: <SettingsPage />,
-      },
-      // <== NOTIFICATIONS ROUTE ==>
-      {
-        path: "/notifications",
-        element: <NotificationsPage />,
+        element: (
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          // <== DASHBOARD ROUTE ==>
+          {
+            path: "/dashboard",
+            element: <Dashboard />,
+          },
+          // <== PROJECTS ROUTE ==>
+          {
+            path: "/projects",
+            element: <Projects />,
+          },
+          // <== TASKS ROUTE ==>
+          {
+            path: "/tasks",
+            element: <TasksPage />,
+          },
+          // <== TRASH ROUTE ==>
+          {
+            path: "/trash",
+            element: <Trash />,
+          },
+          // <== SETTINGS ROUTE ==>
+          {
+            path: "/settings",
+            element: <SettingsPage />,
+          },
+          // <== NOTIFICATIONS ROUTE ==>
+          {
+            path: "/notifications",
+            element: <NotificationsPage />,
+          },
+        ],
       },
     ],
   },
@@ -72,9 +103,7 @@ const App = (): JSX.Element => {
   // RETURNING THE APP COMPONENT
   return (
     // APP MAIN CONTAINER
-    <>
-      <RouterProvider router={appRouter}></RouterProvider>
-    </>
+    <RouterProvider router={appRouter}></RouterProvider>
   );
 };
 

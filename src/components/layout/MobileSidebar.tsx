@@ -13,6 +13,7 @@ import LOGO_IMAGE from "../../assets/images/LOGO.png";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import { useState, useEffect, JSX, ComponentType } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLogout } from "../../hooks/useAuth";
 
 // <== MOBILE SIDEBAR PROPS TYPE INTERFACE ==>
 type MobileSidebarProps = {
@@ -90,14 +91,14 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
     // CLOSE SIDEBAR WHEN LOCATION CHANGES
     closeSidebar();
   }, [location.pathname, closeSidebar]);
+  // LOGOUT MUTATION
+  const logoutMutation = useLogout();
   // HANDLE LOGOUT FUNCTION
   const handleLogout = (): void => {
-    // CLEAR LOCAL STORAGE (UI ONLY - NO API)
-    localStorage.removeItem("authUser");
     // CLOSE SIDEBAR
     closeSidebar();
-    // NAVIGATE TO LOGIN PAGE
-    navigate("/login");
+    // CALL LOGOUT MUTATION
+    logoutMutation.mutate();
   };
   // RETURNING THE MOBILE SIDEBAR COMPONENT
   return (
