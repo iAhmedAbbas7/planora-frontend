@@ -10,6 +10,7 @@ import LandingPage from "./pages/LandingPage";
 import RootLayout from "./layouts/RootLayout";
 import SettingsPage from "./pages/SettingsPage";
 import AccessDenied from "./pages/AccessDenied";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
@@ -46,6 +47,15 @@ const appRouter = createBrowserRouter([
         element: (
           <PublicRoute>
             <SignUpPage />
+          </PublicRoute>
+        ),
+      },
+      // <== VERIFY EMAIL ROUTE ==>
+      {
+        path: "/verify-email",
+        element: (
+          <PublicRoute>
+            <VerifyEmailPage />
           </PublicRoute>
         ),
       },

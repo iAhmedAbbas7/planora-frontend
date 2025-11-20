@@ -3,7 +3,8 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useSignup } from "../hooks/useAuth";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
-import { useState, ChangeEvent, FormEvent, JSX } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent, JSX } from "react";
+import { User, Mail, Lock, Eye, EyeOff, X, CheckCircle2 } from "lucide-react";
 
 // <== SIGN UP INFO TYPE INTERFACE ==>
 type SignUpInfo = {
@@ -13,7 +14,31 @@ type SignUpInfo = {
   email: string;
   // <== PASSWORD ==>
   password: string;
+  // <== CONFIRM PASSWORD ==>
+  confirmPassword: string;
 };
+
+// <== CONDITION ITEM COMPONENT ==>
+const ConditionItem = ({
+  label,
+  passed,
+}: {
+  label: string;
+  passed: boolean;
+}) => (
+  <div
+    className={`w-full flex items-center gap-2 p-1.5 rounded ${
+      passed ? "bg-violet-100 text-violet-600" : "bg-gray-100 text-gray-500"
+    }`}
+  >
+    {passed ? (
+      <CheckCircle2 size={16} className="text-violet-600" />
+    ) : (
+      <Lock size={16} className="text-gray-400" />
+    )}
+    <span className="text-xs">{label}</span>
+  </div>
+);
 
 // <== SIGN UP PAGE COMPONENT ==>
 const SignUpPage = (): JSX.Element => {
@@ -22,26 +47,87 @@ const SignUpPage = (): JSX.Element => {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
+  // SHOW PASSWORD STATE
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  // SHOW CONFIRM PASSWORD STATE
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
   // SIGNUP MUTATION
   const signupMutation = useSignup();
-  // HANDLE CHANGE FUNCTION
+  // MINIMUM LENGTH STATE
+  const [hasMinLength, setHasMinLength] = useState<boolean>(false);
+  // HAS LOWERCASE LETTER STATE
+  const [hasLower, setHasLower] = useState<boolean>(false);
+  // HAS UPPERCASE LETTER STATE
+  const [hasUpper, setHasUpper] = useState<boolean>(false);
+  // HAS DIGIT STATE
+  const [hasDigit, setHasDigit] = useState<boolean>(false);
+  // HAS SPECIAL CHARACTER STATE
+  const [hasSpecial, setHasSpecial] = useState<boolean>(false);
+  // PASSWORDS MATCH STATE
+  const [passwordsMatch, setPasswordsMatch] = useState<boolean>(false);
+  // EMAIL VALIDATION STATE
+  const [isValidEmail, setIsValidEmail] = useState<boolean>(false);
+  // CHECKING FOR EACH PASSWORD CONDITION WHEN NEW PASSWORD CHANGES
+  useEffect(() => {
+    // GET PASSWORD FROM SIGN UP INFO
+    const password = signupInfo.password;
+    // CHECK IF PASSWORD HAS AT LEAST 8 CHARACTERS
+    setHasMinLength(password.length >= 8);
+    // CHECK IF PASSWORD HAS AT LEAST ONE LOWERCASE LETTER
+    setHasLower(/[a-z]/.test(password));
+    // CHECK IF PASSWORD HAS AT LEAST ONE UPPERCASE LETTER
+    setHasUpper(/[A-Z]/.test(password));
+    // CHECK IF PASSWORD HAS AT LEAST ONE DIGIT
+    setHasDigit(/[0-9]/.test(password));
+    // CHECK IF PASSWORD HAS AT LEAST ONE SPECIAL CHARACTER
+    setHasSpecial(/[^A-Za-z0-9]/.test(password));
+  }, [signupInfo.password]);
+  // CHECKING FOR PASSWORD MATCH ON EACH CHANGE
+  useEffect(() => {
+    // CHECK IF PASSWORD AND CONFIRM PASSWORD ARE NOT EMPTY AND IF THEY MATCH
+    setPasswordsMatch(
+      signupInfo.password !== "" &&
+        signupInfo.confirmPassword !== "" &&
+        signupInfo.password === signupInfo.confirmPassword
+    );
+  }, [signupInfo.password, signupInfo.confirmPassword]);
+  // CHECKING FOR EMAIL VALIDATION ON EACH CHANGE
+  useEffect(() => {
+    // CREATE EMAIL REGEX
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // CHECK IF EMAIL IS VALID
+    setIsValidEmail(emailRegex.test(signupInfo.email));
+  }, [signupInfo.email]);
+  // CHECKING IF ALL VALIDATIONS PASS
+  const allValid =
+    signupInfo.name.trim() !== "" &&
+    isValidEmail &&
+    hasMinLength &&
+    hasLower &&
+    hasUpper &&
+    hasDigit &&
+    hasSpecial &&
+    passwordsMatch;
+  // HANDLING CHANGE OF INPUT FIELDS
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     // GET NAME AND VALUE FROM EVENT
     const { name, value } = e.target;
     // UPDATE SIGN UP INFO STATE
     setSignUpInfo((prev) => ({ ...prev, [name]: value }));
   };
-  // HANDLE SIGN UP FUNCTION
+  // HANDLING SIGN UP FORM SUBMISSION
   const handleSignUp = (e: FormEvent<HTMLFormElement>): void => {
     // PREVENT DEFAULT FORM SUBMISSION
     e.preventDefault();
     // DESTRUCTURE SIGN UP INFO
     const { name, email, password } = signupInfo;
-    // CHECK IF ALL FIELDS ARE FILLED
-    if (!name || !email || !password) {
+    // CHECK IF ALL VALIDATIONS PASS
+    if (!allValid) {
       // SHOW ERROR TOAST
-      toast.error("All fields are required");
+      toast.error("Please ensure all fields meet the requirements");
       return;
     }
     // CALL SIGNUP MUTATION
@@ -74,54 +160,226 @@ const SignUpPage = (): JSX.Element => {
           <div className="flex flex-col">
             {/* NAME LABEL */}
             <label htmlFor="name" className="text-sm text-gray-600 mb-0.5">
-              Name
+              Full Name
             </label>
-            {/* NAME INPUT */}
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={signupInfo.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
-              autoFocus
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
-            />
+            {/* NAME INPUT CONTAINER */}
+            <div className="relative flex items-center">
+              {/* USER ICON */}
+              <User className="absolute left-3 text-gray-400" size={18} />
+              {/* NAME INPUT */}
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={signupInfo.name}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                autoFocus
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
+              />
+              {/* CLEAR BUTTON */}
+              {signupInfo.name && signupInfo.name.trim() && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSignUpInfo((prev) => ({ ...prev, name: "" }))
+                  }
+                  className="absolute right-3 p-1 rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
+                  title="Clear"
+                >
+                  <X size={16} className="text-gray-400" />
+                </button>
+              )}
+            </div>
           </div>
+
           {/* EMAIL INPUT FIELD */}
           <div className="flex flex-col">
             {/* EMAIL LABEL */}
             <label htmlFor="email" className="text-sm text-gray-600 mb-0.5">
               Email
             </label>
-            {/* EMAIL INPUT */}
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={signupInfo.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
-            />
+            {/* EMAIL INPUT CONTAINER */}
+            <div className="relative flex items-center">
+              {/* MAIL ICON */}
+              <Mail className="absolute left-3 text-gray-400" size={18} />
+              {/* EMAIL INPUT */}
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={signupInfo.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
+              />
+              {/* CLEAR BUTTON */}
+              {signupInfo.email && signupInfo.email.trim() && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSignUpInfo((prev) => ({ ...prev, email: "" }))
+                  }
+                  className="absolute right-3 p-1 rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
+                  title="Clear"
+                >
+                  <X size={16} className="text-gray-400" />
+                </button>
+              )}
+            </div>
+            {/* EMAIL VALIDATION INFO */}
+            {signupInfo.email && (
+              <div className="mt-1">
+                <ConditionItem
+                  label="Valid email format (will be verified)"
+                  passed={isValidEmail}
+                />
+              </div>
+            )}
+            {/* EMAIL VERIFICATION INFO */}
+            {signupInfo.email && isValidEmail && (
+              <p className="text-xs text-gray-500 mt-1">
+                A verification code will be sent to this email address
+              </p>
+            )}
           </div>
+
           {/* PASSWORD INPUT FIELD */}
           <div className="flex flex-col">
             {/* PASSWORD LABEL */}
             <label htmlFor="password" className="text-sm text-gray-600 mb-0.5">
               Password
             </label>
-            {/* PASSWORD INPUT */}
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={signupInfo.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
-            />
+            {/* PASSWORD INPUT CONTAINER */}
+            <div className="relative flex items-center">
+              {/* LOCK ICON */}
+              <Lock className="absolute left-3 text-gray-400" size={18} />
+              {/* PASSWORD INPUT */}
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={signupInfo.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                className="w-full pl-10 pr-20 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
+              />
+              {/* CLEAR BUTTON */}
+              {signupInfo.password && signupInfo.password.trim() && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSignUpInfo((prev) => ({ ...prev, password: "" }))
+                  }
+                  className="absolute right-12 p-1 rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
+                  title="Clear"
+                >
+                  <X size={16} className="text-gray-400" />
+                </button>
+              )}
+              {/* SHOW/HIDE PASSWORD BUTTON */}
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 p-1 flex items-center justify-center hover:bg-gray-100 rounded cursor-pointer"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} className="text-gray-400" />
+                ) : (
+                  <Eye size={18} className="text-gray-400" />
+                )}
+              </button>
+            </div>
+            {/* PASSWORD VALIDATION CONDITIONS */}
+            {signupInfo.password && (
+              <div className="mt-2 flex flex-col gap-1">
+                <ConditionItem
+                  label="Minimum 8 characters"
+                  passed={hasMinLength}
+                />
+                <ConditionItem
+                  label="At least one lowercase letter"
+                  passed={hasLower}
+                />
+                <ConditionItem
+                  label="At least one uppercase letter"
+                  passed={hasUpper}
+                />
+                <ConditionItem label="At least one digit" passed={hasDigit} />
+                <ConditionItem
+                  label="At least one special character"
+                  passed={hasSpecial}
+                />
+              </div>
+            )}
           </div>
+
+          {/* CONFIRM PASSWORD INPUT FIELD */}
+          <div className="flex flex-col">
+            {/* CONFIRM PASSWORD LABEL */}
+            <label
+              htmlFor="confirmPassword"
+              className="text-sm text-gray-600 mb-0.5"
+            >
+              Confirm Password
+            </label>
+            {/* CONFIRM PASSWORD INPUT CONTAINER */}
+            <div className="relative flex items-center">
+              {/* LOCK ICON */}
+              <Lock className="absolute left-3 text-gray-400" size={18} />
+              {/* CONFIRM PASSWORD INPUT */}
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={signupInfo.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                className="w-full pl-10 pr-20 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
+              />
+              {/* CLEAR BUTTON */}
+              {signupInfo.confirmPassword &&
+                signupInfo.confirmPassword.trim() && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSignUpInfo((prev) => ({
+                        ...prev,
+                        confirmPassword: "",
+                      }))
+                    }
+                    className="absolute right-12 p-1 rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer"
+                    title="Clear"
+                  >
+                    <X size={16} className="text-gray-400" />
+                  </button>
+                )}
+              {/* SHOW/HIDE CONFIRM PASSWORD BUTTON */}
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-3 p-1 flex items-center justify-center hover:bg-gray-100 rounded cursor-pointer"
+                title={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={18} className="text-gray-400" />
+                ) : (
+                  <Eye size={18} className="text-gray-400" />
+                )}
+              </button>
+            </div>
+            {/* PASSWORD MATCH VALIDATION */}
+            {signupInfo.confirmPassword && (
+              <div className="mt-1">
+                <ConditionItem
+                  label="Passwords match"
+                  passed={passwordsMatch}
+                />
+              </div>
+            )}
+          </div>
+
           {/* TERMS CHECKBOX */}
           <div className="flex items-center text-sm text-gray-600">
             {/* CHECKBOX INPUT */}
@@ -138,10 +396,11 @@ const SignUpPage = (): JSX.Element => {
               </a>
             </label>
           </div>
+
           {/* SUBMIT BUTTON */}
           <button
             type="submit"
-            disabled={signupMutation.isPending}
+            disabled={signupMutation.isPending || !allValid}
             className="w-full py-2.5 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition text-sm sm:text-base font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {signupMutation.isPending ? "Creating account..." : "Sign Up"}
@@ -153,14 +412,18 @@ const SignUpPage = (): JSX.Element => {
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
+            <span className="px-2 bg-gray-50 text-gray-500">
+              Or continue with
+            </span>
           </div>
         </div>
         {/* OAUTH BUTTONS */}
         <div className="flex flex-col gap-2">
           {/* GOOGLE OAUTH BUTTON */}
           <a
-            href={`${import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"}/auth/google`}
+            href={`${
+              import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"
+            }/auth/google`}
             className="w-full py-2 px-4 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm sm:text-base text-gray-700"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -185,7 +448,9 @@ const SignUpPage = (): JSX.Element => {
           </a>
           {/* GITHUB OAUTH BUTTON */}
           <a
-            href={`${import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"}/auth/github`}
+            href={`${
+              import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"
+            }/auth/github`}
             className="w-full py-2 px-4 bg-gray-900 border border-gray-900 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base text-white"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

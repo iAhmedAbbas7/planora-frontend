@@ -106,8 +106,6 @@ export const useLogin = () => {
 export const useSignup = () => {
   // NAVIGATE HOOK
   const navigate = useNavigate();
-  // AUTH STORE
-  const { login } = useAuthStore();
   // SIGNUP MUTATION
   return useMutation({
     mutationFn: async (userData: SignupRequest): Promise<AuthResponse> => {
@@ -119,24 +117,16 @@ export const useSignup = () => {
       return response.data;
     },
     onSuccess: async (data) => {
-      try {
-        // FETCH LATEST USER DATA FROM SERVER TO ENSURE CONSISTENCY
-        const userResponse = await apiClient.get<UserResponse>("/auth/me");
-        // SET USER IN STORE WITH LATEST DATA (THIS WILL RESET isLoggingOut FLAG)
-        if (userResponse.data?.data) {
-          login(userResponse.data.data);
-        } else {
-          // FALLBACK TO RESPONSE DATA IF FETCH FAILS
-          login(data.data);
-        }
-      } catch {
-        // FALLBACK TO RESPONSE DATA IF FETCH FAILS
-        login(data.data);
-      }
       // SHOW SUCCESS TOAST
-      toast.success(data.message || "Signup successful!");
-      // NAVIGATE TO DASHBOARD
-      navigate("/dashboard");
+      toast.success(
+        data.message ||
+          "Verification code sent! Please check your email to verify your account."
+      );
+      // NAVIGATE TO VERIFY EMAIL PAGE WITH EMAIL IN STATE
+      navigate("/verify-email", {
+        state: { email: data.data?.email || "" },
+        replace: true,
+      });
     },
     onError: (error: unknown) => {
       // TYPE ERROR AS AXIOS ERROR
