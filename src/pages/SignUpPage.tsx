@@ -192,7 +192,6 @@ const SignUpPage = (): JSX.Element => {
               )}
             </div>
           </div>
-
           {/* EMAIL INPUT FIELD */}
           <div className="flex flex-col">
             {/* EMAIL LABEL */}
@@ -243,7 +242,6 @@ const SignUpPage = (): JSX.Element => {
               </p>
             )}
           </div>
-
           {/* PASSWORD INPUT FIELD */}
           <div className="flex flex-col">
             {/* PASSWORD LABEL */}
@@ -314,7 +312,6 @@ const SignUpPage = (): JSX.Element => {
               </div>
             )}
           </div>
-
           {/* CONFIRM PASSWORD INPUT FIELD */}
           <div className="flex flex-col">
             {/* CONFIRM PASSWORD LABEL */}
@@ -379,7 +376,6 @@ const SignUpPage = (): JSX.Element => {
               </div>
             )}
           </div>
-
           {/* TERMS CHECKBOX */}
           <div className="flex items-center text-sm text-gray-600">
             {/* CHECKBOX INPUT */}
@@ -391,12 +387,14 @@ const SignUpPage = (): JSX.Element => {
             {/* CHECKBOX LABEL */}
             <label htmlFor="terms">
               I agree to the{" "}
-              <a href="#" className="text-violet-500 hover:underline">
+              <Link
+                to="/terms-of-service"
+                className="text-violet-500 hover:underline"
+              >
                 Terms & Conditions
-              </a>
+              </Link>
             </label>
           </div>
-
           {/* SUBMIT BUTTON */}
           <button
             type="submit"

@@ -1,5 +1,6 @@
 // <== IMPORTS ==>
 import { Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 import { JSX, useState, ChangeEvent } from "react";
 import PURPLE_LOGO from "../../../assets/images/LOGO-PURPLE.png";
 
@@ -94,13 +95,19 @@ const Footer = (): JSX.Element => {
         {/* FOOTER LINKS CONTAINER */}
         <div className="flex gap-5">
           {/* PRIVACY POLICY LINK */}
-          <a href="#" className="hover:text-violet-500 transition">
+          <Link
+            to="/privacy-policy"
+            className="hover:text-violet-500 transition"
+          >
             Privacy Policy
-          </a>
+          </Link>
           {/* TERMS OF SERVICE LINK */}
-          <a href="#" className="hover:text-violet-500 transition">
+          <Link
+            to="/terms-of-service"
+            className="hover:text-violet-500 transition"
+          >
             Terms of Service
-          </a>
+          </Link>
         </div>
       </div>
     </section>

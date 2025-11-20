@@ -12,9 +12,11 @@ import SettingsPage from "./pages/SettingsPage";
 import AccessDenied from "./pages/AccessDenied";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -66,6 +68,24 @@ const appRouter = createBrowserRouter([
         element: (
           <PublicRoute>
             <ForgotPasswordPage />
+          </PublicRoute>
+        ),
+      },
+      // <== TERMS OF SERVICE ROUTE ==>
+      {
+        path: "/terms-of-service",
+        element: (
+          <PublicRoute>
+            <TermsOfServicePage />
+          </PublicRoute>
+        ),
+      },
+      // <== PRIVACY POLICY ROUTE ==>
+      {
+        path: "/privacy-policy",
+        element: (
+          <PublicRoute>
+            <PrivacyPolicyPage />
           </PublicRoute>
         ),
       },
