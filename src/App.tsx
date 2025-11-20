@@ -14,6 +14,7 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -56,6 +57,15 @@ const appRouter = createBrowserRouter([
         element: (
           <PublicRoute>
             <VerifyEmailPage />
+          </PublicRoute>
+        ),
+      },
+      // <== FORGOT PASSWORD ROUTE ==>
+      {
+        path: "/forgot-password",
+        element: (
+          <PublicRoute>
+            <ForgotPasswordPage />
           </PublicRoute>
         ),
       },

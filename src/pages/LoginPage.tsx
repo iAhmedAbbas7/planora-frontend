@@ -164,6 +164,15 @@ const LoginPage = (): JSX.Element => {
               </button>
             </div>
           </div>
+          {/* FORGOT PASSWORD LINK */}
+          <div className="flex justify-end">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-violet-500 font-semibold hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
           {/* SUBMIT BUTTON */}
           <button
             type="submit"
