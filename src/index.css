@@ -227,3 +227,15 @@ input {
     opacity: 1;
   }
 }
+/* <== FADE IN OUT ANIMATION KEYFRAMES (FOR SPLASH SCREEN) ==> */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

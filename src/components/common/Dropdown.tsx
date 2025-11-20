@@ -48,7 +48,7 @@ const Dropdown = (): JSX.Element => {
       {/* DROPDOWN HEADER */}
       <header className="flex items-center gap-3 p-4 border-b border-[var(--border)]">
         {/* USER AVATAR */}
-        <span className="bg-[var(--accent-color)] w-10 h-10 rounded-full flex items-center justify-center text-white font-medium">
+        <span className="bg-[var(--accent-color)] w-10 h-10 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0 overflow-hidden aspect-square">
           {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
         </span>
         {/* USER INFO CONTAINER */}

@@ -3,6 +3,7 @@ import { JSX } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/layout/Sidebar";
 import MobileSidebar from "../components/layout/MobileSidebar";
+import SessionExpiredModal from "../components/common/SessionExpiredModal";
 
 // <== DASHBOARD LAYOUT COMPONENT ==>
 const DashboardLayout = (): JSX.Element => {
@@ -18,6 +19,8 @@ const DashboardLayout = (): JSX.Element => {
       <main className="flex-1 bg-gray-50 w-full">
         <Outlet />
       </main>
+      {/* SESSION EXPIRED MODAL (ONLY ON PROTECTED ROUTES) */}
+      <SessionExpiredModal />
     </div>
   );
 };

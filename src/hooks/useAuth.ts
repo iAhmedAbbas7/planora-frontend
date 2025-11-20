@@ -1,27 +1,56 @@
 // <== IMPORTS ==>
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 import apiClient from "../lib/axios";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import { useAuthStore, type User } from "../store/useAuthStore";
 
 // <== LOGIN REQUEST TYPE ==>
 type LoginRequest = {
+  // <== EMAIL ==>
   email: string;
+  // <== PASSWORD ==>
   password: string;
 };
 
 // <== SIGNUP REQUEST TYPE ==>
 type SignupRequest = {
+  // <== NAME ==>
   name: string;
+  // <== EMAIL ==>
   email: string;
+  // <== PASSWORD ==>
   password: string;
 };
 
 // <== AUTH RESPONSE TYPE ==>
 type AuthResponse = {
+  // <== SUCCESS ==>
   success: boolean;
+  // <== MESSAGE ==>
   message: string;
+  // <== DATA ==>
+  data: User;
+};
+
+// <== API ERROR RESPONSE TYPE ==>
+type ApiErrorResponse = {
+  // <== CODE ==>
+  code?: string;
+  // <== MESSAGE ==>
+  message?: string;
+  // <== SUCCESS ==>
+  success?: boolean;
+};
+
+// <== USER RESPONSE TYPE ==>
+type UserResponse = {
+  // <== SUCCESS ==>
+  success: boolean;
+  // <== MESSAGE ==>
+  message: string;
+  // <== DATA ==>
   data: User;
 };
 
@@ -31,7 +60,6 @@ export const useLogin = () => {
   const navigate = useNavigate();
   // AUTH STORE
   const { login } = useAuthStore();
-
   // LOGIN MUTATION
   return useMutation({
     mutationFn: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -42,18 +70,33 @@ export const useLogin = () => {
       );
       return response.data;
     },
-    onSuccess: (data) => {
-      // SET USER IN STORE (THIS WILL RESET isLoggingOut FLAG)
-      login(data.data);
+    onSuccess: async (data) => {
+      try {
+        // FETCH LATEST USER DATA FROM SERVER TO ENSURE CONSISTENCY
+        const userResponse = await apiClient.get<UserResponse>("/auth/me");
+        // SET USER IN STORE WITH LATEST DATA (THIS WILL RESET isLoggingOut FLAG)
+        if (userResponse.data?.data) {
+          login(userResponse.data.data);
+        } else {
+          // FALLBACK TO RESPONSE DATA IF FETCH FAILS
+          login(data.data);
+        }
+      } catch {
+        // FALLBACK TO RESPONSE DATA IF FETCH FAILS
+        login(data.data);
+      }
       // SHOW SUCCESS TOAST
       toast.success(data.message || "Login successful!");
       // NAVIGATE TO DASHBOARD
       navigate("/dashboard");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       // SHOW ERROR TOAST
       const errorMessage =
-        error.response?.data?.message || "Login failed. Please try again.";
+        axiosError?.response?.data?.message ||
+        "Login failed. Please try again.";
       toast.error(errorMessage);
     },
   });
@@ -65,7 +108,6 @@ export const useSignup = () => {
   const navigate = useNavigate();
   // AUTH STORE
   const { login } = useAuthStore();
-
   // SIGNUP MUTATION
   return useMutation({
     mutationFn: async (userData: SignupRequest): Promise<AuthResponse> => {
@@ -76,18 +118,33 @@ export const useSignup = () => {
       );
       return response.data;
     },
-    onSuccess: (data) => {
-      // SET USER IN STORE (THIS WILL RESET isLoggingOut FLAG)
-      login(data.data);
+    onSuccess: async (data) => {
+      try {
+        // FETCH LATEST USER DATA FROM SERVER TO ENSURE CONSISTENCY
+        const userResponse = await apiClient.get<UserResponse>("/auth/me");
+        // SET USER IN STORE WITH LATEST DATA (THIS WILL RESET isLoggingOut FLAG)
+        if (userResponse.data?.data) {
+          login(userResponse.data.data);
+        } else {
+          // FALLBACK TO RESPONSE DATA IF FETCH FAILS
+          login(data.data);
+        }
+      } catch {
+        // FALLBACK TO RESPONSE DATA IF FETCH FAILS
+        login(data.data);
+      }
       // SHOW SUCCESS TOAST
       toast.success(data.message || "Signup successful!");
       // NAVIGATE TO DASHBOARD
       navigate("/dashboard");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       // SHOW ERROR TOAST
       const errorMessage =
-        error.response?.data?.message || "Signup failed. Please try again.";
+        axiosError?.response?.data?.message ||
+        "Signup failed. Please try again.";
       toast.error(errorMessage);
     },
   });
@@ -99,7 +156,6 @@ export const useLogout = () => {
   const navigate = useNavigate();
   // AUTH STORE
   const { clearUser, setLoggingOut } = useAuthStore();
-
   // LOGOUT MUTATION
   return useMutation({
     mutationFn: async (): Promise<void> => {
@@ -107,29 +163,30 @@ export const useLogout = () => {
       await apiClient.post("/auth/logout");
     },
     onSuccess: () => {
-      // SET LOGGING OUT FLAG FIRST (BEFORE CLEARING AUTH STATE)
+      // SET LOGGING OUT FLAG
       setLoggingOut(true);
-      // NAVIGATE TO LOGIN IMMEDIATELY (PROTECTED ROUTE WILL SEE FLAG AND ALLOW SMOOTH REDIRECT)
+      // NAVIGATE TO LOGIN
       navigate("/login", { replace: true });
-      // CLEAR USER STATE MANUALLY (KEEPING isLoggingOut FLAG TRUE)
-      // THE LOGIN PAGE WILL RESET THE FLAG WHEN IT MOUNTS
+      // CLEAR USER STATE
       clearUser();
       // SHOW SUCCESS TOAST
       toast.success("Logout successful!");
     },
-    onError: (error: any) => {
-      // SET LOGGING OUT FLAG FIRST (BEFORE CLEARING AUTH STATE)
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      // SET LOGGING OUT FLAG
       setLoggingOut(true);
-      // NAVIGATE TO LOGIN IMMEDIATELY (PROTECTED ROUTE WILL SEE FLAG AND ALLOW SMOOTH REDIRECT)
+      // NAVIGATE TO LOGIN
       navigate("/login", { replace: true });
-      // CLEAR USER STATE MANUALLY (KEEPING isLoggingOut FLAG TRUE)
-      // THE LOGIN PAGE WILL RESET THE FLAG WHEN IT MOUNTS
+      // CLEAR USER STATE
       clearUser();
       // SHOW ERROR TOAST
       const errorMessage =
-        error.response?.data?.message || "Logout failed, but you've been signed out.";
+        axiosError?.response?.data?.message ||
+        "Logout failed, but you've been signed out.";
+      // SHOW ERROR TOAST
       toast.error(errorMessage);
     },
   });
 };
-

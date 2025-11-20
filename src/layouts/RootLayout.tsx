@@ -1,12 +1,14 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
 import { Outlet } from "react-router-dom";
+import { useAuthCheck } from "../hooks/useAuthCheck";
 import { useTokenMonitor } from "../hooks/useTokenMonitor";
-import SessionExpiredModal from "../components/common/SessionExpiredModal";
 import NetworkStatusWatcher from "../components/common/NetworkStatusWatcher";
 
 // <== ROOT LAYOUT COMPONENT ==>
 const RootLayout = (): JSX.Element => {
+  // AUTH CHECK HOOK (CHECKS FOR OAUTH CALLBACKS AND PAGE REFRESHES)
+  useAuthCheck();
   // TOKEN MONITORING HOOK (CHECKS TOKENS PERIODICALLY)
   useTokenMonitor();
   // RETURNING THE ROOT LAYOUT
@@ -15,8 +17,6 @@ const RootLayout = (): JSX.Element => {
     <>
       {/* ROUTE OUTLET */}
       <Outlet />
-      {/* SESSION EXPIRED MODAL */}
-      <SessionExpiredModal />
       {/* NETWORK STATUS WATCHER */}
       <NetworkStatusWatcher />
     </>

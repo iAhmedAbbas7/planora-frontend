@@ -22,6 +22,8 @@ type AuthState = {
   isSessionExpired: boolean;
   // <== LOGGING OUT FLAG ==>
   isLoggingOut: boolean;
+  // <== CHECKING AUTH STATE ==>
+  isCheckingAuth: boolean;
   // <== SET USER ACTION ==>
   setUser: (user: User | null) => void;
   // <== LOGIN ACTION ==>
@@ -34,6 +36,8 @@ type AuthState = {
   setSessionExpired: (expired: boolean) => void;
   // <== SET LOGGING OUT FLAG ACTION ==>
   setLoggingOut: (loggingOut: boolean) => void;
+  // <== SET CHECKING AUTH FLAG ACTION ==>
+  setCheckingAuth: (checking: boolean) => void;
 };
 
 // <== AUTH STORE ==>
@@ -45,6 +49,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isSessionExpired: false,
       isLoggingOut: false,
+      isCheckingAuth: false,
       // <== SET USER ACTION ==>
       setUser: (user) =>
         set({
@@ -84,6 +89,11 @@ export const useAuthStore = create<AuthState>()(
       setLoggingOut: (loggingOut) =>
         set({
           isLoggingOut: loggingOut,
+        }),
+      // <== SET CHECKING AUTH FLAG ACTION ==>
+      setCheckingAuth: (checking) =>
+        set({
+          isCheckingAuth: checking,
         }),
     }),
     {
