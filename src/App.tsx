@@ -21,11 +21,12 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // <== APP ROUTER ==>
-const appRouter = createBrowserRouter([
-  // <== ROOT LAYOUT ROUTE ==>
-  {
-    element: <RootLayout />,
-    children: [
+const appRouter = createBrowserRouter(
+  [
+    // <== ROOT LAYOUT ROUTE ==>
+    {
+      element: <RootLayout />,
+      children: [
       // <== PUBLIC ROUTE ==>
       {
         path: "/",
@@ -136,7 +137,14 @@ const appRouter = createBrowserRouter([
       },
     ],
   },
-]);
+  ],
+  {
+    // DISABLE SCROLL RESTORATION TO PREVENT PRESERVING SCROLL POSITION
+    future: {
+      v7_startTransition: true,
+    },
+  }
+);
 
 // <== APP COMPONENT ==>
 const App = (): JSX.Element => {

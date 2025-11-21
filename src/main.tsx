@@ -21,6 +21,11 @@ const rootElement = document.getElementById("root") as HTMLDivElement;
 // <== CREATING THE ROOT ELEMENT ==>
 const root = createRoot(rootElement);
 
+// <== DISABLE BROWSER SCROLL RESTORATION ==>
+if ("scrollRestoration" in window.history) {
+  window.history.scrollRestoration = "manual";
+}
+
 // <== HIDING SCREEN SPLASH ==>
 const hideSplashScreen = (): void => {
   try {

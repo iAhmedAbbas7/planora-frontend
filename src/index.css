@@ -145,6 +145,10 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
 }
+/* <== DISABLE SMOOTH SCROLL DURING ROUTE CHANGES ==> */
+html.no-smooth-scroll {
+  scroll-behavior: auto !important;
+}
 /* <== SIDEBAR ITEM HOVER STYLES ==> */
 .sidebar-item:hover {
   background-color: var(--accent-hover-color);
