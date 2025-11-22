@@ -1,9 +1,8 @@
 // <== IMPORTS ==>
-import { AxiosError } from "axios";
 import apiClient from "../lib/axios";
-import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useLayoutEffect, useRef } from "react";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useAuthStore, type User } from "../store/useAuthStore";
 
 // <== USER RESPONSE TYPE ==>
@@ -19,21 +18,11 @@ type UserResponse = {
 // <== USE AUTH CHECK HOOK ==>
 export const useAuthCheck = (): void => {
   // AUTH STORE
-  const { user, isAuthenticated, setUser, setCheckingAuth } = useAuthStore();
-  // LOCATION HOOK (TO CHECK FOR OAUTH QUERY PARAM)
-  const location = useLocation();
+  const { setUser, setCheckingAuth } = useAuthStore();
   // REF TO TRACK IF WE'VE ALREADY SET CHECKING AUTH (PREVENT MULTIPLE SETS)
   const hasSetCheckingRef = useRef(false);
-  // CHECK IF ON A PROTECTED ROUTE (OAUTH IS HANDLED BY ProtectedRoute)
-  const isProtectedRoute =
-    location.pathname.startsWith("/dashboard") ||
-    location.pathname.startsWith("/projects") ||
-    location.pathname.startsWith("/tasks") ||
-    location.pathname.startsWith("/trash") ||
-    location.pathname.startsWith("/settings") ||
-    location.pathname.startsWith("/notifications");
-  // DETERMINE IF WE SHOULD CHECK AUTH
-  const shouldCheckAuth = !isProtectedRoute && !isAuthenticated && !user;
+  // SHOULD CHECK AUTH (ALWAYS FALSE - AUTH CHECK IS HANDLED BY ProtectedRoute)
+  const shouldCheckAuth = false;
   // SET CHECKING AUTH STATE SYNCHRONOUSLY (BEFORE PAINT)
   useLayoutEffect(() => {
     if (shouldCheckAuth && !hasSetCheckingRef.current) {
@@ -54,8 +43,10 @@ export const useAuthCheck = (): void => {
     queryKey: ["currentUser"],
     // QUERY FUNCTION
     queryFn: async (): Promise<UserResponse> => {
-      // CALL GET CURRENT USER API
-      const response = await apiClient.get<UserResponse>("/auth/me");
+      // CALL GET CURRENT USER API WITH SKIP REFRESH FLAG (TO PREVENT INTERCEPTOR FROM TRYING TO REFRESH)
+      const response = await apiClient.get<UserResponse>("/auth/me", {
+        skipTokenRefresh: true,
+      } as InternalAxiosRequestConfig & { skipTokenRefresh?: boolean });
       // RETURN RESPONSE DATA
       return response.data;
     },

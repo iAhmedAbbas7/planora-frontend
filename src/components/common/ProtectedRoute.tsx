@@ -45,8 +45,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
   const isOAuthCallback = location.search.includes("oauth=success");
   // CHECK IF WE NEED TO VERIFY AUTHENTICATION
   const needsAuthCheck = (!isAuthenticated && !user) || isOAuthCallback;
-  // QUERY SHOULD BE ENABLED IF WE NEED TO CHECK AND NOT YET AUTHENTICATED
-  const shouldCheckAuth = needsAuthCheck && !isAuthenticated;
+  // QUERY SHOULD BE ENABLED IF WE NEED TO CHECK AND NOT YET AUTHENTICATED AND NOT LOGGING OUT
+  const shouldCheckAuth = needsAuthCheck && !isAuthenticated && !isLoggingOut;
   // REF TO TRACK TIMEOUT (PREVENT INFINITE LOADING)
   const timeoutRef = useRef<number | null>(null);
   // SET CHECKING AUTH STATE IMMEDIATELY IF NEEDED (BEFORE QUERY RUNS)
@@ -74,40 +74,48 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
   }, [needsAuthCheck, isCheckingAuth, setCheckingAuth, isAuthenticated]);
   // FETCH CURRENT USER IF NEEDED
   const { data, isSuccess, isError, isLoading, isFetching, error } = useQuery({
+    // <== QUERY KEY ==>
     queryKey: ["currentUser", "protected-route"],
+    // <== QUERY FUNCTION ==>
     queryFn: async (): Promise<UserResponse> => {
       // CALL GET CURRENT USER API
       const response = await apiClient.get<UserResponse>("/auth/me");
       // RETURN RESPONSE DATA
       return response.data;
     },
-    // ENABLED
+    // <== ENABLED ==>
     enabled: shouldCheckAuth,
-    // RETRY: DON'T RETRY - LET AXIOS INTERCEPTOR HANDLE TOKEN REFRESH
+    // <== RETRY ==>
     retry: false,
-    // DON'T REFETCH ON WINDOW FOCUS (TO AVOID UNNECESSARY CALLS)
+    // <== REFETCH ON WINDOW FOCUS ==>
     refetchOnWindowFocus: false,
-    // DON'T REFETCH ON RECONNECT
+    // <== REFETCH ON RECONNECT ==>
     refetchOnReconnect: false,
-    // STALE TIME: DATA IS CONSIDERED FRESH FOR 1 MINUTE
+    // <== STALE TIME ==>
     staleTime: 60 * 1000,
   });
   // UPDATE USER IN STORE WHEN DATA IS FETCHED
   useEffect(() => {
     // CLEAR TIMEOUT IF QUERY COMPLETES
     if (timeoutRef.current) {
+      // CLEAR TIMEOUT
       clearTimeout(timeoutRef.current);
+      // SET TIMEOUT TO NULL
       timeoutRef.current = null;
     }
+    // IF QUERY IS SUCCESSFUL AND DATA EXISTS, SET USER IN STORE
     if (isSuccess && data?.data) {
       // SET USER IN STORE (THIS WILL SET isAuthenticated TO TRUE)
       setUser(data.data);
       // AUTH CHECK COMPLETE
       setCheckingAuth(false);
-      // CLEAN UP OAUTH QUERY PARAM FROM URL
+      // CLEAN UP OAUTH QUERY PARAM FROM URL IF NEEDED
       if (isOAuthCallback && window.history.replaceState) {
+        // CREATE URL OBJECT
         const url = new URL(window.location.href);
+        // DELETE OAUTH QUERY PARAM
         url.searchParams.delete("oauth");
+        // REPLACE STATE
         window.history.replaceState({}, "", url.toString());
       }
     }

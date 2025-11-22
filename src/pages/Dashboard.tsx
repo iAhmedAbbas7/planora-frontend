@@ -1,15 +1,48 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
+import { AxiosError } from "axios";
 import Notepad from "../components/cards/Notepad";
+import { useDashboard } from "../hooks/useDashboard";
 import AddThings from "../components/cards/AddThings";
 import AssignedTasks from "../components/cards/AssignedTasks";
 import ProgressTrends from "../components/cards/ProgressTrends";
 import DashboardHeader from "../components/layout/DashboardHeader";
 import TasksCreatedToday from "../components/cards/TasksCreatedToday";
 import WeeklyProjectsChart from "../components/cards/WeeklyProjectsChart";
+import DashboardSkeleton from "../components/skeletons/DashboardSkeleton";
 
 // <== DASHBOARD PAGE COMPONENT ==>
 const Dashboard = (): JSX.Element => {
+  // FETCH DASHBOARD DATA (DATA IS STORED IN STORE VIA useDashboard HOOK)
+  const { isLoading, isError, error } = useDashboard();
+  // IF LOADING, SHOW SKELETON
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+  // IF ERROR, SHOW ERROR MESSAGE
+  if (isError && error) {
+    const axiosError = error as AxiosError<{ message?: string }>;
+    const errorMessage =
+      axiosError?.response?.data?.message ||
+      axiosError?.message ||
+      "Unknown error";
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{
+          backgroundColor: "var(--bg)",
+          color: "var(--text-primary)",
+        }}
+      >
+        <div className="text-center">
+          <p className="text-lg font-medium text-red-500 mb-2">
+            Error loading dashboard data
+          </p>
+          <p className="text-sm text-[var(--light-text)]">{errorMessage}</p>
+        </div>
+      </div>
+    );
+  }
   // RETURNING THE DASHBOARD PAGE COMPONENT
   return (
     // DASHBOARD MAIN CONTAINER

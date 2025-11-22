@@ -69,6 +69,7 @@ apiClient.interceptors.response.use(
     // GET ORIGINAL REQUEST CONFIG
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
+      skipTokenRefresh?: boolean;
     };
     // CHECK IF ERROR IS 401 AND NOT A RETRY AND NOT REFRESH ENDPOINT
     if (
@@ -77,8 +78,27 @@ apiClient.interceptors.response.use(
       !originalRequest._retry &&
       !originalRequest.url?.includes("/auth/refresh")
     ) {
-      // CHECK ERROR CODE FROM BACKEND
+      // CHECK ERROR CODE AND MESSAGE FROM BACKEND FIRST
       const errorCode = error.response.data?.code;
+      // GET ERROR MESSAGE
+      const errorMessage = error.response.data?.message || "";
+      // CHECK IF REQUEST HAS SKIP REFRESH FLAG (FOR AUTH CHECK REQUESTS)
+      if (originalRequest.skipTokenRefresh) {
+        // DON'T TRY TO REFRESH - JUST RETURN THE ERROR
+        return Promise.reject(error);
+      }
+      // CHECK ERROR MESSAGE (CASE-INSENSITIVE) AND ERROR CODE
+      const lowerErrorMessage = errorMessage.toLowerCase();
+      if (
+        lowerErrorMessage.includes("refresh token not found") ||
+        lowerErrorMessage.includes("refresh token not found or expired") ||
+        lowerErrorMessage.includes("no refresh token") ||
+        errorCode === "REFRESH_TOKEN_NOT_FOUND" ||
+        errorCode === "NO_REFRESH_TOKEN"
+      ) {
+        // NO REFRESH TOKEN AVAILABLE - DON'T TRY TO REFRESH
+        return Promise.reject(error);
+      }
       // IF ACCESS TOKEN EXPIRED, TRY TO REFRESH
       if (
         errorCode === "ACCESS_TOKEN_EXPIRED" ||
@@ -86,12 +106,16 @@ apiClient.interceptors.response.use(
       ) {
         // IF ALREADY REFRESHING, QUEUE THIS REQUEST
         if (isRefreshing) {
+          // QUEUE REQUEST
           return new Promise<AxiosResponse>((resolve, reject) => {
+            // SUBSCRIBE TO TOKEN REFRESH
             subscribeTokenRefresh((refreshError?: AxiosError) => {
+              // IF REFRESH ERROR, REJECT PROMISE
               if (refreshError) {
+                // REJECT PROMISE WITH REFRESH ERROR
                 reject(refreshError);
               } else {
-                // RETRY ORIGINAL REQUEST AFTER TOKEN REFRESH
+                // RESOLVE PROMISE WITH ORIGINAL REQUEST
                 resolve(apiClient(originalRequest));
               }
             });

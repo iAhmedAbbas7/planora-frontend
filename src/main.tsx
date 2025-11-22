@@ -7,6 +7,7 @@ import { createRoot } from "react-dom/client";
 import { queryClient } from "./lib/react-query";
 import { ThemeProvider } from "./context/ThemeContext";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 // <== TYPE DECLARATION FOR WINDOW OBJECT ==>
 declare global {
@@ -66,6 +67,8 @@ root.render(
           }}
         />
         <App />
+        {/* REACT QUERY DEVTOOLS (ONLY IN DEVELOPMENT) */}
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </ThemeProvider>
     </QueryClientProvider>
   </React.StrictMode>

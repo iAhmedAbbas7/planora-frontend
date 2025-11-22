@@ -1,10 +1,10 @@
 // <== IMPORTS ==>
-import { AxiosError } from "axios";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 import apiClient from "../lib/axios";
 import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
 import { useAuthStore, type User } from "../store/useAuthStore";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // <== LOGIN REQUEST TYPE ==>
 type LoginRequest = {
@@ -146,6 +146,8 @@ export const useLogout = () => {
   const navigate = useNavigate();
   // AUTH STORE
   const { clearUser, setLoggingOut } = useAuthStore();
+  // QUERY CLIENT (FOR CLEARING CACHE)
+  const queryClient = useQueryClient();
   // LOGOUT MUTATION
   return useMutation({
     mutationFn: async (): Promise<void> => {
@@ -153,24 +155,32 @@ export const useLogout = () => {
       await apiClient.post("/auth/logout");
     },
     onSuccess: () => {
-      // SET LOGGING OUT FLAG
+      // SET LOGGING OUT FLAG FIRST (PREVENTS OTHER QUERIES FROM RUNNING)
       setLoggingOut(true);
+      // CLEAR USER STATE IMMEDIATELY
+      clearUser();
+      // CANCEL ALL ACTIVE QUERIES
+      queryClient.cancelQueries();
+      // CLEAR ALL QUERY CACHE
+      queryClient.clear();
       // NAVIGATE TO LOGIN
       navigate("/login", { replace: true });
-      // CLEAR USER STATE
-      clearUser();
       // SHOW SUCCESS TOAST
       toast.success("Logout successful!");
     },
     onError: (error: unknown) => {
       // TYPE ERROR AS AXIOS ERROR
       const axiosError = error as AxiosError<ApiErrorResponse>;
-      // SET LOGGING OUT FLAG
+      // SET LOGGING OUT FLAG FIRST (PREVENTS OTHER QUERIES FROM RUNNING)
       setLoggingOut(true);
+      // CLEAR USER STATE IMMEDIATELY
+      clearUser();
+      // CANCEL ALL ACTIVE QUERIES
+      queryClient.cancelQueries();
+      // CLEAR ALL QUERY CACHE
+      queryClient.clear();
       // NAVIGATE TO LOGIN
       navigate("/login", { replace: true });
-      // CLEAR USER STATE
-      clearUser();
       // SHOW ERROR TOAST
       const errorMessage =
         axiosError?.response?.data?.message ||
