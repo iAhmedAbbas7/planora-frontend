@@ -7,8 +7,8 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { MoreHorizontal } from "lucide-react";
 import ProjectDetails from "../projects/ProjectDetails";
+import { FolderPlus, MoreHorizontal } from "lucide-react";
 import ActionDropdown from "../projects/dropdown/ActionDropdown";
 
 // <== PROJECT TYPE INTERFACE ==>
@@ -85,10 +85,12 @@ const ListModeProjects = ({
   ): void => {
     // CHECK IF DROPDOWN IS ALREADY OPEN
     if (isDropdownOpen === id) {
+      // CLOSE DROPDOWN
       setIsDropdownOpen(null);
     } else {
       // GET BUTTON POSITION
       const rect = event.currentTarget.getBoundingClientRect();
+      // GET DROPDOWN WIDTH
       const dropdownWidth = 164;
       // CALCULATE SPACE ON RIGHT
       const spaceRight = window.innerWidth - rect.right;
@@ -153,8 +155,9 @@ const ListModeProjects = ({
     setEditProject(project);
     // OPEN PROJECT MODAL
     setIsProjectModalOpen(true);
-    // CLOSE DROPDOWNS
+    // CLOSE DESKTOP DROPDOWN
     setIsDropdownOpen(null);
+    // CLOSE MOBILE DROPDOWN
     setIsSmScreenDropdownOpen(null);
   };
   // RETURNING THE LIST MODE PROJECTS COMPONENT
@@ -164,11 +167,18 @@ const ListModeProjects = ({
       {/* CHECK IF NO PROJECTS */}
       {currentProjects.length === 0 && totalPages === 1 ? (
         // EMPTY STATE
-        <div className="text-center text-[var(--light-text)]">
+        <div className="flex flex-col items-center justify-center py-8 gap-3">
+          {/* EMPTY STATE ICON */}
+          <FolderPlus
+            size={48}
+            className="text-[var(--light-text)] opacity-50"
+          />
           {/* EMPTY STATE TITLE */}
-          <p className="text-lg font-medium">No projects yet</p>
+          <p className="text-lg font-medium text-[var(--light-text)]">
+            No projects yet
+          </p>
           {/* EMPTY STATE MESSAGE */}
-          <p className="text-sm mt-2">
+          <p className="text-sm text-[var(--light-text)] text-center">
             Start by adding a new project to see it here.
           </p>
         </div>

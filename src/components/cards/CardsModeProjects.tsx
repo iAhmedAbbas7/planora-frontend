@@ -7,8 +7,8 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { MoreHorizontal } from "lucide-react";
 import ProjectDetails from "../projects/ProjectDetails";
+import { MoreHorizontal, FolderPlus } from "lucide-react";
 import ActionDropdown from "../projects/dropdown/ActionDropdown";
 
 // <== PROJECT TYPE INTERFACE ==>
@@ -118,11 +118,18 @@ const CardsModeProjects = ({
         {/* CHECK IF NO PROJECTS */}
         {currentProjects.length === 0 && totalPages === 1 ? (
           // EMPTY STATE
-          <div className="col-span-full text-center text-gray-500">
+          <div className="col-span-full flex flex-col items-center justify-center py-8 gap-3">
+            {/* EMPTY STATE ICON */}
+            <FolderPlus
+              size={48}
+              className="text-[var(--light-text)] opacity-50"
+            />
             {/* EMPTY STATE TITLE */}
-            <p className="text-lg font-medium">No projects yet</p>
+            <p className="text-lg font-medium text-[var(--light-text)]">
+              No projects yet
+            </p>
             {/* EMPTY STATE MESSAGE */}
-            <p className="text-sm mt-2">
+            <p className="text-sm text-[var(--light-text)] text-center">
               Start by adding a new project to see it here.
             </p>
           </div>
