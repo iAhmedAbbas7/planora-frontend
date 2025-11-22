@@ -202,7 +202,7 @@ const AddProjectModal = ({
                 setProject({ ...project, title: e.target.value })
               }
               placeholder="Enter project title"
-              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
+              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
             />
           </div>
         </div>
@@ -230,7 +230,7 @@ const AddProjectModal = ({
                 setProject({ ...project, description: e.target.value })
               }
               placeholder="Enter project details..."
-              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg resize-none focus:outline-none focus:ring-none focus:ring-violet-500"
+              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg resize-none focus:outline-none focus:ring-none focus:ring-violet-500"
               rows={2}
             />
           </div>
@@ -262,8 +262,8 @@ const AddProjectModal = ({
                 onChange={(e) =>
                   setProject({ ...project, inChargeName: e.target.value })
                 }
-                placeholder="Enter incharge name"
-                className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
+              placeholder="Enter incharge name"
+              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
               />
             </div>
           </div>
@@ -293,7 +293,7 @@ const AddProjectModal = ({
                   setProject({ ...project, role: e.target.value })
                 }
                 placeholder="Enter incharge role"
-                className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
+                className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
               />
             </div>
           </div>
@@ -315,7 +315,7 @@ const AddProjectModal = ({
               onClick={() => setIsCalendarOpen(!isCalendarOpen)}
               className={`w-full flex items-center justify-between cursor-pointer pl-10 pr-3 py-1.5 sm:py-2 border border-[var(--border)] rounded-lg bg-[var(--cards-bg)] ${
                 selected
-                  ? "text-sm sm:text-base text-[var(--primary-text)]"
+                  ? "text-xs sm:text-sm text-[var(--primary-text)]"
                   : "text-xs sm:text-sm text-[var(--light-text)]"
               } focus:ring-none focus:ring-violet-500 relative`}
               aria-label="Select due date"
@@ -384,7 +384,7 @@ const AddProjectModal = ({
               onClick={() => setIsStatusOpen(!isStatusOpen)}
               className={`w-full flex items-center justify-between pl-10 pr-3 py-1.5 sm:py-2 border cursor-pointer border-[var(--border)] rounded-lg bg-[var(--cards-bg)] ${
                 status
-                  ? "text-sm sm:text-base text-[var(--primary-text)]"
+                  ? "text-xs sm:text-sm text-[var(--primary-text)]"
                   : "text-xs sm:text-sm text-[var(--light-text)]"
               } focus:ring-none focus:ring-violet-500 relative`}
               aria-label="Select status"
@@ -434,7 +434,7 @@ const AddProjectModal = ({
             onClick={() => setIsPriorityOpen(!isPriorityOpen)}
             className={`w-full flex items-center cursor-pointer justify-between pl-10 pr-3 py-1.5 sm:py-2 border border-[var(--border)] rounded-lg bg-[var(--cards-bg)] ${
               priority
-                ? "text-sm sm:text-base text-[var(--primary-text)]"
+                ? "text-xs sm:text-sm text-[var(--primary-text)]"
                 : "text-xs sm:text-sm text-[var(--light-text)]"
             } focus:ring-none focus:ring-[var(--accent-color)] relative`}
           >

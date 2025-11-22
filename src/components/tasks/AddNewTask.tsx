@@ -222,7 +222,7 @@ const AddNewTask = ({
             <button
               type="button"
               onClick={() => setIsOpen(!isOpen)}
-              className="flex justify-between items-center w-full border border-[var(--border)] pl-10 pr-3 py-1.5 sm:py-2 text-sm sm:text-base rounded-lg cursor-pointer bg-[var(--inside-card-bg)] relative"
+              className="flex justify-between items-center w-full border border-[var(--border)] pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg cursor-pointer bg-[var(--inside-card-bg)] relative"
             >
               {/* FOLDER ICON */}
               <Folder
@@ -230,7 +230,7 @@ const AddNewTask = ({
                 className="absolute left-3 text-[var(--light-text)]"
               />
               {/* PROJECT SELECTED TEXT */}
-              <span className="text-sm font-medium text-[var(--text-primary)]">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)]">
                 {projectSelected}
               </span>
               {/* CHEVRON DOWN ICON */}
@@ -298,7 +298,7 @@ const AddNewTask = ({
               value={task.title}
               onChange={handleChange}
               placeholder="Enter task title"
-              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none"
+              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none"
             />
           </div>
         </div>
@@ -325,7 +325,7 @@ const AddNewTask = ({
               onChange={handleChange}
               id="description"
               placeholder="Enter task details..."
-              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg resize-none focus:outline-none focus:ring-none focus:ring-[var(--accent-color)]"
+              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg resize-none focus:outline-none focus:ring-none focus:ring-[var(--accent-color)]"
               rows={2}
             ></textarea>
           </div>
@@ -350,7 +350,7 @@ const AddNewTask = ({
               }}
               className={`w-full flex items-center justify-between pl-10 pr-3 py-1.5 sm:py-2 border border-[var(--border)] cursor-pointer rounded-lg bg-[var(--inside-card-bg)] ${
                 selected
-                  ? "text-sm sm:text-base text-[var(--primary-text)]"
+                  ? "text-xs sm:text-sm text-[var(--primary-text)]"
                   : "text-xs sm:text-sm text-[var(--light-text)]"
               } focus:ring-none focus:ring-[var(--accent-color)] relative`}
             >
@@ -420,7 +420,7 @@ const AddNewTask = ({
               }}
               className={`w-full flex items-center justify-between pl-10 pr-3 py-1.5 sm:py-2 border cursor-pointer border-[var(--border)] rounded-lg bg-[var(--inside-card-bg)] ${
                 status
-                  ? "text-sm sm:text-base text-[var(--primary-text)]"
+                  ? "text-xs sm:text-sm text-[var(--primary-text)]"
                   : "text-xs sm:text-sm text-[var(--light-text)]"
               } focus:ring-none focus:ring-[var(--accent-color)] relative`}
             >
@@ -472,7 +472,7 @@ const AddNewTask = ({
             }}
             className={`w-full flex items-center justify-between pl-10 pr-3 py-1.5 sm:py-2 border border-[var(--border)] rounded-lg bg-[var(--inside-card-bg)] cursor-pointer ${
               priority
-                ? "text-sm sm:text-base text-[var(--primary-text)]"
+                ? "text-xs sm:text-sm text-[var(--primary-text)]"
                 : "text-xs sm:text-sm text-[var(--light-text)]"
             } focus:ring-none focus:ring-[var(--accent-color)] relative`}
           >
