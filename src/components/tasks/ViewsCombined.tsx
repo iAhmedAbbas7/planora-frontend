@@ -14,6 +14,19 @@ const ViewsCombined = (): JSX.Element => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   // TASK TO EDIT STATE
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  // PREVENT BACKGROUND SCROLLING WHEN MODAL IS OPEN
+  useEffect(() => {
+    if (isOpen) {
+      // SAVE ORIGINAL OVERFLOW STYLE
+      const originalOverflow = document.body.style.overflow;
+      // DISABLE BODY SCROLLING
+      document.body.style.overflow = "hidden";
+      // CLEANUP: RESTORE ORIGINAL OVERFLOW ON UNMOUNT OR WHEN MODAL CLOSES
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
   // VIEW MODE STATE
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   // TASKS STATE
@@ -181,36 +194,75 @@ const ViewsCombined = (): JSX.Element => {
       </main>
       {/* ADD TASK MODAL */}
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-2 sm:p-4">
           {/* MODAL CONTAINER */}
-          <div className="bg-[var(--bg)] rounded-xl w-[90%] max-w-md p-6 relative">
-            {/* CLOSE BUTTON */}
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute -top-2 -right-2 shadow-2xl rounded-full w-8.5 h-8.5 flex items-center justify-center text-violet-900 hover:bg-[var(--accent-btn-hover-color)] bg-[var(--accent-color)] cursor-pointer"
-            >
-              {/* CLOSE ICON */}
-              <X size={18} />
-            </button>
-            {/* ADD NEW TASK FORM */}
-            <AddNewTask
-              onClose={() => setIsOpen(false)}
-              onTaskAdded={(newTask) => {
-                // CHECK IF TASK EXISTS
-                setTasks((prev) => {
-                  const exists = prev.some((t) => t._id === newTask._id);
-                  // UPDATE OR ADD TASK
-                  return exists
-                    ? prev.map((t) => (t._id === newTask._id ? newTask : t))
-                    : [...prev, newTask];
-                });
-                // CLOSE MODAL
-                setIsOpen(false);
-                // CLEAR TASK TO EDIT
-                setTaskToEdit(null);
-              }}
-              initialTask={taskToEdit ?? undefined}
-            />
+          <div className="bg-[var(--bg)] rounded-xl w-full max-w-md max-h-[95vh] flex flex-col relative overflow-hidden">
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
+              {/* MODAL TITLE */}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                {taskToEdit ? "Edit Task" : "Add Task"}
+              </h2>
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  setTaskToEdit(null);
+                }}
+                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+              >
+                {/* CLOSE ICON */}
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            </div>
+            {/* SCROLLABLE CONTENT AREA - FORM ONLY */}
+            <div className="overflow-y-auto flex-1 min-h-0">
+              {/* ADD NEW TASK FORM */}
+              <AddNewTask
+                onClose={() => {
+                  setIsOpen(false);
+                  setTaskToEdit(null);
+                }}
+                onTaskAdded={(newTask) => {
+                  // CHECK IF TASK EXISTS
+                  setTasks((prev) => {
+                    const exists = prev.some((t) => t._id === newTask._id);
+                    // UPDATE OR ADD TASK
+                    return exists
+                      ? prev.map((t) => (t._id === newTask._id ? newTask : t))
+                      : [...prev, newTask];
+                  });
+                  // CLOSE MODAL
+                  setIsOpen(false);
+                  // CLEAR TASK TO EDIT
+                  setTaskToEdit(null);
+                }}
+                initialTask={taskToEdit ?? undefined}
+                showButtons={false}
+              />
+            </div>
+            {/* FIXED FOOTER - BUTTONS */}
+            <div className="flex justify-end gap-2 p-2 sm:p-3 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)] rounded-b-xl">
+              {/* CANCEL BUTTON */}
+              <button
+                type="button"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer"
+                onClick={() => {
+                  setIsOpen(false);
+                  setTaskToEdit(null);
+                }}
+              >
+                Cancel
+              </button>
+              {/* SUBMIT BUTTON */}
+              <button
+                type="submit"
+                form="task-form"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer"
+              >
+                {taskToEdit ? "Update Task" : "Add Task"}
+              </button>
+            </div>
           </div>
         </div>
       )}
