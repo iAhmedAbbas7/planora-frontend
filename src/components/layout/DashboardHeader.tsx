@@ -139,7 +139,7 @@ const DashboardHeader = ({
           </button>
           {/* DROPDOWN MENU */}
           {isOpen && (
-            <div className="absolute top-10 right-0 min-w-64">
+            <div className="absolute top-10 right-0 w-56 sm:w-64">
               <Dropdown />
             </div>
           )}
