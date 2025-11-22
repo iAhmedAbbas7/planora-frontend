@@ -1,7 +1,7 @@
 // <== IMPORTS ==>
-import { JSX, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Folder, X } from "lucide-react";
+import { JSX, useState, useEffect } from "react";
 import AddProjectModal from "../projects/AddProjectModal";
 
 // <== PROJECT TYPE INTERFACE ==>
@@ -32,6 +32,19 @@ const AssignedTasks = (): JSX.Element => {
     setIsProjectModalOpen(false);
     setEditProject(null);
   };
+  // PREVENT BACKGROUND SCROLLING WHEN MODAL IS OPEN
+  useEffect(() => {
+    if (isProjectModalOpen) {
+      // SAVE ORIGINAL OVERFLOW STYLE
+      const originalOverflow = document.body.style.overflow;
+      // DISABLE BODY SCROLLING
+      document.body.style.overflow = "hidden";
+      // CLEANUP: RESTORE ORIGINAL OVERFLOW ON UNMOUNT OR WHEN MODAL CLOSES
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isProjectModalOpen]);
   // RETURN THE ASSIGNED TASKS COMPONENT
   return (
     // ASSIGNED TASKS MAIN CONTAINER
@@ -109,29 +122,62 @@ const AssignedTasks = (): JSX.Element => {
       </div>
       {/* PROJECT MODAL */}
       {isProjectModalOpen && (
-        <div className="fixed inset-0 bg-[var(--black-overlay)] flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[var(--black-overlay)] flex items-center justify-center z-50 p-2 sm:p-4">
           {/* MODAL CONTAINER */}
-          <div className="relative bg-[var(--bg)] p-6 rounded-xl shadow-lg w-[90%] max-w-md">
-            {/* CLOSE BUTTON */}
-            <button
-              onClick={() => {
-                setIsProjectModalOpen(false);
-                setEditProject(null);
-              }}
-              className="absolute -top-2 cursor-pointer -right-2 bg-[var(--accent-color)] rounded-full w-8 h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
-            >
-              {/* CLOSE ICON */}
-              <X size={18} />
-            </button>
-            {/* ADD PROJECT MODAL */}
-            <AddProjectModal
-              initialProject={editProject || undefined}
-              onClose={() => {
-                setIsProjectModalOpen(false);
-                setEditProject(null);
-              }}
-              onProjectAdded={handleProjectAdded}
-            />
+          <div className="relative bg-[var(--bg)] rounded-xl shadow-lg w-full max-w-md max-h-[95vh] flex flex-col overflow-hidden">
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
+              {/* MODAL TITLE */}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                {editProject ? "Edit Project" : "Add Project"}
+              </h2>
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={() => {
+                  setIsProjectModalOpen(false);
+                  setEditProject(null);
+                }}
+                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+              >
+                {/* CLOSE ICON */}
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            </div>
+            {/* SCROLLABLE CONTENT AREA - FORM ONLY */}
+            <div className="overflow-y-auto flex-1 min-h-0">
+              {/* ADD PROJECT MODAL FORM */}
+              <AddProjectModal
+                initialProject={editProject || undefined}
+                onClose={() => {
+                  setIsProjectModalOpen(false);
+                  setEditProject(null);
+                }}
+                onProjectAdded={handleProjectAdded}
+                showButtons={false}
+              />
+            </div>
+            {/* FIXED FOOTER - BUTTONS */}
+            <div className="flex justify-end gap-2 p-2 sm:p-3 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)] rounded-b-xl">
+              {/* CANCEL BUTTON */}
+              <button
+                type="button"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer"
+                onClick={() => {
+                  setIsProjectModalOpen(false);
+                  setEditProject(null);
+                }}
+              >
+                Cancel
+              </button>
+              {/* SUBMIT BUTTON */}
+              <button
+                type="submit"
+                form="project-form"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer"
+              >
+                {editProject ? "Update Project" : "Add Project"}
+              </button>
+            </div>
           </div>
         </div>
       )}
