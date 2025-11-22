@@ -4,6 +4,7 @@ import ListModeProjects from "./ListModeProjects";
 import CardsModeProjects from "./CardsModeProjects";
 import AddProjectModal from "../projects/AddProjectModal";
 import { Search, List, LayoutGrid, X, Plus } from "lucide-react";
+import { useProjects } from "../../hooks/useProjects";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -33,14 +34,14 @@ type ViewMode = "list" | "card";
 
 // <== PROJECT CARDS COMPONENT ==>
 const ProjectCards = (): JSX.Element => {
+  // GET PROJECTS DATA FROM HOOK
+  const { projects: fetchedProjects, refetchProjects } = useProjects();
   // VIEW MODE STATE
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   // SEARCH TERM STATE
   const [searchTerm, setSearchTerm] = useState<string>("");
-  // PROJECTS STATE
+  // PROJECTS STATE (LOCAL STATE FOR UI UPDATES)
   const [projects, setProjects] = useState<Project[]>([]);
-  // LOADING STATE
-  const [loading, setLoading] = useState<boolean>(true);
   // CURRENT PAGE STATE
   const [currentPage, setCurrentPage] = useState<number>(1);
   // EDIT PROJECT STATE
@@ -64,16 +65,13 @@ const ProjectCards = (): JSX.Element => {
       };
     }
   }, [isProjectModalOpen]);
-  // FETCH PROJECTS EFFECT (MOCK DATA - NO API)
+  // UPDATE PROJECTS FROM FETCHED DATA
   useEffect(() => {
-    // SIMULATE API CALL
-    setTimeout(() => {
-      // SET EMPTY PROJECTS
-      setProjects([]);
-      // SET LOADING TO FALSE
-      setLoading(false);
-    }, 500);
-  }, []);
+    // UPDATE PROJECTS FROM API
+    if (fetchedProjects) {
+      setProjects(fetchedProjects);
+    }
+  }, [fetchedProjects]);
   // RESET PAGE WHEN VIEW MODE CHANGES EFFECT
   useEffect(() => {
     // RESET TO FIRST PAGE
@@ -96,10 +94,10 @@ const ProjectCards = (): JSX.Element => {
   const currentProjects = filteredProjects.slice(indexOfFirst, indexOfLast);
   // HANDLE DELETE PROJECT FUNCTION
   const onDeleteProject = (projectId: string): void => {
-    // REMOVE PROJECT FROM STATE (UI ONLY - NO API)
+    // REMOVE PROJECT FROM STATE
     setProjects((prev) => prev.filter((p) => p._id !== projectId));
-    // LOG DELETION (UI ONLY)
-    console.log("Project deleted:", projectId);
+    // REFETCH PROJECTS TO GET UPDATED DATA
+    refetchProjects();
   };
   // HANDLE PROJECT ADDED FUNCTION
   const handleProjectAdded = (newProject: Project): void => {
@@ -113,6 +111,8 @@ const ProjectCards = (): JSX.Element => {
       // ADD NEW PROJECT
       setProjects((prev) => [newProject, ...prev]);
     }
+    // REFETCH PROJECTS TO GET UPDATED DATA
+    refetchProjects();
     // CLOSE MODAL
     setIsProjectModalOpen(false);
     // CLEAR EDIT PROJECT
@@ -209,18 +209,11 @@ const ProjectCards = (): JSX.Element => {
           </div>
         </div>
       </header>
-      {/* LOADING STATE */}
-      {loading ? (
-        <p className="text-center mt-10">Loading projects...</p>
+      {/* RENDER VIEW MODE */}
+      {viewMode === "list" ? (
+        <ListModeProjects {...commonProps} />
       ) : (
-        <>
-          {/* RENDER VIEW MODE */}
-          {viewMode === "list" ? (
-            <ListModeProjects {...commonProps} />
-          ) : (
-            <CardsModeProjects {...commonProps} />
-          )}
-        </>
+        <CardsModeProjects {...commonProps} />
       )}
       {/* PROJECT MODAL */}
       {isProjectModalOpen && (

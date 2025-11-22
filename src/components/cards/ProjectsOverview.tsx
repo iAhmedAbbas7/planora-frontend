@@ -7,25 +7,14 @@ import {
   Calendar,
 } from "lucide-react";
 import { JSX } from "react";
-
-// <== PROJECT STATS TYPE INTERFACE ==>
-type ProjectStats = {
-  // <== TOTAL COUNT ==>
-  totalCount: number;
-  // <== COMPLETED COUNT ==>
-  completedCount: number;
-  // <== IN PROGRESS COUNT ==>
-  inProgressCount: number;
-  // <== PENDING COUNT ==>
-  pendingCount: number;
-  // <== DUE TODAY COUNT ==>
-  dueTodayCount: number;
-};
+import { useProjects } from "../../hooks/useProjects";
 
 // <== PROJECTS OVERVIEW COMPONENT ==>
 const ProjectsOverview = (): JSX.Element => {
-  // MOCK STATS DATA (NO API)
-  const stats: ProjectStats = {
+  // GET PROJECT STATS FROM HOOK
+  const { projectStats } = useProjects();
+  // STATS WITH FALLBACK VALUES
+  const stats = projectStats || {
     totalCount: 0,
     completedCount: 0,
     inProgressCount: 0,
