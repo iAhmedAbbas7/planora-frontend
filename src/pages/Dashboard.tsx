@@ -66,22 +66,28 @@ const Dashboard = (): JSX.Element => {
           {/* ADD THINGS CARD */}
           <AddThings />
           {/* CARDS GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
             {/* PROGRESS TRENDS CARD */}
-            <ProgressTrends />
+            <div className="w-full flex">
+              <ProgressTrends />
+            </div>
             {/* WEEKLY PROJECTS CHART CARD */}
-            <WeeklyProjectsChart />
+            <div className="w-full flex">
+              <WeeklyProjectsChart />
+            </div>
             {/* ASSIGNED TASKS CARD */}
-            <AssignedTasks />
+            <div className="w-full md:col-span-2 lg:col-span-1 flex">
+              <AssignedTasks />
+            </div>
           </div>
           {/* CHART AND NOTEPAD SECTION */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
             {/* TASKS CREATED TODAY CARD */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 flex">
               <TasksCreatedToday />
             </div>
             {/* NOTEPAD CARD */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 flex">
               <Notepad />
             </div>
           </div>

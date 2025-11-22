@@ -66,20 +66,20 @@ const Notepad = (): JSX.Element => {
   // RETURNING THE NOTEPAD COMPONENT
   return (
     // NOTEPAD MAIN CONTAINER
-    <div className="flex flex-col border border-[var(--border)] bg-[var(--cards-bg)] rounded-xl">
+    <div className="flex flex-col border border-[var(--border)] bg-[var(--cards-bg)] rounded-xl h-full w-full">
       {/* NOTEPAD HEADER */}
       <header className="border-b border-[var(--border)] px-4 py-1.5">
         {/* HEADER TITLE */}
         <p className="text-lg font-medium">Private Notepad</p>
       </header>
       {/* NOTEPAD MAIN CONTENT */}
-      <main>
+      <main className="flex-1 flex flex-col">
         {/* TEXTAREA */}
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Write your notes here..."
-          className="w-full h-46 resize-none rounded-lg p-4 focus:outline-none bg-transparent"
+          className="w-full flex-1 resize-none rounded-lg p-4 focus:outline-none bg-transparent"
           style={textStyle}
         />
       </main>

@@ -1,7 +1,8 @@
 // <== IMPORTS ==>
-import { JSX } from "react";
-import { Plus } from "lucide-react";
+import { JSX, useState } from "react";
 import { Link } from "react-router-dom";
+import { Plus, Folder, X } from "lucide-react";
+import AddProjectModal from "../projects/AddProjectModal";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -21,10 +22,20 @@ type Project = {
 const AssignedTasks = (): JSX.Element => {
   // MOCK PROJECTS DATA (NO API)
   const projects: Project[] = [];
-  // RETURNING THE ASSIGNED TASKS COMPONENT
+  // PROJECT MODAL OPEN STATE
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState<boolean>(false);
+  // EDIT PROJECT STATE
+  const [editProject, setEditProject] = useState<Project | null>(null);
+  // HANDLE PROJECT ADDED FUNCTION
+  const handleProjectAdded = (): void => {
+    // CLOSE MODAL AND RESET EDIT PROJECT STATE
+    setIsProjectModalOpen(false);
+    setEditProject(null);
+  };
+  // RETURN THE ASSIGNED TASKS COMPONENT
   return (
     // ASSIGNED TASKS MAIN CONTAINER
-    <div className="flex flex-col border border-[var(--border)] bg-[var(--cards-bg)] rounded-xl overflow-hidden">
+    <div className="flex flex-col border border-[var(--border)] bg-[var(--cards-bg)] rounded-xl overflow-hidden h-full w-full">
       {/* CARD HEADER */}
       <div className="flex justify-between items-center border-b border-[var(--border)] px-4 py-1.5">
         {/* CARD TITLE */}
@@ -42,9 +53,12 @@ const AssignedTasks = (): JSX.Element => {
         </div>
       </div>
       {/* PROJECT LIST CONTAINER */}
-      <div className="grid grid-cols-1 gap-2 p-3">
+      <div className="grid grid-cols-1 gap-2 p-3 flex-1">
         {/* ADD PROJECT BUTTON */}
-        <button className="border border-[var(--accent-color)] flex justify-center items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[var(--accent-color)] hover:bg-[var(--inside-card-bg)] transition cursor-pointer">
+        <button
+          onClick={() => setIsProjectModalOpen(true)}
+          className="border border-[var(--accent-color)] flex justify-center items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[var(--accent-color)] hover:bg-[var(--inside-card-bg)] transition cursor-pointer"
+        >
           {/* PLUS ICON */}
           <Plus size={16} />
           {/* BUTTON TEXT */}
@@ -83,11 +97,44 @@ const AssignedTasks = (): JSX.Element => {
         ))}
         {/* EMPTY STATE */}
         {projects.length === 0 && (
-          <p className="text-sm text-[var(--light-text)] text-center py-4">
-            No projects yet
-          </p>
+          <div className="flex flex-col items-center justify-center py-8 gap-3">
+            {/* EMPTY STATE ICON */}
+            <Folder size={48} className="text-[var(--light-text)] opacity-50" />
+            {/* EMPTY STATE TEXT */}
+            <p className="text-sm text-[var(--light-text)] text-center">
+              No projects yet
+            </p>
+          </div>
         )}
       </div>
+      {/* PROJECT MODAL */}
+      {isProjectModalOpen && (
+        <div className="fixed inset-0 bg-[var(--black-overlay)] flex items-center justify-center z-50">
+          {/* MODAL CONTAINER */}
+          <div className="relative bg-[var(--bg)] p-6 rounded-xl shadow-lg w-[90%] max-w-md">
+            {/* CLOSE BUTTON */}
+            <button
+              onClick={() => {
+                setIsProjectModalOpen(false);
+                setEditProject(null);
+              }}
+              className="absolute -top-2 cursor-pointer -right-2 bg-[var(--accent-color)] rounded-full w-8 h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+            >
+              {/* CLOSE ICON */}
+              <X size={18} />
+            </button>
+            {/* ADD PROJECT MODAL */}
+            <AddProjectModal
+              initialProject={editProject || undefined}
+              onClose={() => {
+                setIsProjectModalOpen(false);
+                setEditProject(null);
+              }}
+              onProjectAdded={handleProjectAdded}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

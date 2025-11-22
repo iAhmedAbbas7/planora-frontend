@@ -1,6 +1,7 @@
 // <== IMPORTS ==>
-import { RadialBarChart, RadialBar, PolarAngleAxis, Tooltip } from "recharts";
 import { JSX } from "react";
+import { FolderPlus } from "lucide-react";
+import { RadialBarChart, RadialBar, PolarAngleAxis, Tooltip } from "recharts";
 
 // <== WEEKLY PROJECTS CHART COMPONENT ==>
 const WeeklyProjectsChart = (): JSX.Element => {
@@ -27,7 +28,7 @@ const WeeklyProjectsChart = (): JSX.Element => {
   // RETURNING THE WEEKLY PROJECTS CHART COMPONENT
   return (
     // WEEKLY PROJECTS CHART MAIN CONTAINER
-    <div className="flex flex-col bg-[var(--cards-bg)] rounded-xl border border-[var(--border)]">
+    <div className="flex flex-col bg-[var(--cards-bg)] rounded-xl border border-[var(--border)] h-full w-full">
       {/* CARD HEADER */}
       <div>
         {/* CARD TITLE */}
@@ -40,9 +41,17 @@ const WeeklyProjectsChart = (): JSX.Element => {
         {/* CHECK IF NO PROJECTS */}
         {noProjects ? (
           // EMPTY STATE
-          <p className="text-[var(--light-text)] text-center">
-            No projects added yet
-          </p>
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            {/* EMPTY STATE ICON */}
+            <FolderPlus
+              size={48}
+              className="text-[var(--light-text)] opacity-50"
+            />
+            {/* EMPTY STATE TEXT */}
+            <p className="text-[var(--light-text)] text-center">
+              No projects added yet
+            </p>
+          </div>
         ) : (
           // RADIAL BAR CHART
           <RadialBarChart

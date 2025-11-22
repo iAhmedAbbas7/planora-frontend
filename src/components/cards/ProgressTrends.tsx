@@ -9,6 +9,7 @@ import {
   LabelList,
 } from "recharts";
 import { JSX } from "react";
+import { CheckSquare2 } from "lucide-react";
 
 // <== PROGRESS TRENDS COMPONENT ==>
 const ProgressTrends = (): JSX.Element => {
@@ -28,7 +29,7 @@ const ProgressTrends = (): JSX.Element => {
   // RETURNING THE PROGRESS TRENDS COMPONENT
   return (
     // PROGRESS TRENDS MAIN CONTAINER
-    <div className="bg-[var(--cards-bg)] border rounded-xl border-[var(--border)]">
+    <div className="bg-[var(--cards-bg)] border rounded-xl border-[var(--border)] flex flex-col h-full w-full">
       {/* CARD HEADER */}
       <div className="p-3 pt-1.5 pb-1.5 border-b border-[var(--border)]">
         {/* CARD TITLE */}
@@ -88,9 +89,17 @@ const ProgressTrends = (): JSX.Element => {
           </ResponsiveContainer>
         ) : (
           // EMPTY STATE
-          <p className="text-[var(--light-text)] text-center">
-            No tasks completed yet
-          </p>
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            {/* EMPTY STATE ICON */}
+            <CheckSquare2
+              size={48}
+              className="text-[var(--light-text)] opacity-50"
+            />
+            {/* EMPTY STATE TEXT */}
+            <p className="text-[var(--light-text)] text-center">
+              No tasks completed yet
+            </p>
+          </div>
         )}
       </div>
     </div>
