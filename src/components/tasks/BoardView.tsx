@@ -16,7 +16,7 @@ import {
 import AddNewTask from "./AddNewTask";
 import type { Task } from "../../types/task";
 import ActionDropdown from "./dropdown/ActionDropdown";
-import { MoreHorizontal, Plus, X } from "lucide-react";
+import { MoreHorizontal, Plus, X, ClipboardList } from "lucide-react";
 
 // <== BOARD VIEW PROPS TYPE INTERFACE ==>
 type Props = {
@@ -48,6 +48,12 @@ const BoardView = ({
   const [isDropdownOpen, setDropdownIsOpen] = useState<boolean>(false);
   // MODAL OPEN STATE
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  // TASK TO EDIT STATE
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  // COLUMN STATUS FOR NEW TASK STATE
+  const [newTaskStatus, setNewTaskStatus] = useState<Task["status"] | null>(
+    null
+  );
   // DROPDOWN TASK ID STATE
   const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
   // DROPDOWN POSITION STATE
@@ -78,6 +84,7 @@ const BoardView = ({
   const openDropdown = (e: React.MouseEvent, taskId: string): void => {
     // GET BUTTON POSITION
     const rect = (e.target as HTMLElement).getBoundingClientRect();
+    // GET DROPDOWN WIDTH
     const dropdownWidth = 150;
     // CALCULATE SPACE ON RIGHT
     const spaceRight = window.innerWidth - rect.right;
@@ -124,6 +131,19 @@ const BoardView = ({
     // CLOSE DROPDOWN IF MODAL IS OPEN
     if (isOpen || parentModalOpen) setDropdownTaskId(null);
   }, [isOpen, parentModalOpen]);
+  // PREVENT BACKGROUND SCROLLING WHEN MODAL IS OPEN
+  useEffect(() => {
+    if (isOpen) {
+      // SAVE ORIGINAL OVERFLOW STYLE
+      const originalOverflow = document.body.style.overflow;
+      // DISABLE BODY SCROLLING
+      document.body.style.overflow = "hidden";
+      // CLEANUP: RESTORE ORIGINAL OVERFLOW ON UNMOUNT OR WHEN MODAL CLOSES
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
   // COLUMNS CONFIGURATION
   const columns = [
     {
@@ -367,9 +387,17 @@ const BoardView = ({
                       ))
                     ) : (
                       // EMPTY STATE
-                      <p className="text-sm text-[var(--light-text)] italic text-center py-4">
-                        No tasks yet
-                      </p>
+                      <div className="flex flex-col items-center justify-center py-8 gap-3">
+                        {/* EMPTY STATE ICON */}
+                        <ClipboardList
+                          size={48}
+                          className="text-[var(--light-text)] opacity-50"
+                        />
+                        {/* EMPTY STATE TEXT */}
+                        <p className="text-sm text-[var(--light-text)] text-center">
+                          No tasks yet
+                        </p>
+                      </div>
                     )}
                     {/* PLACEHOLDER */}
                     {provided.placeholder}
@@ -381,6 +409,8 @@ const BoardView = ({
                 className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-[var(--accent-color)] cursor-pointer text-[var(--primary-text)] rounded-lg transition"
                 onClick={() => {
                   setDropdownTaskId(null);
+                  setTaskToEdit(null);
+                  setNewTaskStatus(col.id as Task["status"]);
                   setTimeout(() => setIsOpen(true), 0);
                 }}
                 onMouseEnter={(e) => {
@@ -443,7 +473,18 @@ const BoardView = ({
           }}
         >
           <ActionDropdown
-            onEditTask={() => onTaskEdited?.(dropdownTaskId)}
+            onEditTask={() => {
+              // FIND TASK TO EDIT
+              const task = tasks.find((t) => t._id === dropdownTaskId);
+              if (task) {
+                // SET TASK TO EDIT
+                setTaskToEdit(task);
+                // CLOSE DROPDOWN
+                closeDropdown();
+                // OPEN MODAL
+                setIsOpen(true);
+              }
+            }}
             onDeleteTask={() => {
               onTaskDeleted?.(dropdownTaskId!);
               closeDropdown();
@@ -453,24 +494,90 @@ const BoardView = ({
       )}
       {/* ADD TASK MODAL */}
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/10 z-50 overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-2 sm:p-4">
           {/* MODAL CONTAINER */}
-          <div className="bg-white rounded-xl w-[90%] max-w-md p-6 relative">
-            {/* CLOSE BUTTON */}
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute -top-2 -right-2 bg-[var(--accent-color)] shadow-2xl rounded-full w-8.5 h-8.5 flex items-center justify-center text-violet-900 hover:bg-[var(--accent-btn-hover-color)] cursor-pointer"
-            >
-              {/* CLOSE ICON */}
-              <X size={18} />
-            </button>
-            {/* ADD NEW TASK FORM */}
-            <AddNewTask
-              onClose={() => setIsOpen(false)}
-              onTaskAdded={(newTask) => {
-                setTasks((prev) => [...prev, newTask]);
-              }}
-            />
+          <div className="bg-[var(--bg)] rounded-xl w-full max-w-md max-h-[95vh] flex flex-col relative overflow-hidden">
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
+              {/* MODAL TITLE */}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                {taskToEdit ? "Edit Task" : "Add Task"}
+              </h2>
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  setTaskToEdit(null);
+                  setNewTaskStatus(null);
+                }}
+                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+              >
+                {/* CLOSE ICON */}
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            </div>
+            {/* SCROLLABLE CONTENT AREA - FORM ONLY */}
+            <div className="overflow-y-auto flex-1 min-h-0">
+              {/* ADD NEW TASK FORM */}
+              <AddNewTask
+                onClose={() => {
+                  setIsOpen(false);
+                  setTaskToEdit(null);
+                  setNewTaskStatus(null);
+                }}
+                onTaskAdded={(newTask) => {
+                  // CHECK IF TASK EXISTS
+                  setTasks((prev) => {
+                    const exists = prev.some((t) => t._id === newTask._id);
+                    // UPDATE OR ADD TASK
+                    return exists
+                      ? prev.map((t) => (t._id === newTask._id ? newTask : t))
+                      : [...prev, newTask];
+                  });
+                  // CALL ON TASK EDITED IF EDITING
+                  if (taskToEdit) {
+                    onTaskEdited?.(newTask._id);
+                  }
+                  // CLOSE MODAL
+                  setIsOpen(false);
+                  // CLEAR TASK TO EDIT
+                  setTaskToEdit(null);
+                  // CLEAR NEW TASK STATUS
+                  setNewTaskStatus(null);
+                }}
+                initialTask={
+                  taskToEdit
+                    ? taskToEdit
+                    : newTaskStatus
+                    ? { status: newTaskStatus }
+                    : undefined
+                }
+                showButtons={false}
+              />
+            </div>
+            {/* FIXED FOOTER - BUTTONS */}
+            <div className="flex justify-end gap-2 p-2 sm:p-3 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)] rounded-b-xl">
+              {/* CANCEL BUTTON */}
+              <button
+                type="button"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer"
+                onClick={() => {
+                  setIsOpen(false);
+                  setTaskToEdit(null);
+                  setNewTaskStatus(null);
+                }}
+              >
+                Cancel
+              </button>
+              {/* SUBMIT BUTTON */}
+              <button
+                type="submit"
+                form="task-form"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer"
+              >
+                {taskToEdit ? "Update Task" : "Add Task"}
+              </button>
+            </div>
           </div>
         </div>
       )}

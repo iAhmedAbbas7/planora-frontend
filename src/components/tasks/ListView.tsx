@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { Task } from "../../types/task";
 import ActionDropdown from "./dropdown/ActionDropdown";
-import { ChevronDown, MoreHorizontal } from "lucide-react";
+import { ChevronDown, MoreHorizontal, ClipboardList } from "lucide-react";
 
 // <== LIST VIEW PROPS TYPE INTERFACE ==>
 type ListViewProps = {
@@ -99,6 +99,7 @@ function TaskColumn({
   const openDropdown = (e: React.MouseEvent, taskId: string): void => {
     // GET BUTTON POSITION
     const rect = (e.target as HTMLElement).getBoundingClientRect();
+    // GET DROPDOWN WIDTH
     const dropdownWidth = 150;
     // CALCULATE SPACE ON RIGHT
     const spaceRight = window.innerWidth - rect.right;
@@ -203,11 +204,19 @@ function TaskColumn({
               {tasks.length === 0 ? (
                 // EMPTY STATE ROW
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="py-4 text-center text-[var(--light-text)]"
-                  >
-                    No tasks in this section
+                  <td colSpan={5} className="py-8">
+                    {/* EMPTY STATE CONTAINER */}
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      {/* EMPTY STATE ICON */}
+                      <ClipboardList
+                        size={48}
+                        className="text-[var(--light-text)] opacity-50"
+                      />
+                      {/* EMPTY STATE TEXT */}
+                      <p className="text-sm text-[var(--light-text)] text-center">
+                        No tasks in this section
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (

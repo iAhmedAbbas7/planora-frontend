@@ -71,12 +71,32 @@ const AddNewTask = ({
     projectId: initialTask.projectId || "",
     userId: initialTask.userId || "",
   });
+  // FORMAT STATUS FOR DISPLAY FUNCTION
+  const formatStatusForDisplay = (statusValue: string | null): string => {
+    // IF NO STATUS, RETURN EMPTY STRING
+    if (!statusValue) return "";
+    // CONVERT TO LOWERCASE FOR COMPARISON
+    const lowerStatus = statusValue.toLowerCase();
+    // IF TO DO, RETURN "TO DO"
+    if (lowerStatus === "to do") return "To Do";
+    // IF IN PROGRESS, RETURN "IN PROGRESS"
+    if (lowerStatus === "in progress") return "In Progress";
+    // IF COMPLETED, RETURN "COMPLETED"
+    if (lowerStatus === "completed") return "Completed";
+    // RETURN ORIGINAL IF NO MATCH
+    return statusValue;
+  };
   // INITIALIZE FROM INITIAL TASK EFFECT
   useEffect(() => {
     // CHECK IF INITIAL TASK EXISTS
     if (initialTask) {
       // SET STATUS IF EXISTS
-      if (initialTask.status) setStatus(initialTask.status);
+      if (initialTask.status) {
+        // FORMAT STATUS FOR DISPLAY
+        const formattedStatus = formatStatusForDisplay(initialTask.status);
+        // SET STATUS
+        setStatus(formattedStatus);
+      }
       // SET PRIORITY IF EXISTS
       if (initialTask.priority) setPriority(initialTask.priority);
       // SET SELECTED DATE IF EXISTS
@@ -429,7 +449,7 @@ const AddNewTask = ({
                 size={18}
                 className="absolute left-3 text-[var(--light-text)]"
               />
-              {status || "Select status"}
+              {formatStatusForDisplay(status) || "Select status"}
               {/* CHEVRON DOWN ICON */}
               <ChevronDown size={16} className="text-[var(--light-text)]" />
             </button>

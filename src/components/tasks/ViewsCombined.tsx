@@ -3,6 +3,7 @@ import ListView from "./ListView";
 import BoardView from "./BoardView";
 import AddNewTask from "./AddNewTask";
 import type { Task } from "../../types/task";
+import { useTasks } from "../../hooks/useTasks";
 import { useEffect, useState, JSX } from "react";
 import { Search, List, LayoutGrid, Plus, X } from "lucide-react";
 
@@ -27,22 +28,20 @@ const ViewsCombined = (): JSX.Element => {
       };
     }
   }, [isOpen]);
+  // GET TASKS DATA FROM HOOK
+  const { tasks: fetchedTasks, refetchTasks } = useTasks();
   // VIEW MODE STATE
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
-  // TASKS STATE
+  // TASKS STATE (LOCAL STATE FOR UI UPDATES)
   const [tasks, setTasks] = useState<Task[]>([]);
-  // LOADING STATE
-  const [loading, setLoading] = useState<boolean>(true);
-  // FETCH TASKS EFFECT (MOCK DATA - NO API)
+  // UPDATE TASKS FROM FETCHED DATA
   useEffect(() => {
-    // SIMULATE API CALL
-    setTimeout(() => {
-      // SET EMPTY TASKS
-      setTasks([]);
-      // SET LOADING TO FALSE
-      setLoading(false);
-    }, 500);
-  }, []);
+    // UPDATE TASKS FROM API
+    if (fetchedTasks) {
+      // SET TASKS FROM FETCHED DATA
+      setTasks(fetchedTasks as Task[]);
+    }
+  }, [fetchedTasks]);
   // GET VIEW MODE FROM URL PARAMS EFFECT
   useEffect(() => {
     // CHECK IF WINDOW EXISTS
@@ -61,8 +60,11 @@ const ViewsCombined = (): JSX.Element => {
     setViewMode(mode);
     // UPDATE URL PARAMS
     if (typeof window !== "undefined") {
+      // GET URL
       const url = new URL(window.location.href);
+      // SET VIEW MODE IN URL PARAMS
       url.searchParams.set("view", mode);
+      // PUSH STATE TO URL
       window.history.pushState({}, "", url);
     }
   };
@@ -75,10 +77,10 @@ const ViewsCombined = (): JSX.Element => {
   );
   // HANDLE DELETE TASK FUNCTION
   const handleDeleteTask = (taskId: string): void => {
-    // REMOVE TASK FROM STATE (UI ONLY - NO API)
+    // REMOVE TASK FROM STATE
     setTasks((prev) => prev.filter((t) => t._id !== taskId));
-    // LOG DELETION (UI ONLY)
-    console.log("Task deleted:", taskId);
+    // REFETCH TASKS TO GET UPDATED DATA
+    refetchTasks();
   };
   // HANDLE EDIT TASK FUNCTION
   const handleEditTask = (taskId: string): void => {
@@ -174,7 +176,7 @@ const ViewsCombined = (): JSX.Element => {
           // BOARD VIEW
           <BoardView
             tasks={filteredTasks}
-            loading={loading}
+            loading={false}
             setTasks={setTasks}
             onTaskDeleted={handleDeleteTask}
             onTaskEdited={handleEditTask}
@@ -184,7 +186,7 @@ const ViewsCombined = (): JSX.Element => {
           // LIST VIEW
           <ListView
             tasks={filteredTasks}
-            loading={loading}
+            loading={false}
             setTasks={setTasks}
             onTaskDeleted={handleDeleteTask}
             onTaskEdited={handleEditTask}
@@ -232,6 +234,8 @@ const ViewsCombined = (): JSX.Element => {
                       ? prev.map((t) => (t._id === newTask._id ? newTask : t))
                       : [...prev, newTask];
                   });
+                  // REFETCH TASKS TO GET UPDATED DATA
+                  refetchTasks();
                   // CLOSE MODAL
                   setIsOpen(false);
                   // CLEAR TASK TO EDIT
