@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Folder, X } from "lucide-react";
 import { JSX, useState, useEffect } from "react";
 import AddProjectModal from "../projects/AddProjectModal";
+import { useDashboardStore } from "../../store/useDashboardStore";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -20,16 +21,18 @@ type Project = {
 
 // <== ASSIGNED TASKS COMPONENT ==>
 const AssignedTasks = (): JSX.Element => {
-  // MOCK PROJECTS DATA (NO API)
-  const projects: Project[] = [];
+  // GET RECENT PROJECTS FROM DASHBOARD STORE
+  const projects =
+    useDashboardStore((state) => state.getRecentProjects()) || [];
   // PROJECT MODAL OPEN STATE
   const [isProjectModalOpen, setIsProjectModalOpen] = useState<boolean>(false);
   // EDIT PROJECT STATE
   const [editProject, setEditProject] = useState<Project | null>(null);
   // HANDLE PROJECT ADDED FUNCTION
   const handleProjectAdded = (): void => {
-    // CLOSE MODAL AND RESET EDIT PROJECT STATE
+    // CLOSE MODAL
     setIsProjectModalOpen(false);
+    // RESET EDIT PROJECT STATE
     setEditProject(null);
   };
   // PREVENT BACKGROUND SCROLLING WHEN MODAL IS OPEN
@@ -81,7 +84,7 @@ const AssignedTasks = (): JSX.Element => {
         {projects.map((item, index) => (
           // PROJECT ITEM CARD
           <div
-            key={index}
+            key={item._id || index}
             className="border border-[var(--border)] flex items-center gap-4 px-3 py-1.5 rounded-lg text-sm hover:bg-[var(--hover-bg)] transition"
           >
             {/* PROJECT AVATAR */}

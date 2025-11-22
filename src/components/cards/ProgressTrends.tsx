@@ -8,20 +8,30 @@ import {
   ResponsiveContainer,
   LabelList,
 } from "recharts";
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import { CheckSquare2 } from "lucide-react";
+import { useDashboardStore } from "../../store/useDashboardStore";
 
 // <== PROGRESS TRENDS COMPONENT ==>
 const ProgressTrends = (): JSX.Element => {
-  // MOCK DATA FOR TASKS COMPLETED PER MONTH (NO API)
-  const tasksCompletedData = [
-    { week: "Jan", completed: 0 },
-    { week: "Feb", completed: 0 },
-    { week: "Mar", completed: 0 },
-    { week: "Apr", completed: 0 },
-    { week: "May", completed: 0 },
-    { week: "Jun", completed: 0 },
-  ];
+  // GET MONTHLY SUMMARY FROM DASHBOARD STORE
+  const monthlySummary = useDashboardStore((state) =>
+    state.getMonthlySummary()
+  );
+  // GET TASKS COMPLETED DATA
+  const tasksCompletedData = useMemo(() => {
+    // GET MONTHLY SUMMARY WITH FALLBACK
+    const summary = monthlySummary || [];
+    // IF NO DATA, RETURN EMPTY ARRAY
+    if (summary.length === 0) {
+      return [];
+    }
+    // GET TASKS COMPLETED DATA WITH MONTH FORMAT
+    return summary.map((item) => ({
+      week: item.month || "",
+      completed: item.completed || 0,
+    }));
+  }, [monthlySummary]);
   // CHECK IF HAS COMPLETED TASKS
   const hasCompletedTasks =
     tasksCompletedData.length > 0 &&

@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import AddNewTask from "../tasks/AddNewTask";
 import { ClipboardList, X } from "lucide-react";
 import { JSX, useState, useEffect } from "react";
+import { useDashboardStore } from "../../store/useDashboardStore";
 
 // <== TASK TYPE INTERFACE ==>
 type Task = {
+  // <== TASK ID ==>
+  _id?: string;
   // <== TASK TITLE ==>
   title: string;
   // <== TASK PRIORITY ==>
@@ -18,8 +21,8 @@ type Task = {
 
 // <== TASKS CREATED TODAY COMPONENT ==>
 const TasksCreatedToday = (): JSX.Element => {
-  // MOCK TASKS DATA (NO API)
-  const tasks: Task[] = [];
+  // GET RECENT TASKS FROM DASHBOARD STORE
+  const tasks = useDashboardStore((state) => state.getRecentTasks()) || [];
   // MODAL OPEN STATE
   const [isOpen, setIsOpen] = useState<boolean>(false);
   // PRIORITY COLORS MAPPING
@@ -100,7 +103,7 @@ const TasksCreatedToday = (): JSX.Element => {
               {tasks.map((task, index) => (
                 // TABLE ROW
                 <tr
-                  key={index}
+                  key={task._id || index}
                   className="text-sm text-[var(--light-text)] odd:bg-[var(--bg)] even:bg-[var(--inside-card-bg)] border-b border-[var(--border)]"
                 >
                   {/* TASK NAME CELL */}

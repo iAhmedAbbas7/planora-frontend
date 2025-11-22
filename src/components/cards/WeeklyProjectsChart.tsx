@@ -1,22 +1,22 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
 import { FolderPlus } from "lucide-react";
+import { useDashboardStore } from "../../store/useDashboardStore";
 import { RadialBarChart, RadialBar, PolarAngleAxis, Tooltip } from "recharts";
 
 // <== WEEKLY PROJECTS CHART COMPONENT ==>
 const WeeklyProjectsChart = (): JSX.Element => {
-  // MOCK DATA FOR WEEKLY SUMMARY (NO API)
-  const summary = {
-    completedProjects: 0,
-    targetProjects: 0,
-  };
-  // SUMMARY DATA
-  const { completedProjects, targetProjects } = summary;
-  // CALCULATE REMAINING PROJECTS
+  // GET WEEKLY SUMMARY FROM DASHBOARD STORE
+  const weeklySummary = useDashboardStore((state) => state.getWeeklySummary());
+  // GET COMPLETED PROJECTS FROM DASHBOARD STORE
+  const completedProjects = weeklySummary?.completedProjects || 0;
+  // GET TARGET PROJECTS FROM DASHBOARD STORE
+  const targetProjects = weeklySummary?.targetProjects || 0;
+  // GET REMAINING PROJECTS
   const remaining = Math.max(targetProjects - completedProjects, 0);
   // CHECK IF NO PROJECTS
   const noProjects = completedProjects === 0 && targetProjects === 0;
-  // CHART DATA
+  // GET CHART DATA WITH FILL COLOR
   const data = [
     {
       name: "Completed",

@@ -5,8 +5,9 @@ import {
   FolderKanban,
   CheckSquare,
 } from "lucide-react";
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useDashboardStore } from "../../store/useDashboardStore";
 
 // <== ADD THINGS COMPONENT ==>
 const AddThings = (): JSX.Element => {
@@ -25,19 +26,26 @@ const AddThings = (): JSX.Element => {
       path: "/projects",
     },
   ];
-  // STATS ARRAY (MOCK DATA - NO API)
-  const stats = [
-    {
-      name: "Total Projects",
-      count: 0,
-      icon: <FolderKanban className="h-5 w-5 text-blue-500" />,
-    },
-    {
-      name: "Total Tasks",
-      count: 0,
-      icon: <CheckSquare className="h-5 w-5 text-green-500" />,
-    },
-  ];
+  // GET PROJECT STATS FROM DASHBOARD STORE
+  const projectStats = useDashboardStore((state) => state.getProjectStats());
+  // GET TASK STATS FROM DASHBOARD STORE
+  const taskStats = useDashboardStore((state) => state.getTaskStats());
+  // GET STATS ARRAY WITH DATA FROM STORE
+  const stats = useMemo(
+    () => [
+      {
+        name: "Total Projects",
+        count: projectStats?.totalCount || 0,
+        icon: <FolderKanban className="h-5 w-5 text-blue-500" />,
+      },
+      {
+        name: "Total Tasks",
+        count: taskStats?.totalCount || 0,
+        icon: <CheckSquare className="h-5 w-5 text-green-500" />,
+      },
+    ],
+    [projectStats, taskStats]
+  );
   // RETURNING THE ADD THINGS COMPONENT
   return (
     // ADD THINGS MAIN CONTAINER
