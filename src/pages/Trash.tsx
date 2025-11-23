@@ -1,10 +1,13 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
+import useTitle from "@/hooks/useTitle";
 import TrashSection from "../components/sections/TrashSection";
 import DashboardHeader from "../components/layout/DashboardHeader";
 
 // <== TRASH PAGE COMPONENT ==>
 const Trash = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Trash");
   // RETURNING THE TRASH PAGE COMPONENT
   return (
     // TRASH PAGE MAIN CONTAINER

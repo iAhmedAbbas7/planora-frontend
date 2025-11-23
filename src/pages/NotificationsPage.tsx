@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   RefreshCw,
 } from "lucide-react";
+import useTitle from "../hooks/useTitle";
 import { useState, useEffect, JSX } from "react";
 import DashboardHeader from "../components/layout/DashboardHeader";
 
@@ -63,6 +64,8 @@ const getNotificationColor = (): string => {
 
 // <== NOTIFICATIONS PAGE COMPONENT ==>
 const NotificationsPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Notifications");
   // NOTIFICATIONS STATE
   const [notifications, setNotifications] = useState<Notification[]>([]);
   // LOADING STATE

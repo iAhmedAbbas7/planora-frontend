@@ -16,6 +16,7 @@ import {
 } from "../hooks/usePasswordReset";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { useState, useRef, useEffect, FormEvent, JSX } from "react";
 
@@ -43,6 +44,8 @@ const ConditionItem = ({
 
 // <== FORGOT PASSWORD PAGE COMPONENT ==>
 const ForgotPasswordPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Forgot Password");
   // STEP STATE (1: ENTER EMAIL, 2: ENTER CODE AND NEW PASSWORD)
   const [step, setStep] = useState<1 | 2>(1);
   // EMAIL STATE

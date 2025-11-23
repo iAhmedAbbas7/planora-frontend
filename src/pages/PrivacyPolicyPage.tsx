@@ -13,10 +13,13 @@ import {
 } from "lucide-react";
 import { JSX } from "react";
 import { Link } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 
 // <== PRIVACY POLICY PAGE COMPONENT ==>
 const PrivacyPolicyPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Privacy Policy");
   // RETURNING THE PRIVACY POLICY PAGE COMPONENT
   return (
     // PRIVACY POLICY PAGE MAIN CONTAINER

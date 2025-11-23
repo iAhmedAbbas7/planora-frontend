@@ -1,6 +1,7 @@
 // <== IMPORTS ==>
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 import { useLogin } from "../hooks/useAuth";
 import { useAuthStore } from "../store/useAuthStore";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
@@ -17,6 +18,8 @@ type LoginInfo = {
 
 // <== LOGIN PAGE COMPONENT ==>
 const LoginPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Login");
   // LOGIN INFO STATE
   const [loginInfo, setLoginInfo] = useState<LoginInfo>({
     email: "",

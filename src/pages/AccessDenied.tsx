@@ -1,11 +1,14 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
 import { Link } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 import { Lock, LogIn, UserPlus } from "lucide-react";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 
 // <== ACCESS DENIED PAGE COMPONENT ==>
 const AccessDenied = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Access Denied");
   // RETURNING THE ACCESS DENIED PAGE
   return (
     // ACCESS DENIED PAGE MAIN CONTAINER

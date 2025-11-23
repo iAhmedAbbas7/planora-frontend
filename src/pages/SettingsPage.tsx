@@ -1,5 +1,6 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
+import useTitle from "../hooks/useTitle";
 import { useSearchParams } from "react-router-dom";
 import Profile from "../components/settings/Profile";
 import Account from "../components/settings/Account";
@@ -9,6 +10,8 @@ import DashboardHeader from "../components/layout/DashboardHeader";
 
 // <== SETTINGS PAGE COMPONENT ==>
 const SettingsPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Settings");
   // SEARCH PARAMS HOOK
   const [searchParams, setSearchParams] = useSearchParams();
   // GET TAB PARAM FROM URL (SINGLE SOURCE OF TRUTH)

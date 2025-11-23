@@ -1,6 +1,7 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
 import { AxiosError } from "axios";
+import useTitle from "../hooks/useTitle";
 import { useTasks } from "../hooks/useTasks";
 import TasksOverview from "../components/cards/TasksOverview";
 import ViewsCombined from "../components/tasks/ViewsCombined";
@@ -9,6 +10,8 @@ import TasksSkeleton from "../components/skeletons/TasksSkeleton";
 
 // <== TASKS PAGE COMPONENT ==>
 const TasksPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Tasks");
   // GET TASKS DATA FROM HOOK
   const { isLoading, isError, tasksError } = useTasks();
   // IF LOADING, SHOW SKELETON

@@ -1,6 +1,7 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
 import { AxiosError } from "axios";
+import useTitle from "../hooks/useTitle";
 import { useProjects } from "../hooks/useProjects";
 import ProjectCards from "../components/cards/ProjectCards";
 import DashboardHeader from "../components/layout/DashboardHeader";
@@ -9,6 +10,8 @@ import ProjectsSkeleton from "../components/skeletons/ProjectsSkeleton";
 
 // <== PROJECTS PAGE COMPONENT ==>
 const Projects = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Projects");
   // FETCH PROJECTS DATA
   const { isLoading, isError, projectsError } = useProjects();
   // IF LOADING, SHOW SKELETON

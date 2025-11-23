@@ -1,6 +1,7 @@
 // <== IMPORTS ==>
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 import { useSignup } from "../hooks/useAuth";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { useState, useEffect, ChangeEvent, FormEvent, JSX } from "react";
@@ -42,6 +43,8 @@ const ConditionItem = ({
 
 // <== SIGN UP PAGE COMPONENT ==>
 const SignUpPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Sign Up");
   // SIGN UP INFO STATE
   const [signupInfo, setSignUpInfo] = useState<SignUpInfo>({
     name: "",

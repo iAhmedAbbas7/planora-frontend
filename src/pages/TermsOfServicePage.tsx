@@ -9,10 +9,13 @@ import {
 } from "lucide-react";
 import { JSX } from "react";
 import { Link } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 
 // <== TERMS OF SERVICE PAGE COMPONENT ==>
 const TermsOfServicePage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Terms of Service");
   // RETURNING THE TERMS OF SERVICE PAGE COMPONENT
   return (
     // TERMS OF SERVICE PAGE MAIN CONTAINER

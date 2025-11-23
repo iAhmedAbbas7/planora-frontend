@@ -1,6 +1,7 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
 import { AxiosError } from "axios";
+import useTitle from "../hooks/useTitle";
 import Notepad from "../components/cards/Notepad";
 import { useDashboard } from "../hooks/useDashboard";
 import AddThings from "../components/cards/AddThings";
@@ -13,6 +14,8 @@ import DashboardSkeleton from "../components/skeletons/DashboardSkeleton";
 
 // <== DASHBOARD PAGE COMPONENT ==>
 const Dashboard = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Dashboard");
   // FETCH DASHBOARD DATA (DATA IS STORED IN STORE VIA useDashboard HOOK)
   const { isLoading, isError, error } = useDashboard();
   // IF LOADING, SHOW SKELETON

@@ -1,5 +1,6 @@
 // <== IMPORTS ==>
 import { toast } from "sonner";
+import useTitle from "../hooks/useTitle";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Mail, Loader2, CheckCircle, Trash2 } from "lucide-react";
@@ -8,6 +9,8 @@ import { useVerifyEmail, useResendCode } from "../hooks/useVerifyEmail";
 
 // <== VERIFY EMAIL PAGE COMPONENT ==>
 const VerifyEmailPage = (): JSX.Element => {
+  // SET PAGE TITLE
+  useTitle("PlanOra - Verify Email");
   // NAVIGATE HOOK
   const navigate = useNavigate();
   // LOCATION HOOK (TO GET EMAIL FROM STATE)
