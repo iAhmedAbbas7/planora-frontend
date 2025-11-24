@@ -11,31 +11,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, JSX } from "react";
+import ConfirmationModal, { ModalType } from "../common/ConfirmationModal";
+import { useNotifications, Notification } from "../../hooks/useNotifications";
 
-// <== NOTIFICATION TYPE INTERFACE ==>
-interface Notification {
-  // <== ID ==>
-  _id: string;
-  // <== TYPE ==>
-  type:
-    | "project_created"
-    | "project_updated"
-    | "project_deleted"
-    | "task_created"
-    | "task_updated"
-    | "task_deleted"
-    | "task_due_soon";
-  // <== TITLE ==>
-  title: string;
-  // <== MESSAGE ==>
-  message: string;
-  // <== RELATED ID ==>
-  relatedId?: string;
-  // <== IS READ ==>
-  isRead: boolean;
-  // <== CREATED AT ==>
-  createdAt: string;
-}
 // <== NOTIFICATIONS DROPDOWN PROPS TYPE INTERFACE ==>
 type NotificationProps = {
   // <== COLLAPSED STATE ==>
@@ -82,12 +60,35 @@ const NotificationsDropdown = ({
 }: NotificationProps): JSX.Element => {
   // NAVIGATE HOOK
   const navigate = useNavigate();
-  // NOTIFICATIONS STATE
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  // LOADING STATE
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // GET NOTIFICATIONS DATA FROM HOOK
+  const {
+    notifications,
+    isLoading,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    isMarkingAllAsRead,
+    refetchNotifications,
+  } = useNotifications();
   // DROPDOWN REF
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  // CONFIRMATION MODAL STATE
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: ModalType;
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    confirmText?: string;
+    showCancel?: boolean;
+  }>({
+    isOpen: false,
+    type: "confirm",
+    title: "",
+    message: "",
+    showCancel: true,
+  });
   // HANDLE CLICK OUTSIDE EFFECT
   useEffect(() => {
     // HANDLE CLICK OUTSIDE FUNCTION
@@ -106,55 +107,35 @@ const NotificationsDropdown = ({
     // REMOVE EVENT LISTENER ON CLEANUP
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
-  // FETCH NOTIFICATIONS EFFECT (MOCK DATA - NO API)
-  useEffect(() => {
-    // SIMULATE API CALL
-    setTimeout(() => {
-      // SET EMPTY NOTIFICATIONS (UI ONLY)
-      setNotifications([]);
-      // SET LOADING TO FALSE
-      setIsLoading(false);
-    }, 500);
-  }, []);
   // MARK AS READ FUNCTION
-  const markAsRead = (notificationId: string): void => {
-    // MARK NOTIFICATION AS READ (UI ONLY - NO API)
-    setNotifications((prev) =>
-      prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
-    );
-    // LOG MARK AS READ (UI ONLY)
-    console.log("Notification marked as read:", notificationId);
+  const handleMarkAsRead = (notificationId: string): void => {
+    // CALL MARK AS READ MUTATION
+    markAsRead(notificationId);
   };
   // MARK ALL AS READ FUNCTION
-  const markAllAsRead = (): void => {
-    // MARK ALL NOTIFICATIONS AS READ (UI ONLY - NO API)
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    // LOG MARK ALL AS READ (UI ONLY)
-    console.log("All notifications marked as read");
-    // SHOW SUCCESS MESSAGE
-    alert("All notifications marked as read");
+  const handleMarkAllAsRead = (): void => {
+    // CHECK IF MARKING ALL AS READ
+    if (isMarkingAllAsRead) return;
+    // CALL MARK ALL AS READ MUTATION
+    markAllAsRead(undefined, {
+      onSuccess: () => {
+        // SHOW SUCCESS MESSAGE
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Marked as Read",
+          message: "All notifications marked as read successfully.",
+          showCancel: false,
+          confirmText: "OK",
+        });
+      },
+    });
   };
   // DELETE NOTIFICATION FUNCTION
-  const deleteNotification = (notificationId: string): void => {
-    // DELETE NOTIFICATION (UI ONLY - NO API)
-    setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
-    // LOG DELETION (UI ONLY)
-    console.log("Notification deleted:", notificationId);
+  const handleDeleteNotification = (notificationId: string): void => {
+    // CALL DELETE NOTIFICATION MUTATION
+    deleteNotification(notificationId);
   };
-  // FETCH NOTIFICATIONS FUNCTION
-  const fetchNotifications = (): void => {
-    // SET LOADING
-    setIsLoading(true);
-    // SIMULATE API CALL (UI ONLY)
-    setTimeout(() => {
-      // SET EMPTY NOTIFICATIONS
-      setNotifications([]);
-      // SET LOADING TO FALSE
-      setIsLoading(false);
-    }, 500);
-  };
-  // GET UNREAD COUNT
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
   // RETURNING THE NOTIFICATIONS DROPDOWN COMPONENT
   return (
     // DROPDOWN MAIN CONTAINER
@@ -200,8 +181,11 @@ const NotificationsDropdown = ({
           {/* MARK ALL AS READ BUTTON */}
           {unreadCount > 0 && (
             <button
-              onClick={markAllAsRead}
-              className="p-1.5 rounded-md hover:bg-[var(--accent-btn-hover-color)] cursor-pointer hover:text-white transition"
+              onClick={handleMarkAllAsRead}
+              disabled={isMarkingAllAsRead}
+              className={`p-1.5 rounded-md hover:bg-[var(--accent-btn-hover-color)] cursor-pointer hover:text-white transition ${
+                isMarkingAllAsRead ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               title="Mark all as read"
             >
               {/* CHECK CIRCLE ICON */}
@@ -275,7 +259,7 @@ const NotificationsDropdown = ({
                       {/* MARK AS READ BUTTON */}
                       {!notification.isRead && (
                         <button
-                          onClick={() => markAsRead(notification._id)}
+                          onClick={() => handleMarkAsRead(notification._id)}
                           className="p-1 rounded hover:bg-[var(--hover-bg)] transition cursor-pointer"
                           title="Mark as read"
                         >
@@ -288,7 +272,9 @@ const NotificationsDropdown = ({
                       )}
                       {/* DELETE BUTTON */}
                       <button
-                        onClick={() => deleteNotification(notification._id)}
+                        onClick={() =>
+                          handleDeleteNotification(notification._id)
+                        }
                         className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900 transition cursor-pointer"
                         title="Delete"
                       >
@@ -313,13 +299,32 @@ const NotificationsDropdown = ({
           </p>
           {/* REFRESH BUTTON */}
           <button
-            onClick={fetchNotifications}
+            onClick={() => refetchNotifications()}
             className="text-xs text-[var(--accent-color)] hover:underline font-medium cursor-pointer"
           >
             Refresh
           </button>
         </div>
       </div>
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={modalState.isOpen}
+        onClose={() =>
+          setModalState({
+            isOpen: false,
+            type: "confirm",
+            title: "",
+            message: "",
+            showCancel: true,
+          })
+        }
+        onConfirm={modalState.onConfirm}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };
