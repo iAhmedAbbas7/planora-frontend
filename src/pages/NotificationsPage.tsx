@@ -9,27 +9,15 @@ import {
   CheckCircle2,
   RefreshCw,
 } from "lucide-react";
+import ConfirmationModal, {
+  ModalType,
+} from "../components/common/ConfirmationModal";
+import { useState, JSX } from "react";
 import useTitle from "../hooks/useTitle";
-import { useState, useEffect, JSX } from "react";
 import DashboardHeader from "../components/layout/DashboardHeader";
+import { useNotifications, Notification } from "../hooks/useNotifications";
+import NotificationsSkeleton from "../components/skeletons/NotificationsSkeleton";
 
-// <== NOTIFICATION TYPE INTERFACE ==>
-interface Notification {
-  _id: string;
-  type:
-    | "project_created"
-    | "project_updated"
-    | "project_deleted"
-    | "task_created"
-    | "task_updated"
-    | "task_deleted"
-    | "task_due_soon";
-  title: string;
-  message: string;
-  relatedId?: string;
-  isRead: boolean;
-  createdAt: string;
-}
 // <== GET NOTIFICATION ICON FUNCTION ==>
 const getNotificationIcon = (type: Notification["type"]): JSX.Element => {
   // SWITCH ON NOTIFICATION TYPE
@@ -66,77 +54,122 @@ const getNotificationColor = (): string => {
 const NotificationsPage = (): JSX.Element => {
   // SET PAGE TITLE
   useTitle("PlanOra - Notifications");
-  // NOTIFICATIONS STATE
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  // LOADING STATE
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // GET NOTIFICATIONS DATA FROM HOOK
+  const {
+    notifications,
+    isLoading,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    isMarkingAllAsRead,
+    refetchNotifications,
+  } = useNotifications();
   // SELECTED ITEMS STATE
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   // FILTER STATE
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
-  // FETCH NOTIFICATIONS EFFECT (MOCK DATA - NO API)
-  useEffect(() => {
-    // SET LOADING
-    setIsLoading(true);
-    // SIMULATE API CALL
-    setTimeout(() => {
-      // SET EMPTY NOTIFICATIONS (UI ONLY)
-      setNotifications([]);
-      // SET LOADING TO FALSE
-      setIsLoading(false);
-    }, 500);
-  }, []);
+  // CONFIRMATION MODAL STATE
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: ModalType;
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    confirmText?: string;
+    showCancel?: boolean;
+  }>({
+    isOpen: false,
+    type: "confirm",
+    title: "",
+    message: "",
+    showCancel: true,
+  });
   // MARK AS READ FUNCTION
-  const markAsRead = (notificationId: string): void => {
-    // MARK NOTIFICATION AS READ (UI ONLY - NO API)
-    setNotifications((prev) =>
-      prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
-    );
-    // LOG MARK AS READ (UI ONLY)
-    console.log("Notification marked as read:", notificationId);
+  const handleMarkAsRead = (notificationId: string): void => {
+    // CALL MARK AS READ MUTATION
+    markAsRead(notificationId);
   };
   // MARK ALL AS READ FUNCTION
-  const markAllAsRead = (): void => {
-    // MARK ALL NOTIFICATIONS AS READ (UI ONLY - NO API)
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    // LOG MARK ALL AS READ (UI ONLY)
-    console.log("All notifications marked as read");
-    // SHOW SUCCESS MESSAGE
-    alert("All notifications marked as read");
+  const handleMarkAllAsRead = (): void => {
+    // CHECK IF MARKING ALL AS READ
+    if (isMarkingAllAsRead) return;
+    // CALL MARK ALL AS READ MUTATION
+    markAllAsRead(undefined, {
+      onSuccess: () => {
+        // SHOW SUCCESS MESSAGE
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Marked as Read",
+          message: "All notifications marked as read successfully.",
+          showCancel: false,
+          confirmText: "OK",
+        });
+      },
+    });
   };
   // DELETE NOTIFICATION FUNCTION
-  const deleteNotification = (notificationId: string): void => {
-    // DELETE NOTIFICATION (UI ONLY - NO API)
-    setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
+  const handleDeleteNotification = (notificationId: string): void => {
+    // CALL DELETE NOTIFICATION MUTATION
+    deleteNotification(notificationId);
     // REMOVE FROM SELECTED ITEMS
     setSelectedItems((prev) => prev.filter((id) => id !== notificationId));
-    // LOG DELETION (UI ONLY)
-    console.log("Notification deleted:", notificationId);
   };
-  // DELETE SELECTED NOTIFICATIONS FUNCTION
-  const deleteSelected = (): void => {
-    // DELETE SELECTED NOTIFICATIONS (UI ONLY - NO API)
-    setNotifications((prev) =>
-      prev.filter((n) => !selectedItems.includes(n._id))
-    );
-    // LOG DELETION (UI ONLY)
-    console.log("Notifications deleted:", selectedItems);
+  // MARK SELECTED AS READ FUNCTION
+  const handleMarkSelectedAsRead = (): void => {
+    // CHECK IF ITEMS SELECTED
+    if (selectedItems.length === 0) return;
+    // STORE SELECTED COUNT
+    const selectedCount = selectedItems.length;
+    // MARK EACH SELECTED NOTIFICATION AS READ
+    selectedItems.forEach((id) => {
+      markAsRead(id);
+    });
     // CLEAR SELECTION
     setSelectedItems([]);
     // SHOW SUCCESS MESSAGE
-    alert(`${selectedItems.length} notifications deleted`);
+    setModalState({
+      isOpen: true,
+      type: "success",
+      title: "Marked as Read",
+      message: `${selectedCount} notification(s) marked as read successfully.`,
+      showCancel: false,
+      confirmText: "OK",
+    });
   };
-  // FETCH NOTIFICATIONS FUNCTION
-  const fetchNotifications = (): void => {
-    // SET LOADING
-    setIsLoading(true);
-    // SIMULATE API CALL (UI ONLY)
-    setTimeout(() => {
-      // SET EMPTY NOTIFICATIONS
-      setNotifications([]);
-      // SET LOADING TO FALSE
-      setIsLoading(false);
-    }, 500);
+  // DELETE SELECTED NOTIFICATIONS FUNCTION
+  const handleDeleteSelected = (): void => {
+    // CHECK IF ITEMS SELECTED
+    if (selectedItems.length === 0) return;
+    // STORE SELECTED COUNT
+    const selectedCount = selectedItems.length;
+    // SHOW CONFIRMATION MODAL
+    setModalState({
+      isOpen: true,
+      type: "warning",
+      title: "Confirm Deletion",
+      message: `Are you sure you want to delete ${selectedCount} notification(s)? This action cannot be undone.`,
+      confirmText: "Delete",
+      showCancel: true,
+      onConfirm: () => {
+        // DELETE EACH SELECTED NOTIFICATION
+        selectedItems.forEach((id) => {
+          deleteNotification(id);
+        });
+        // CLEAR SELECTION
+        setSelectedItems([]);
+        // SHOW SUCCESS MESSAGE
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Deleted",
+          message: `${selectedCount} notification(s) deleted successfully.`,
+          showCancel: false,
+          confirmText: "OK",
+        });
+      },
+    });
   };
   // HANDLE SELECT ALL FUNCTION
   const handleSelectAll = (checked: boolean): void => {
@@ -154,8 +187,6 @@ const NotificationsPage = (): JSX.Element => {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
-  // GET UNREAD COUNT
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
   // FILTER NOTIFICATIONS
   const filteredNotifications =
     filter === "all"
@@ -167,6 +198,10 @@ const NotificationsPage = (): JSX.Element => {
   const allSelected =
     filteredNotifications.length > 0 &&
     selectedItems.length === filteredNotifications.length;
+  // IF LOADING, SHOW SKELETON
+  if (isLoading) {
+    return <NotificationsSkeleton />;
+  }
   // RETURNING THE NOTIFICATIONS PAGE COMPONENT
   return (
     // NOTIFICATIONS PAGE MAIN CONTAINER
@@ -207,19 +242,24 @@ const NotificationsPage = (): JSX.Element => {
               {/* MARK ALL AS READ BUTTON */}
               {unreadCount > 0 && (
                 <button
-                  onClick={markAllAsRead}
-                  className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-white/20 hover:bg-white/30 text-white transition cursor-pointer"
+                  onClick={handleMarkAllAsRead}
+                  disabled={isMarkingAllAsRead}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-white/20 hover:bg-white/30 text-white transition cursor-pointer ${
+                    isMarkingAllAsRead ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   title="Mark all as read"
                 >
                   {/* CHECK CIRCLE ICON */}
                   <CheckCircle2 size={16} />
                   {/* BUTTON TEXT */}
-                  <span className="hidden sm:inline">Mark All Read</span>
+                  <span className="hidden sm:inline">
+                    {isMarkingAllAsRead ? "Marking..." : "Mark All Read"}
+                  </span>
                 </button>
               )}
               {/* REFRESH BUTTON */}
               <button
-                onClick={fetchNotifications}
+                onClick={() => refetchNotifications()}
                 className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-white/20 hover:bg-white/30 text-white transition cursor-pointer"
                 title="Refresh"
               >
@@ -286,23 +326,14 @@ const NotificationsPage = (): JSX.Element => {
               <div className="flex gap-2">
                 {/* MARK SELECTED AS READ BUTTON */}
                 <button
-                  onClick={() => {
-                    setNotifications((prev) =>
-                      prev.map((n) =>
-                        selectedItems.includes(n._id)
-                          ? { ...n, isRead: true }
-                          : n
-                      )
-                    );
-                    setSelectedItems([]);
-                  }}
+                  onClick={handleMarkSelectedAsRead}
                   className="px-3 py-1.5 text-sm rounded-lg bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] cursor-pointer"
                 >
                   Mark as Read
                 </button>
                 {/* DELETE SELECTED BUTTON */}
                 <button
-                  onClick={deleteSelected}
+                  onClick={handleDeleteSelected}
                   className="px-3 py-1.5 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"
                 >
                   Delete
@@ -319,14 +350,8 @@ const NotificationsPage = (): JSX.Element => {
           )}
           {/* NOTIFICATIONS LIST */}
           <div className="p-4 sm:p-6">
-            {/* CHECK IF LOADING */}
-            {isLoading ? (
-              // LOADING STATE
-              <div className="text-center py-12 text-[var(--light-text)]">
-                <RefreshCw className="h-8 w-8 mx-auto mb-3 animate-spin" />
-                <p>Loading notifications...</p>
-              </div>
-            ) : filteredNotifications.length === 0 ? (
+            {/* CHECK IF EMPTY */}
+            {filteredNotifications.length === 0 ? (
               // EMPTY STATE
               <div className="text-center py-12 text-[var(--light-text)]">
                 {/* BELL ICON */}
@@ -429,7 +454,9 @@ const NotificationsPage = (): JSX.Element => {
                             {/* MARK AS READ BUTTON */}
                             {!notification.isRead && (
                               <button
-                                onClick={() => markAsRead(notification._id)}
+                                onClick={() =>
+                                  handleMarkAsRead(notification._id)
+                                }
                                 className="p-2 rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer"
                                 title="Mark as read"
                               >
@@ -443,7 +470,7 @@ const NotificationsPage = (): JSX.Element => {
                             {/* DELETE BUTTON */}
                             <button
                               onClick={() =>
-                                deleteNotification(notification._id)
+                                handleDeleteNotification(notification._id)
                               }
                               className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 transition cursor-pointer"
                               title="Delete"
@@ -492,6 +519,25 @@ const NotificationsPage = (): JSX.Element => {
           )}
         </div>
       </div>
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={modalState.isOpen}
+        onClose={() =>
+          setModalState({
+            isOpen: false,
+            type: "confirm",
+            title: "",
+            message: "",
+            showCancel: true,
+          })
+        }
+        onConfirm={modalState.onConfirm}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };
