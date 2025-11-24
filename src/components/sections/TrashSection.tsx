@@ -1,61 +1,48 @@
 // <== IMPORTS ==>
+import { AxiosError } from "axios";
+import { useTrash } from "../../hooks/useTrash";
 import { useState, useEffect, useRef, JSX } from "react";
 import { RotateCcw, XCircle, Trash2, Search } from "lucide-react";
-
-// <== TRASH TASK TYPE INTERFACE ==>
-type TrashTask = {
-  // <== ID ==>
-  _id: string;
-  // <== TITLE ==>
-  title: string;
-  // <== DELETED ON ==>
-  deletedOn: string;
-  // <== ORIGINAL STATUS ==>
-  originalStatus: string;
-  // <== STATUS ==>
-  status: string;
-};
-// <== TRASH PROJECT TYPE INTERFACE ==>
-type TrashProject = {
-  // <== ID ==>
-  _id: string;
-  // <== TITLE ==>
-  title: string;
-  // <== DELETED ON ==>
-  deletedOn: string;
-  // <== ORIGINAL STATUS ==>
-  originalStatus: string;
-  // <== STATUS ==>
-  status: string;
-};
+import ConfirmationModal, { ModalType } from "../common/ConfirmationModal";
 
 // <== TRASH SECTION COMPONENT ==>
 const TrashSection = (): JSX.Element => {
+  // GET TRASH DATA FROM HOOK
+  const {
+    trashTasks,
+    trashProjects,
+    isLoading,
+    bulkRestore,
+    bulkDelete,
+    emptyTrash: emptyTrashMutation,
+    isRestoring,
+    isDeleting,
+    isEmptying,
+  } = useTrash();
   // ACTIVE TAB STATE
   const [activeTab, setActiveTab] = useState<"tasks" | "projects">("tasks");
   // SELECTED ITEMS STATE
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   // SEARCH QUERY STATE
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // TRASH TASKS STATE
-  const [trashTasks, setTrashTasks] = useState<TrashTask[]>([]);
-  // TRASH PROJECTS STATE
-  const [trashProjects, setTrashProjects] = useState<TrashProject[]>([]);
-  // LOADING STATE
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   // SELECT ALL REF
   const selectAllRef = useRef<HTMLInputElement | null>(null);
-  // FETCH TRASHED ITEMS EFFECT (MOCK DATA - NO API)
-  useEffect(() => {
-    // SIMULATE API CALL
-    setTimeout(() => {
-      // SET EMPTY TRASH ITEMS
-      setTrashTasks([]);
-      setTrashProjects([]);
-      // SET LOADING TO FALSE
-      setIsLoading(false);
-    }, 500);
-  }, []);
+  // CONFIRMATION MODAL STATE
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: ModalType;
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    confirmText?: string;
+    showCancel?: boolean;
+  }>({
+    isOpen: false,
+    type: "confirm",
+    title: "",
+    message: "",
+    showCancel: true,
+  });
   // GET CURRENT DATA
   const currentData = activeTab === "tasks" ? trashTasks : trashProjects;
   // UPDATE SELECT ALL CHECKBOX INDETERMINATE STATE EFFECT
@@ -87,118 +74,259 @@ const TrashSection = (): JSX.Element => {
   // HANDLE BULK RESTORE FUNCTION
   const handleBulkRestore = (): void => {
     // CHECK IF ITEMS SELECTED
-    if (selectedItems.length === 0) return;
-    // RESTORE ITEMS (UI ONLY - NO API)
-    if (activeTab === "tasks") {
-      setTrashTasks((prev) =>
-        prev.filter((t) => !selectedItems.includes(t._id))
-      );
-    } else {
-      setTrashProjects((prev) =>
-        prev.filter((p) => !selectedItems.includes(p._id))
-      );
-    }
-    // LOG RESTORE (UI ONLY)
-    console.log("Items restored:", selectedItems);
-    // CLEAR SELECTION
-    setSelectedItems([]);
-    // SHOW SUCCESS MESSAGE
-    alert(`${activeTab} restored successfully`);
+    if (selectedItems.length === 0 || isRestoring) return;
+    // PREPARE REQUEST DATA
+    const requestData =
+      activeTab === "tasks"
+        ? { taskIds: selectedItems, projectIds: [] }
+        : { projectIds: selectedItems, taskIds: [] };
+    // CALL BULK RESTORE MUTATION
+    bulkRestore(requestData, {
+      onSuccess: () => {
+        // CLEAR SELECTION
+        setSelectedItems([]);
+        // SHOW SUCCESS MESSAGE
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Restore Successful",
+          message: `${selectedItems.length} ${activeTab} restored successfully.`,
+          showCancel: false,
+          confirmText: "OK",
+        });
+      },
+      onError: (error: unknown) => {
+        // GET AXIOS ERROR
+        const axiosError = error as AxiosError<{ message?: string }>;
+        // SHOW ERROR MESSAGE
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Restore Failed",
+          message:
+            axiosError?.response?.data?.message ||
+            `Failed to restore ${activeTab}. Please try again.`,
+          showCancel: false,
+          confirmText: "OK",
+        });
+      },
+    });
   };
   // HANDLE BULK DELETE FUNCTION
   const handleBulkDelete = (): void => {
     // CHECK IF ITEMS SELECTED
-    if (selectedItems.length === 0) return;
-    // CONFIRM DELETION
-    if (
-      window.confirm(
-        `Are you sure you want to permanently delete ${selectedItems.length} ${activeTab}?`
-      )
-    ) {
-      // DELETE ITEMS (UI ONLY - NO API)
-      if (activeTab === "tasks") {
-        setTrashTasks((prev) =>
-          prev.filter((t) => !selectedItems.includes(t._id))
-        );
-      } else {
-        setTrashProjects((prev) =>
-          prev.filter((p) => !selectedItems.includes(p._id))
-        );
-      }
-      // LOG DELETION (UI ONLY)
-      console.log("Items permanently deleted:", selectedItems);
-      // CLEAR SELECTION
-      setSelectedItems([]);
-      // SHOW SUCCESS MESSAGE
-      alert(`${activeTab} permanently deleted`);
-    }
+    if (selectedItems.length === 0 || isDeleting) return;
+    // SHOW CONFIRMATION MODAL
+    setModalState({
+      isOpen: true,
+      type: "warning",
+      title: "Confirm Deletion",
+      message: `Are you sure you want to permanently delete ${selectedItems.length} ${activeTab}? This action cannot be undone.`,
+      confirmText: "Delete",
+      showCancel: true,
+      onConfirm: () => {
+        // PREPARE REQUEST DATA
+        const requestData =
+          activeTab === "tasks"
+            ? { taskIds: selectedItems, projectIds: [] }
+            : { projectIds: selectedItems, taskIds: [] };
+        // CALL BULK DELETE MUTATION
+        bulkDelete(requestData, {
+          onSuccess: () => {
+            // CLEAR SELECTION
+            setSelectedItems([]);
+            // SHOW SUCCESS MESSAGE
+            setModalState({
+              isOpen: true,
+              type: "success",
+              title: "Delete Successful",
+              message: `${selectedItems.length} ${activeTab} permanently deleted.`,
+              showCancel: false,
+              confirmText: "OK",
+            });
+          },
+          onError: (error: unknown) => {
+            // GET AXIOS ERROR
+            const axiosError = error as AxiosError<{ message?: string }>;
+            // SHOW ERROR MESSAGE
+            setModalState({
+              isOpen: true,
+              type: "error",
+              title: "Delete Failed",
+              message:
+                axiosError?.response?.data?.message ||
+                `Failed to delete ${activeTab}. Please try again.`,
+              showCancel: false,
+              confirmText: "OK",
+            });
+          },
+        });
+      },
+    });
   };
   // RESTORE ITEMS FUNCTION
   const restoreItems = (
     itemIds: string[],
     type: "tasks" | "projects"
   ): void => {
-    // RESTORE ITEMS (UI ONLY - NO API)
-    if (type === "tasks") {
-      setTrashTasks((prev) => prev.filter((t) => !itemIds.includes(t._id)));
-    } else {
-      setTrashProjects((prev) => prev.filter((p) => !itemIds.includes(p._id)));
-    }
-    // LOG RESTORE (UI ONLY)
-    console.log("Items restored:", itemIds);
-    // SHOW SUCCESS MESSAGE
-    alert(`${type} restored successfully`);
+    // CHECK IF RESTORING
+    if (isRestoring) return;
+    // PREPARE REQUEST DATA
+    const requestData =
+      type === "tasks"
+        ? { taskIds: itemIds, projectIds: [] }
+        : { projectIds: itemIds, taskIds: [] };
+    // CALL BULK RESTORE MUTATION
+    bulkRestore(requestData, {
+      onSuccess: () => {
+        // SHOW SUCCESS MESSAGE
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Restore Successful",
+          message: `${itemIds.length} ${type} restored successfully.`,
+          showCancel: false,
+          confirmText: "OK",
+        });
+      },
+      onError: (error: unknown) => {
+        // GET AXIOS ERROR
+        const axiosError = error as AxiosError<{ message?: string }>;
+        // SHOW ERROR MESSAGE
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Restore Failed",
+          message:
+            axiosError?.response?.data?.message ||
+            `Failed to restore ${type}. Please try again.`,
+          showCancel: false,
+          confirmText: "OK",
+        });
+      },
+    });
   };
   // PERMANENTLY DELETE ITEMS FUNCTION
   const permanentlyDeleteItems = (
     itemIds: string[],
     type: "tasks" | "projects"
   ): void => {
-    // CONFIRM DELETION
-    if (
-      window.confirm(
-        `Are you sure you want to permanently delete ${itemIds.length} ${type}?`
-      )
-    ) {
-      // DELETE ITEMS (UI ONLY - NO API)
-      if (type === "tasks") {
-        setTrashTasks((prev) => prev.filter((t) => !itemIds.includes(t._id)));
-      } else {
-        setTrashProjects((prev) =>
-          prev.filter((p) => !itemIds.includes(p._id))
-        );
-      }
-      // LOG DELETION (UI ONLY)
-      console.log("Items permanently deleted:", itemIds);
-      // SHOW SUCCESS MESSAGE
-      alert(`${type} permanently deleted`);
-    }
+    // CHECK IF DELETING
+    if (isDeleting) return;
+    // SHOW CONFIRMATION MODAL
+    setModalState({
+      isOpen: true,
+      type: "warning",
+      title: "Confirm Deletion",
+      message: `Are you sure you want to permanently delete ${itemIds.length} ${type}? This action cannot be undone.`,
+      confirmText: "Delete",
+      showCancel: true,
+      onConfirm: () => {
+        // PREPARE REQUEST DATA
+        const requestData =
+          type === "tasks"
+            ? { taskIds: itemIds, projectIds: [] }
+            : { projectIds: itemIds, taskIds: [] };
+        // CALL BULK DELETE MUTATION
+        bulkDelete(requestData, {
+          onSuccess: () => {
+            // SHOW SUCCESS MESSAGE
+            setModalState({
+              isOpen: true,
+              type: "success",
+              title: "Delete Successful",
+              message: `${itemIds.length} ${type} permanently deleted.`,
+              showCancel: false,
+              confirmText: "OK",
+            });
+          },
+          onError: (error: unknown) => {
+            // GET AXIOS ERROR
+            const axiosError = error as AxiosError<{ message?: string }>;
+            // SHOW ERROR MESSAGE
+            setModalState({
+              isOpen: true,
+              type: "error",
+              title: "Delete Failed",
+              message:
+                axiosError?.response?.data?.message ||
+                `Failed to delete ${type}. Please try again.`,
+              showCancel: false,
+              confirmText: "OK",
+            });
+          },
+        });
+      },
+    });
   };
   // EMPTY TRASH FUNCTION
   const emptyTrash = (): void => {
-    // CONFIRM EMPTY TRASH
-    if (
-      !window.confirm(
-        "Are you sure you want to empty the trash? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
-    // EMPTY TRASH (UI ONLY - NO API)
-    setTrashTasks([]);
-    setTrashProjects([]);
-    // LOG EMPTY TRASH (UI ONLY)
-    console.log("Trash emptied");
-    // SHOW SUCCESS MESSAGE
-    alert("Trash emptied successfully");
+    // CHECK IF EMPTYING
+    if (isEmptying) return;
+    // SHOW CONFIRMATION MODAL
+    setModalState({
+      isOpen: true,
+      type: "warning",
+      title: "Empty Trash",
+      message:
+        "Are you sure you want to empty the trash? This action cannot be undone.",
+      confirmText: "Empty Trash",
+      showCancel: true,
+      onConfirm: () => {
+        // CALL EMPTY TRASH MUTATION
+        emptyTrashMutation(undefined, {
+          onSuccess: () => {
+            // SHOW SUCCESS MESSAGE
+            setModalState({
+              isOpen: true,
+              type: "success",
+              title: "Trash Emptied",
+              message: "Trash emptied successfully.",
+              showCancel: false,
+              confirmText: "OK",
+            });
+          },
+          onError: (error: unknown) => {
+            // GET AXIOS ERROR
+            const axiosError = error as AxiosError<{ message?: string }>;
+            // SHOW ERROR MESSAGE
+            setModalState({
+              isOpen: true,
+              type: "error",
+              title: "Empty Trash Failed",
+              message:
+                axiosError?.response?.data?.message ||
+                "Failed to empty trash. Please try again.",
+              showCancel: false,
+              confirmText: "OK",
+            });
+          },
+        });
+      },
+    });
   };
   // FORMAT DATE FUNCTION
-  const formatDate = (dateString: string): string => {
+  const formatDate = (dateString: string | Date | null | undefined): string => {
+    // CHECK IF DATE EXISTS
+    if (!dateString) return "N/A";
     // FORMAT DATE
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "N/A";
+    }
+  };
+  // FORMAT STATUS FUNCTION
+  const formatStatus = (
+    status: string | null | undefined | unknown
+  ): string => {
+    // CHECK IF STATUS EXISTS AND IS A STRING
+    if (!status || typeof status !== "string") return "N/A";
+    // RETURN STATUS (ALREADY FORMATTED FROM BACKEND)
+    return status;
   };
   // RETURNING THE TRASH SECTION COMPONENT
   return (
@@ -223,20 +351,23 @@ const TrashSection = (): JSX.Element => {
         <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2">
           {/* EMPTY TRASH BUTTON */}
           <button
+            disabled={isEmptying}
             onClick={emptyTrash}
-            className="flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-red-500 cursor-pointer text-red-600 hover:bg-red-500 hover:text-white transition"
+            className={`flex items-center gap-2 px-4 py-2 text-sm rounded-xl border border-red-500 cursor-pointer text-red-600 hover:bg-red-500 hover:text-white transition ${
+              isEmptying ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             {/* TRASH ICON */}
             <Trash2 size={16} />
             {/* BUTTON TEXT */}
-            Empty Trash
+            {isEmptying ? "Emptying..." : "Empty Trash"}
           </button>
           {/* DELETE PERMANENTLY BUTTON */}
           <button
-            disabled={selectedItems.length === 0}
+            disabled={selectedItems.length === 0 || isDeleting}
             onClick={handleBulkDelete}
             className={`flex items-center gap-2 px-4 py-2 text-sm rounded-xl border transition cursor-pointer ${
-              selectedItems.length > 0
+              selectedItems.length > 0 && !isDeleting
                 ? "border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
                 : "border-[var(--border)] text-[var(--light-text)] cursor-not-allowed"
             }`}
@@ -244,14 +375,14 @@ const TrashSection = (): JSX.Element => {
             {/* X CIRCLE ICON */}
             <XCircle size={16} />
             {/* BUTTON TEXT */}
-            Delete Permanently
+            {isDeleting ? "Deleting..." : "Delete Permanently"}
           </button>
           {/* RESTORE BUTTON */}
           <button
-            disabled={selectedItems.length === 0}
+            disabled={selectedItems.length === 0 || isRestoring}
             onClick={handleBulkRestore}
             className={`flex items-center gap-2 px-4 py-2 text-sm rounded-xl border transition cursor-pointer ${
-              selectedItems.length > 0
+              selectedItems.length > 0 && !isRestoring
                 ? "border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)] hover:text-white"
                 : "border-[var(--border)] text-[var(--light-text)] cursor-not-allowed"
             }`}
@@ -259,7 +390,7 @@ const TrashSection = (): JSX.Element => {
             {/* ROTATE CCW ICON */}
             <RotateCcw size={16} />
             {/* BUTTON TEXT */}
-            Restore
+            {isRestoring ? "Restoring..." : "Restore"}
           </button>
         </div>
       </header>
@@ -382,7 +513,12 @@ const TrashSection = (): JSX.Element => {
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {item.status}
+                      {formatStatus(
+                        item.status ||
+                          ("originalStatus" in item
+                            ? item.originalStatus
+                            : null)
+                      )}
                     </span>
                   </td>
                   {/* ACTIONS CELL */}
@@ -423,20 +559,45 @@ const TrashSection = (): JSX.Element => {
           </p>
           {/* RESTORE SELECTED BUTTON */}
           <button
+            disabled={isRestoring}
             onClick={handleBulkRestore}
-            className="px-3 py-1.5 text-sm bg-[var(--accent-color)] text-white rounded-lg hover:bg-[var(--accent-btn-hover-color)] hover:text-white cursor-pointer"
+            className={`px-3 py-1.5 text-sm bg-[var(--accent-color)] text-white rounded-lg hover:bg-[var(--accent-btn-hover-color)] hover:text-white cursor-pointer ${
+              isRestoring ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Restore Selected
+            {isRestoring ? "Restoring..." : "Restore Selected"}
           </button>
           {/* DELETE SELECTED BUTTON */}
           <button
+            disabled={isDeleting}
             onClick={handleBulkDelete}
-            className="px-3 py-1.5 text-sm cursor-pointer bg-red-600 text-white rounded-lg hover:bg-red-700"
+            className={`px-3 py-1.5 text-sm cursor-pointer bg-red-600 text-white rounded-lg hover:bg-red-700 ${
+              isDeleting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Delete Selected
+            {isDeleting ? "Deleting..." : "Delete Selected"}
           </button>
         </div>
       )}
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={modalState.isOpen}
+        onClose={() =>
+          setModalState({
+            isOpen: false,
+            type: "confirm",
+            title: "",
+            message: "",
+            showCancel: true,
+          })
+        }
+        onConfirm={modalState.onConfirm}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText={modalState.confirmText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };
