@@ -2,10 +2,10 @@
 import "./index.css";
 import React from "react";
 import App from "./App.jsx";
-import { Toaster } from "sonner";
 import { createRoot } from "react-dom/client";
 import { queryClient } from "./lib/react-query";
 import { ThemeProvider } from "./context/ThemeContext";
+import AppToaster from "./components/common/AppToaster";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -55,17 +55,7 @@ root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <Toaster
-          position="top-right"
-          richColors
-          toastOptions={{
-            style: {
-              background: "var(--cards-bg)",
-              color: "var(--primary-text)",
-              border: "1px solid var(--border)",
-            },
-          }}
-        />
+        <AppToaster />
         <App />
         {/* REACT QUERY DEVTOOLS (ONLY IN DEVELOPMENT) */}
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
