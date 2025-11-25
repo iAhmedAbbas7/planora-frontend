@@ -14,7 +14,7 @@ import {
   useRequestPasswordReset,
   useResetPassword,
 } from "../hooks/usePasswordReset";
-import { toast } from "sonner";
+import { toast } from "../lib/toast";
 import { Link } from "react-router-dom";
 import useTitle from "../hooks/useTitle";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
