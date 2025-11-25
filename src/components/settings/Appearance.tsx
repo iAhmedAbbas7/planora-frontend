@@ -1,22 +1,81 @@
 // <== IMPORTS ==>
 import { useTheme } from "../../hooks/useTheme";
-import { useState, useEffect, JSX } from "react";
+import { useState, useEffect, useMemo, JSX } from "react";
+import { useAppearance } from "../../hooks/useAppearance";
+import ConfirmationModal from "../common/ConfirmationModal";
+import type { ModalType } from "../common/ConfirmationModal";
 
 // <== APPEARANCE COMPONENT ==>
 const Appearance = (): JSX.Element => {
   // THEME CONTEXT
   const { theme, setTheme, accentColor, setAccentColor } = useTheme();
+  // APPEARANCE HOOK
+  const { updateAppearance, isUpdating } = useAppearance();
+  // TEMP THEME STATE
+  const [tempTheme, setTempTheme] = useState<"light" | "dark" | "system">(
+    theme
+  );
   // TEMP ACCENT STATE
   const [tempAccent, setTempAccent] = useState<string>(accentColor);
+  // INITIAL THEME STATE
+  const [initialTheme, setInitialTheme] = useState<"light" | "dark" | "system">(
+    theme
+  );
   // INITIAL ACCENT STATE
   const [initialAccent, setInitialAccent] = useState<string>(accentColor);
-  // SYNC ACCENT COLOR EFFECT
+  // CONFIRMATION MODAL STATE
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: ModalType;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
+  // SYNC STATES WITH CONTEXT
   useEffect(() => {
+    // SYNC TEMP THEME WITH CONTEXT
+    setTempTheme(theme);
+    // SYNC INITIAL THEME WITH CONTEXT
+    setInitialTheme(theme);
     // SYNC TEMP ACCENT WITH CONTEXT
     setTempAccent(accentColor);
     // SYNC INITIAL ACCENT WITH CONTEXT
     setInitialAccent(accentColor);
-  }, [accentColor]);
+  }, [theme, accentColor]);
+  // CHECK IF FORM HAS CHANGES
+  const hasChanges = useMemo(() => {
+    return tempTheme !== initialTheme || tempAccent !== initialAccent;
+  }, [tempTheme, initialTheme, tempAccent, initialAccent]);
+  // APPLY THEME PREVIEW EFFECT
+  useEffect(() => {
+    // DETERMINE IF DARK MODE FOR PREVIEW
+    const isDark =
+      tempTheme === "dark" ||
+      (tempTheme === "system" &&
+        window.matchMedia?.("(prefers-color-scheme: dark)").matches);
+    // APPLY PREVIEW THEME
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    // CLEANUP: RESTORE ORIGINAL THEME ON UNMOUNT OR WHEN INITIAL THEME CHANGES
+    return () => {
+      const originalIsDark =
+        initialTheme === "dark" ||
+        (initialTheme === "system" &&
+          window.matchMedia?.("(prefers-color-scheme: dark)").matches);
+      if (originalIsDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    };
+  }, [tempTheme, initialTheme]);
   // COLORS ARRAY
   const colors = [
     { name: "Violet", color: "bg-violet-700" },
@@ -52,6 +111,8 @@ const Appearance = (): JSX.Element => {
   };
   // HANDLE CANCEL FUNCTION
   const handleCancel = (): void => {
+    // RESET TEMP THEME TO INITIAL
+    setTempTheme(initialTheme);
     // RESET TEMP ACCENT TO INITIAL
     setTempAccent(initialAccent);
     // RESET CSS VARIABLES TO INITIAL
@@ -75,15 +136,55 @@ const Appearance = (): JSX.Element => {
       "--accent-btn-hover-color",
       `var(--accent-btn-${initialAccent}-700)`
     );
+    // SHOW INFO MESSAGE
+    setModalState({
+      isOpen: true,
+      type: "info",
+      title: "Changes Reverted",
+      message: "All changes have been reverted to original values.",
+    });
   };
   // HANDLE SAVE FUNCTION
-  const handleSave = (): void => {
-    // SET ACCENT COLOR IN CONTEXT
-    setAccentColor(tempAccent);
-    // UPDATE INITIAL ACCENT
-    setInitialAccent(tempAccent);
-    // SHOW SUCCESS MESSAGE
-    alert("Appearance settings updated successfully!");
+  const handleSave = async (): Promise<void> => {
+    try {
+      // UPDATE APPEARANCE ON BACKEND
+      await updateAppearance({
+        theme: tempTheme,
+        accentColor: tempAccent as "violet" | "pink" | "blue" | "green",
+      });
+      // UPDATE THEME AND ACCENT COLOR IN CONTEXT
+      setTheme(tempTheme);
+      // UPDATE ACCENT COLOR IN CONTEXT
+      setAccentColor(tempAccent);
+      // UPDATE INITIAL THEME AND ACCENT COLOR STATES
+      setInitialTheme(tempTheme);
+      // UPDATE INITIAL ACCENT COLOR STATE
+      setInitialAccent(tempAccent);
+      // SHOW SUCCESS MESSAGE
+      setModalState({
+        isOpen: true,
+        type: "success",
+        title: "Success",
+        message: "Appearance settings updated successfully!",
+      });
+    } catch (error) {
+      // SHOW ERROR MESSAGE
+      const axiosError = error as {
+        response?: { data?: { message?: string } };
+      };
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message:
+          axiosError?.response?.data?.message ||
+          "Failed to update appearance settings. Please try again.",
+      });
+    }
+  };
+  // CLOSE MODAL FUNCTION
+  const closeModal = (): void => {
+    setModalState((prev) => ({ ...prev, isOpen: false }));
   };
   // RETURNING THE APPEARANCE COMPONENT
   return (
@@ -158,12 +259,12 @@ const Appearance = (): JSX.Element => {
           {/* LIGHT THEME OPTION */}
           <div
             className="flex flex-col items-center border-2 cursor-pointer border-[var(--border)] rounded-xl p-4 w-32 hover:border-[var(--accent-color)] transition"
-            onClick={() => setTheme("light")}
+            onClick={() => setTempTheme("light")}
           >
             {/* LIGHT THEME PREVIEW */}
             <button
               className={`w-full h-16 bg-gray-500 rounded-md mb-2 ${
-                theme === "light" ? "ring-2 ring-[var(--accent-color)]" : ""
+                tempTheme === "light" ? "ring-2 ring-[var(--accent-color)]" : ""
               }`}
             ></button>
             {/* LIGHT THEME LABEL */}
@@ -172,12 +273,12 @@ const Appearance = (): JSX.Element => {
           {/* DARK THEME OPTION */}
           <div
             className="flex flex-col items-center border-2 cursor-pointer border-[var(--border)] rounded-xl p-4 w-32 hover:border-[var(--accent-color)] transition"
-            onClick={() => setTheme("dark")}
+            onClick={() => setTempTheme("dark")}
           >
             {/* DARK THEME PREVIEW */}
             <button
               className={`w-full h-16 bg-gray-500 rounded-md mb-2 ${
-                theme === "dark" ? "ring-2 ring-[var(--accent-color)]" : ""
+                tempTheme === "dark" ? "ring-2 ring-[var(--accent-color)]" : ""
               }`}
             ></button>
             {/* DARK THEME LABEL */}
@@ -190,26 +291,43 @@ const Appearance = (): JSX.Element => {
         {/* CANCEL BUTTON */}
         <button
           onClick={handleCancel}
-          className="w-full sm:w-auto border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer px-6 py-2.5 rounded-lg font-medium transition"
+          disabled={isUpdating || !hasChanges}
+          className="w-full sm:w-auto border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
         </button>
         {/* SAVE BUTTON */}
         <button
           onClick={handleSave}
-          className="w-full sm:w-auto text-white px-6 py-2 rounded-lg cursor-pointer font-medium transition"
+          disabled={isUpdating || !hasChanges}
+          className="w-full sm:w-auto text-white px-6 py-2 rounded-lg cursor-pointer font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundColor: "var(--accent-color)" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "var(--accent-btn-hover-color)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--accent-color)")
-          }
+          onMouseEnter={(e) => {
+            if (!isUpdating && hasChanges) {
+              e.currentTarget.style.backgroundColor =
+                "var(--accent-btn-hover-color)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isUpdating && hasChanges) {
+              e.currentTarget.style.backgroundColor = "var(--accent-color)";
+            }
+          }}
         >
-          Save Changes
+          {isUpdating ? "Saving..." : "Save Changes"}
         </button>
       </div>
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        onConfirm={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        confirmText="OK"
+        showCancel={false}
+      />
     </div>
   );
 };
