@@ -1,9 +1,12 @@
 // <== IMPORTS ==>
-import { useEffect, useMemo, useState, JSX, ReactNode } from "react";
+import { useAuthStore } from "../store/useAuthStore";
+import { useAppearance } from "../hooks/useAppearance";
 import { ThemeContext, ThemeContextValue } from "./themeContextConfig";
+import { useEffect, useMemo, useState, useRef, JSX, ReactNode } from "react";
 
 // <== THEME TYPE ==>
 type Theme = "light" | "dark" | "system";
+
 // <== GET SYSTEM PREFERS DARK FUNCTION ==>
 function getSystemPrefersDark(): boolean {
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
@@ -14,6 +17,7 @@ function applyClass(isDark: boolean): void {
   const root = document.documentElement;
   // ADD OR REMOVE DARK CLASS
   if (isDark) root.classList.add("dark");
+  // REMOVE DARK CLASS
   else root.classList.remove("dark");
 }
 
@@ -23,6 +27,16 @@ export function ThemeProvider({
 }: {
   children: ReactNode;
 }): JSX.Element {
+  // AUTH STORE
+  const { isAuthenticated } = useAuthStore();
+  // APPEARANCE HOOK (ONLY FETCH IF AUTHENTICATED)
+  const {
+    appearance: backendAppearance,
+    isLoading: isLoadingAppearance,
+    updateAppearance,
+  } = useAppearance(isAuthenticated);
+  // DEBOUNCE TIMER REF
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // THEME STATE
   const [theme, setTheme] = useState<Theme>(() => {
     // GET SAVED THEME FROM LOCAL STORAGE
@@ -35,6 +49,19 @@ export function ThemeProvider({
     // GET SAVED ACCENT COLOR FROM LOCAL STORAGE
     return localStorage.getItem("accent-color") || "violet";
   });
+  // LOAD APPEARANCE FROM BACKEND ON AUTHENTICATION
+  useEffect(() => {
+    // IF AUTHENTICATED AND APPEARANCE LOADED
+    if (isAuthenticated && !isLoadingAppearance && backendAppearance) {
+      // UPDATE THEME FROM BACKEND
+      setTheme(backendAppearance.theme);
+      // UPDATE ACCENT COLOR FROM BACKEND
+      setAccentColor(backendAppearance.accentColor);
+      // UPDATE LOCAL STORAGE AS CACHE
+      localStorage.setItem("theme-pref", backendAppearance.theme);
+      localStorage.setItem("accent-color", backendAppearance.accentColor);
+    }
+  }, [isAuthenticated, isLoadingAppearance, backendAppearance]);
   // APPLY ACCENT COLOR AS CSS VARIABLES EFFECT
   useEffect(() => {
     // SET ACCENT COLOR CSS VARIABLES
@@ -58,9 +85,32 @@ export function ThemeProvider({
       "--accent-btn-hover-color",
       `var(--accent-btn-${accentColor}-700)`
     );
-    // SAVE ACCENT COLOR TO LOCAL STORAGE
+    // SAVE ACCENT COLOR TO LOCAL STORAGE (CACHE)
     localStorage.setItem("accent-color", accentColor);
-  }, [accentColor]);
+    // SYNC TO BACKEND IF AUTHENTICATED (DEBOUNCED)
+    if (isAuthenticated) {
+      // CLEAR EXISTING TIMER
+      if (debounceTimerRef.current) {
+        // CLEAR TIMER
+        clearTimeout(debounceTimerRef.current);
+      }
+      // SET NEW TIMER (DEBOUNCE 500MS)
+      debounceTimerRef.current = setTimeout(() => {
+        updateAppearance({
+          accentColor: accentColor as "violet" | "pink" | "blue" | "green",
+        }).catch(() => {
+          // SILENTLY FAIL - LOCAL STORAGE IS ALREADY UPDATED
+        });
+      }, 500);
+    }
+    // CLEANUP TIMER
+    return () => {
+      if (debounceTimerRef.current) {
+        // CLEAR TIMER
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [accentColor, isAuthenticated, updateAppearance]);
   // KEEP CLASS IN SYNC WITH THEME EFFECT
   useEffect(() => {
     // DETERMINE IF DARK MODE
@@ -68,9 +118,30 @@ export function ThemeProvider({
       theme === "dark" || (theme === "system" && getSystemPrefersDark());
     // APPLY DARK CLASS
     applyClass(isDark);
-    // SAVE THEME TO LOCAL STORAGE
+    // SAVE THEME TO LOCAL STORAGE (CACHE)
     localStorage.setItem("theme-pref", theme);
-  }, [theme]);
+    // SYNC TO BACKEND IF AUTHENTICATED (DEBOUNCED)
+    if (isAuthenticated) {
+      // CLEAR EXISTING TIMER
+      if (debounceTimerRef.current) {
+        // CLEAR TIMER
+        clearTimeout(debounceTimerRef.current);
+      }
+      // SET NEW TIMER (DEBOUNCE 500MS)
+      debounceTimerRef.current = setTimeout(() => {
+        updateAppearance({ theme }).catch(() => {
+          // SILENTLY FAIL - LOCAL STORAGE IS ALREADY UPDATED
+        });
+      }, 500);
+    }
+    // CLEANUP TIMER
+    return () => {
+      if (debounceTimerRef.current) {
+        // CLEAR TIMER
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [theme, isAuthenticated, updateAppearance]);
   // REACT TO OS CHANGES WHEN ON SYSTEM EFFECT
   useEffect(() => {
     // RETURN IF NOT SYSTEM THEME
