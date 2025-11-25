@@ -1,5 +1,5 @@
 // <== IMPORTS ==>
-import { toast } from "sonner";
+import { toast } from "../lib/toast";
 import { AxiosError } from "axios";
 import apiClient from "../lib/axios";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,6 @@ type LoginRequest = {
   // <== PASSWORD ==>
   password: string;
 };
-
 // <== SIGNUP REQUEST TYPE ==>
 type SignupRequest = {
   // <== NAME ==>
@@ -23,7 +22,6 @@ type SignupRequest = {
   // <== PASSWORD ==>
   password: string;
 };
-
 // <== AUTH RESPONSE TYPE ==>
 type AuthResponse = {
   // <== SUCCESS ==>
@@ -33,7 +31,6 @@ type AuthResponse = {
   // <== DATA ==>
   data: User;
 };
-
 // <== API ERROR RESPONSE TYPE ==>
 type ApiErrorResponse = {
   // <== CODE ==>
@@ -43,7 +40,6 @@ type ApiErrorResponse = {
   // <== SUCCESS ==>
   success?: boolean;
 };
-
 // <== USER RESPONSE TYPE ==>
 type UserResponse = {
   // <== SUCCESS ==>
