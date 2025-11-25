@@ -1,6 +1,6 @@
 // <== IMPORTS ==>
 import { AxiosError } from "axios";
-import { toast } from "sonner";
+import { toast } from "../lib/toast";
 import apiClient from "../lib/axios";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
@@ -10,7 +10,6 @@ type RequestPasswordResetRequest = {
   // <== EMAIL ==>
   email: string;
 };
-
 // <== REQUEST PASSWORD RESET RESPONSE TYPE ==>
 type RequestPasswordResetResponse = {
   // <== SUCCESS ==>
@@ -18,7 +17,6 @@ type RequestPasswordResetResponse = {
   // <== MESSAGE ==>
   message: string;
 };
-
 // <== RESET PASSWORD REQUEST TYPE ==>
 type ResetPasswordRequest = {
   // <== EMAIL ==>
@@ -28,7 +26,6 @@ type ResetPasswordRequest = {
   // <== NEW PASSWORD ==>
   newPassword: string;
 };
-
 // <== RESET PASSWORD RESPONSE TYPE ==>
 type ResetPasswordResponse = {
   // <== SUCCESS ==>
@@ -36,7 +33,6 @@ type ResetPasswordResponse = {
   // <== MESSAGE ==>
   message: string;
 };
-
 // <== API ERROR RESPONSE TYPE ==>
 type ApiErrorResponse = {
   // <== CODE ==>
@@ -113,4 +109,3 @@ export const useResetPassword = () => {
     },
   });
 };
-
