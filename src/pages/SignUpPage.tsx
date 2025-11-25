@@ -1,5 +1,5 @@
 // <== IMPORTS ==>
-import { toast } from "sonner";
+import { toast } from "../lib/toast";
 import { Link } from "react-router-dom";
 import useTitle from "../hooks/useTitle";
 import { useSignup } from "../hooks/useAuth";
