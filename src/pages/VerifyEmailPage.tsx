@@ -1,5 +1,5 @@
 // <== IMPORTS ==>
-import { toast } from "sonner";
+import { toast } from "../lib/toast";
 import useTitle from "../hooks/useTitle";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
