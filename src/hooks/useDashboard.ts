@@ -19,7 +19,6 @@ export type TaskStats = {
   // <== DUE TODAY COUNT ==>
   dueTodayCount: number;
 };
-
 // <== PROJECT STATS TYPE INTERFACE ==>
 export type ProjectStats = {
   // <== TOTAL COUNT ==>
@@ -33,7 +32,6 @@ export type ProjectStats = {
   // <== DUE TODAY COUNT ==>
   dueTodayCount: number;
 };
-
 // <== MONTHLY SUMMARY TYPE INTERFACE ==>
 export type MonthlySummary = {
   // <== MONTH ==>
@@ -41,7 +39,6 @@ export type MonthlySummary = {
   // <== COMPLETED COUNT ==>
   completed: number;
 };
-
 // <== WEEKLY SUMMARY TYPE INTERFACE ==>
 export type WeeklySummary = {
   // <== COMPLETED PROJECTS ==>
@@ -49,7 +46,6 @@ export type WeeklySummary = {
   // <== TARGET PROJECTS ==>
   targetProjects: number;
 };
-
 // <== PROJECT TYPE INTERFACE ==>
 export type Project = {
   // <== PROJECT ID ==>
@@ -65,7 +61,6 @@ export type Project = {
   // <== PROJECT CREATED AT ==>
   createdAt?: string;
 };
-
 // <== TASK TYPE INTERFACE ==>
 export type Task = {
   // <== TASK ID ==>
@@ -79,7 +74,6 @@ export type Task = {
   // <== TASK STATUS ==>
   status: "to do" | "in progress" | "completed";
 };
-
 // <== DASHBOARD DATA TYPE INTERFACE ==>
 export type DashboardData = {
   // <== TASK STATS ==>
@@ -95,7 +89,6 @@ export type DashboardData = {
   // <== RECENT TASKS ==>
   recentTasks: Task[];
 };
-
 // <== API RESPONSE TYPE INTERFACE ==>
 type ApiResponse<T> = {
   // <== SUCCESS ==>
