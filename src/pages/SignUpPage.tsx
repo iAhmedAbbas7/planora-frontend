@@ -73,6 +73,8 @@ const SignUpPage = (): JSX.Element => {
   const [passwordsMatch, setPasswordsMatch] = useState<boolean>(false);
   // EMAIL VALIDATION STATE
   const [isValidEmail, setIsValidEmail] = useState<boolean>(false);
+  // TERMS ACCEPTANCE STATE
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   // CHECKING FOR EACH PASSWORD CONDITION WHEN NEW PASSWORD CHANGES
   useEffect(() => {
     // GET PASSWORD FROM SIGN UP INFO
@@ -113,7 +115,8 @@ const SignUpPage = (): JSX.Element => {
     hasUpper &&
     hasDigit &&
     hasSpecial &&
-    passwordsMatch;
+    passwordsMatch &&
+    termsAccepted;
   // HANDLING CHANGE OF INPUT FIELDS
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     // GET NAME AND VALUE FROM EVENT
@@ -127,6 +130,12 @@ const SignUpPage = (): JSX.Element => {
     e.preventDefault();
     // DESTRUCTURE SIGN UP INFO
     const { name, email, password } = signupInfo;
+    // CHECK IF TERMS ARE ACCEPTED
+    if (!termsAccepted) {
+      // SHOW ERROR TOAST
+      toast.error("Please accept the Terms & Conditions to continue");
+      return;
+    }
     // CHECK IF ALL VALIDATIONS PASS
     if (!allValid) {
       // SHOW ERROR TOAST
@@ -134,7 +143,7 @@ const SignUpPage = (): JSX.Element => {
       return;
     }
     // CALL SIGNUP MUTATION
-    signupMutation.mutate({ name, email, password });
+    signupMutation.mutate({ name, email, password, acceptedTerms: true });
   };
   // RETURNING THE SIGN UP PAGE COMPONENT
   return (
@@ -385,14 +394,19 @@ const SignUpPage = (): JSX.Element => {
             <input
               type="checkbox"
               id="terms"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
               className="mr-2 accent-violet-500 cursor-pointer"
+              required
             />
             {/* CHECKBOX LABEL */}
-            <label htmlFor="terms">
+            <label htmlFor="terms" className="cursor-pointer">
               I agree to the{" "}
               <Link
                 to="/terms-of-service"
                 className="text-violet-500 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 Terms & Conditions
               </Link>
