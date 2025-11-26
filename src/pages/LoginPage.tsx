@@ -33,8 +33,29 @@ const LoginPage = (): JSX.Element => {
   const { setLoggingOut } = useAuthStore();
   // RESET LOGGING OUT FLAG WHEN LOGIN PAGE MOUNTS
   useEffect(() => {
+    // RESET LOGGING OUT FLAG
     setLoggingOut(false);
   }, [setLoggingOut]);
+  // HANDLE OAUTH ERRORS FROM URL QUERY PARAMETERS
+  useEffect(() => {
+    // GET ERROR AND MESSAGE FROM URL QUERY PARAMETERS
+    const urlParams = new URLSearchParams(window.location.search);
+    // GET ERROR FROM URL QUERY PARAMETERS
+    const error = urlParams.get("error");
+    // GET MESSAGE FROM URL QUERY PARAMETERS
+    const message = urlParams.get("message");
+    // IF ERROR IS OAUTH FAILED, SHOW ERROR TOAST
+    if (error === "oauth_failed") {
+      // GET ERROR MESSAGE FROM MESSAGE QUERY PARAMETER
+      const errorMessage = message
+        ? decodeURIComponent(message)
+        : "OAuth authentication failed. Please try again or use email/password to log in.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+      // CLEAN UP URL QUERY PARAMETERS
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
   // HANDLE CHANGE FUNCTION
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     // GET NAME AND VALUE FROM EVENT
