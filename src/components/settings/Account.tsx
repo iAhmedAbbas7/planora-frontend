@@ -12,12 +12,41 @@ import {
   ArrowLeft,
   RotateCcw,
   ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 import { useEmailChange } from "../../hooks/useEmailChange";
 import ConfirmationModal from "../common/ConfirmationModal";
 import type { ModalType } from "../common/ConfirmationModal";
+import { usePasswordChange } from "../../hooks/usePasswordChange";
 import { useAuthStore, type User } from "../../store/useAuthStore";
 import { useState, useRef, useEffect, JSX, ChangeEvent } from "react";
+
+// <== CONDITION ITEM COMPONENT ==>
+const ConditionItem = ({
+  label,
+  passed,
+}: {
+  label: string;
+  passed: boolean;
+}) => (
+  <div
+    className={`w-full flex items-center gap-2 p-1.5 rounded ${
+      passed
+        ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400"
+        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+    }`}
+  >
+    {passed ? (
+      <CheckCircle2
+        size={16}
+        className="text-violet-600 dark:text-violet-400"
+      />
+    ) : (
+      <Lock size={16} className="text-gray-400" />
+    )}
+    <span className="text-xs">{label}</span>
+  </div>
+);
 
 // <== ACCOUNT COMPONENT ==>
 const Account = (): JSX.Element => {
@@ -42,11 +71,36 @@ const Account = (): JSX.Element => {
     cancelEmailChange,
     isCancelling,
   } = useEmailChange();
+  // PASSWORD CHANGE HOOK
+  const {
+    sendCode,
+    isSendingCode,
+    verifyCode,
+    isVerifyingCode,
+    changePassword: changePasswordAPI,
+    isChangingPassword,
+    resendCode: resendPasswordCode,
+    isResendingCode: isResendingPasswordCode,
+    cancelPasswordChange,
+    isCancelling: isCancellingPasswordChange,
+  } = usePasswordChange();
   // SHOW NEW PASSWORD STATES
   const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
   // SHOW CONFIRM PASSWORD STATES
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
+  // MINIMUM LENGTH VALIDATION STATE
+  const [hasMinLength, setHasMinLength] = useState<boolean>(false);
+  // LOWERCASE LETTER VALIDATION STATE
+  const [hasLower, setHasLower] = useState<boolean>(false);
+  // UPPERCASE LETTER VALIDATION STATE
+  const [hasUpper, setHasUpper] = useState<boolean>(false);
+  // DIGIT VALIDATION STATE
+  const [hasDigit, setHasDigit] = useState<boolean>(false);
+  // SPECIAL CHARACTER VALIDATION STATE
+  const [hasSpecial, setHasSpecial] = useState<boolean>(false);
+  // PASSWORD MATCH VALIDATION STATE
+  const [passwordsMatch, setPasswordsMatch] = useState<boolean>(false);
   // MODAL STATE
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -108,6 +162,30 @@ const Account = (): JSX.Element => {
     newPassword: "",
     confirmPassword: "",
   });
+  // CHECKING FOR EACH PASSWORD CONDITION WHEN NEW PASSWORD CHANGES
+  useEffect(() => {
+    // GET PASSWORD FROM FORM DATA
+    const password = formData.newPassword;
+    // CHECK IF PASSWORD HAS AT LEAST 8 CHARACTERS
+    setHasMinLength(password.length >= 8);
+    // CHECK IF PASSWORD HAS AT LEAST ONE LOWERCASE LETTER
+    setHasLower(/[a-z]/.test(password));
+    // CHECK IF PASSWORD HAS AT LEAST ONE UPPERCASE LETTER
+    setHasUpper(/[A-Z]/.test(password));
+    // CHECK IF PASSWORD HAS AT LEAST ONE DIGIT
+    setHasDigit(/[0-9]/.test(password));
+    // CHECK IF PASSWORD HAS AT LEAST ONE SPECIAL CHARACTER
+    setHasSpecial(/[^A-Za-z0-9]/.test(password));
+  }, [formData.newPassword]);
+  // CHECKING FOR PASSWORD MATCH ON EACH CHANGE
+  useEffect(() => {
+    // CHECK IF NEW PASSWORD AND CONFIRM PASSWORD ARE NOT EMPTY AND IF THEY MATCH
+    setPasswordsMatch(
+      formData.newPassword !== "" &&
+        formData.confirmPassword !== "" &&
+        formData.newPassword === formData.confirmPassword
+    );
+  }, [formData.newPassword, formData.confirmPassword]);
   // HANDLE CHANGE EMAIL FUNCTION
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     // GET THE NAME AND VALUE FROM THE TARGET
@@ -134,6 +212,7 @@ const Account = (): JSX.Element => {
         // AUTO-FOCUSING THE NEXT INPUT
         refs.current[index + 1]?.focus();
       }
+      // RETURNING THE NEW OTP
       return newOtp;
     });
   };
@@ -240,13 +319,32 @@ const Account = (): JSX.Element => {
       });
       return;
     }
-    // SHOW COMING SOON MODAL
-    setModalState({
-      isOpen: true,
-      type: "info",
-      title: "Coming Soon",
-      message: "Password change functionality will be available soon.",
-    });
+    // SENDING PASSWORD CHANGE CODE TO API
+    sendCode()
+      .then(() => {
+        // SETTING PASSWORD STEP TO VERIFY
+        setPasswordStep("verify");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Sent",
+          message: "Verification code sent to your email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to send verification code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
   };
   // HANDLE VERIFY CURRENT EMAIL
   const handleVerifyCurrentEmail = (): void => {
@@ -400,13 +498,39 @@ const Account = (): JSX.Element => {
       });
       return;
     }
-    // SHOW COMING SOON MODAL
-    setModalState({
-      isOpen: true,
-      type: "info",
-      title: "Coming Soon",
-      message: "Password change functionality will be available soon.",
-    });
+    // VERIFYING PASSWORD CHANGE CODE TO API
+    verifyCode({ code })
+      .then(() => {
+        // SETTING PASSWORD STEP TO CHANGE
+        setPasswordStep("change");
+        // RESET PASSWORD CHANGE CODE STATES
+        setPasswordChangeCode(["", "", "", "", "", ""]);
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Email Verified",
+          message:
+            "Email verified successfully. You can now change your password.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please check and try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Verification Failed",
+          message: errorMessage,
+        });
+        // RESET PASSWORD CHANGE CODE STATES
+        setPasswordChangeCode(["", "", "", "", "", ""]);
+        // FOCUS ON FIRST INPUT
+        passwordChangeCodeRefs.current[0]?.focus();
+      });
   };
   // HANDLE CHANGE PASSWORD
   const handleChangePassword = (): void => {
@@ -421,8 +545,21 @@ const Account = (): JSX.Element => {
       });
       return;
     }
+    // CHECK PASSWORD VALIDATION
+    const allPasswordValid =
+      hasMinLength && hasLower && hasUpper && hasDigit && hasSpecial;
+    if (!allPasswordValid) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Password",
+        message: "Please ensure your password meets all the requirements.",
+      });
+      return;
+    }
     // IF NEW PASSWORD AND CONFIRM PASSWORD DO NOT MATCH, SHOW ERROR MODAL
-    if (formData.newPassword !== formData.confirmPassword) {
+    if (!passwordsMatch) {
       // SHOW ERROR MODAL
       setModalState({
         isOpen: true,
@@ -432,13 +569,40 @@ const Account = (): JSX.Element => {
       });
       return;
     }
-    // SHOW COMING SOON MODAL
-    setModalState({
-      isOpen: true,
-      type: "info",
-      title: "Coming Soon",
-      message: "Password change functionality will be available soon.",
-    });
+    // CHANGING PASSWORD TO API
+    changePasswordAPI({ newPassword: formData.newPassword })
+      .then(() => {
+        // SETTING PASSWORD STEP TO REQUEST
+        setPasswordStep("request");
+        // RESET FORM DATA
+        setFormData((prev) => ({
+          ...prev,
+          newPassword: "",
+          confirmPassword: "",
+        }));
+        // RESET PASSWORD CHANGE CODE STATES
+        setPasswordChangeCode(["", "", "", "", "", ""]);
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Password Changed",
+          message: "Your password has been successfully changed!",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to change password. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
   };
   // HANDLE DELETE ACCOUNT
   const handleDeleteAccount = (): void => {
@@ -537,6 +701,12 @@ const Account = (): JSX.Element => {
   };
   // RESET PASSWORD FLOW
   const handleResetPasswordFlow = (): void => {
+    // CANCEL PASSWORD CHANGE ON BACKEND IF IN PROGRESS
+    if (passwordStep !== "request") {
+      cancelPasswordChange().catch(() => {
+        // SILENTLY FAIL - CLEANUP WILL HAPPEN ON BACKEND
+      });
+    }
     // SETTING PASSWORD STEP TO REQUEST
     setPasswordStep("request");
     // RESET FORM DATA
@@ -947,11 +1117,21 @@ const Account = (): JSX.Element => {
                 </div>
                 <button
                   onClick={handleSendPasswordCode}
+                  disabled={isSendingCode}
                   className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                   style={{ backgroundColor: "var(--accent-color)" }}
                 >
-                  <Send size={18} />
-                  Send Verification Code
+                  {isSendingCode ? (
+                    <>
+                      <RotateCcw size={18} className="animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      Send Verification Code
+                    </>
+                  )}
                 </button>
               </div>
             )}
@@ -1001,22 +1181,53 @@ const Account = (): JSX.Element => {
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleResetPasswordFlow}
+                      disabled={isCancellingPasswordChange}
+                      className="px-4 py-2 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <X size={18} />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleVerifyPasswordCode}
+                      disabled={
+                        passwordChangeCode.some((d) => !d) || isVerifyingCode
+                      }
+                      className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      style={{ backgroundColor: "var(--accent-color)" }}
+                    >
+                      {isVerifyingCode ? (
+                        <>
+                          <RotateCcw size={18} className="animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={18} />
+                          Verify
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <button
-                    onClick={handleResetPasswordFlow}
-                    className="px-4 py-2 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--hover-bg)] transition cursor-pointer flex items-center justify-center gap-2"
+                    onClick={() => resendPasswordCode()}
+                    disabled={isResendingPasswordCode || isVerifyingCode}
+                    className="w-full px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
                   >
-                    <X size={18} />
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleVerifyPasswordCode}
-                    disabled={passwordChangeCode.some((d) => !d)}
-                    className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
-                    style={{ backgroundColor: "var(--accent-color)" }}
-                  >
-                    <CheckCircle size={18} />
-                    Verify
+                    {isResendingPasswordCode ? (
+                      <>
+                        <RotateCcw size={16} className="animate-spin" />
+                        Resending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        Resend Code
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1061,6 +1272,28 @@ const Account = (): JSX.Element => {
                       )}
                     </button>
                   </div>
+                  {/* PASSWORD VALIDATION CONDITIONS */}
+                  {formData.newPassword && (
+                    <div className="mt-2 space-y-1.5">
+                      <ConditionItem
+                        label="At least 8 characters"
+                        passed={hasMinLength}
+                      />
+                      <ConditionItem
+                        label="Contains lowercase letter"
+                        passed={hasLower}
+                      />
+                      <ConditionItem
+                        label="Contains uppercase letter"
+                        passed={hasUpper}
+                      />
+                      <ConditionItem label="Contains digit" passed={hasDigit} />
+                      <ConditionItem
+                        label="Contains special character"
+                        passed={hasSpecial}
+                      />
+                    </div>
+                  )}
                 </div>
                 {/* CONFIRM PASSWORD */}
                 <div>
@@ -1099,6 +1332,15 @@ const Account = (): JSX.Element => {
                       )}
                     </button>
                   </div>
+                  {/* PASSWORD MATCH VALIDATION */}
+                  {formData.confirmPassword && (
+                    <div className="mt-2">
+                      <ConditionItem
+                        label="Passwords match"
+                        passed={passwordsMatch}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-3">
                   <button
@@ -1111,13 +1353,30 @@ const Account = (): JSX.Element => {
                   <button
                     onClick={handleChangePassword}
                     disabled={
-                      !formData.newPassword || !formData.confirmPassword
+                      !formData.newPassword ||
+                      !formData.confirmPassword ||
+                      !hasMinLength ||
+                      !hasLower ||
+                      !hasUpper ||
+                      !hasDigit ||
+                      !hasSpecial ||
+                      !passwordsMatch ||
+                      isChangingPassword
                     }
                     className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                     style={{ backgroundColor: "var(--accent-color)" }}
                   >
-                    <Lock size={18} />
-                    Change Password
+                    {isChangingPassword ? (
+                      <>
+                        <RotateCcw size={18} className="animate-spin" />
+                        Changing...
+                      </>
+                    ) : (
+                      <>
+                        <Lock size={18} />
+                        Change Password
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
