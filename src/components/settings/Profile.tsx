@@ -1,10 +1,10 @@
 // <== IMPORTS ==>
 import { useProfile } from "../../hooks/useProfile";
+import { Camera, Trash2, User } from "lucide-react";
 import ProfileSkeleton from "../skeletons/ProfileSkeleton";
 import ConfirmationModal from "../common/ConfirmationModal";
 import type { ModalType } from "../common/ConfirmationModal";
 import { useState, useEffect, useMemo, JSX, ChangeEvent } from "react";
-import { Camera, Trash2 } from "lucide-react";
 
 // <== INPUT PROPS TYPE INTERFACE ==>
 type InputProps = {
@@ -285,20 +285,10 @@ const Profile = (): JSX.Element => {
               className="w-24 h-24 rounded-full border-4 border-[var(--border)] shadow-md object-cover"
             />
           ) : (
-            // PROFILE PIC PLACEHOLDER
-            <span
-              className="w-24 h-24 border-4 border-[var(--border)] rounded-full shadow-md flex items-center justify-center text-white text-xl font-semibold"
-              style={{ backgroundColor: "var(--accent-color)" }}
-            >
-              {formData.name
-                ? formData.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)
-                : "?"}
-            </span>
+            // PROFILE PIC PLACEHOLDER WITH USER ICON
+            <div className="w-24 h-24 border-4 border-[var(--border)] rounded-full shadow-md flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+              <User size={40} className="text-gray-500 dark:text-gray-400" />
+            </div>
           )}
           {/* CIRCULAR ACTION BUTTONS (NEXT TO PROFILE PICTURE) */}
           <div className="flex gap-2">
@@ -311,8 +301,7 @@ const Profile = (): JSX.Element => {
                   "var(--accent-btn-hover-color)")
               }
               onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--accent-color)")
+                (e.currentTarget.style.backgroundColor = "var(--accent-color)")
               }
               className="w-8 h-8 rounded-full flex items-center justify-center text-white cursor-pointer transition shadow-md hover:scale-110"
               title="Change Picture"
