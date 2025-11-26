@@ -21,6 +21,8 @@ type SignupRequest = {
   email: string;
   // <== PASSWORD ==>
   password: string;
+  // <== ACCEPTED TERMS ==>
+  acceptedTerms: boolean;
 };
 // <== AUTH RESPONSE TYPE ==>
 type AuthResponse = {
