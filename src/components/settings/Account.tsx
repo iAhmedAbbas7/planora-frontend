@@ -1,323 +1,1179 @@
 // <== IMPORTS ==>
-import { Eye, EyeOff, Trash2 } from "lucide-react";
-import { useEffect, useState, JSX, ChangeEvent } from "react";
+import {
+  Eye,
+  EyeOff,
+  Trash2,
+  Mail,
+  Lock,
+  X,
+  Shield,
+  Send,
+  CheckCircle,
+  ArrowLeft,
+  RotateCcw,
+  ArrowRight,
+} from "lucide-react";
+import { useEmailChange } from "../../hooks/useEmailChange";
+import ConfirmationModal from "../common/ConfirmationModal";
+import type { ModalType } from "../common/ConfirmationModal";
+import { useAuthStore, type User } from "../../store/useAuthStore";
+import { useState, useRef, useEffect, JSX, ChangeEvent } from "react";
 
 // <== ACCOUNT COMPONENT ==>
 const Account = (): JSX.Element => {
-  // SHOW PASSWORD STATE
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  // SHOW NEW PASSWORD STATE
+  // ACTIVE SUB-TAB STATE
+  const [activeTab, setActiveTab] = useState<"email" | "password" | "delete">(
+    "email"
+  );
+  // AUTH STORE
+  const { user } = useAuthStore();
+  // CURRENT EMAIL
+  const currentEmail = user?.email || "";
+  // EMAIL CHANGE HOOK
+  const {
+    sendCurrentEmailCode,
+    isSendingCurrentCode,
+    verifyCurrentEmailCode,
+    isVerifyingCurrentCode,
+    verifyNewEmailCode,
+    isVerifyingNewCode,
+    resendCode,
+    isResendingCode,
+    cancelEmailChange,
+    isCancelling,
+  } = useEmailChange();
+  // SHOW NEW PASSWORD STATES
   const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
-  // SHOW CONFIRM PASSWORD STATE
+  // SHOW CONFIRM PASSWORD STATES
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
-  // LOADING STATE
-  const [loading, setLoading] = useState<boolean>(false);
-  // ERROR STATE
-  const [error, setError] = useState<string | null>(null);
+  // MODAL STATE
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: ModalType;
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
+  // CURRENT EMAIL VERIFICATION CODE STATES
+  const [currentEmailCode, setCurrentEmailCode] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  // NEW EMAIL VERIFICATION CODE STATES
+  const [newEmailCode, setNewEmailCode] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  // PASSWORD CHANGE VERIFICATION CODE STATES
+  const [passwordChangeCode, setPasswordChangeCode] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  // CURRENT EMAIL VERIFICATION CODE REFS
+  const currentEmailCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // NEW EMAIL VERIFICATION CODE REFS
+  const newEmailCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // PASSWORD CHANGE VERIFICATION CODE REFS
+  const passwordChangeCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // EMAIL VERIFICATION STEPS
+  const [emailStep, setEmailStep] = useState<
+    "newEmail" | "verifyCurrent" | "verifyNew"
+  >("newEmail");
+  // PASSWORD VERIFICATION STEPS
+  const [passwordStep, setPasswordStep] = useState<
+    "request" | "verify" | "change"
+  >("request");
   // FORM DATA STATE
   const [formData, setFormData] = useState({
-    email: "",
     newEmail: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-  // FETCH USER INFO EFFECT (MOCK DATA - NO API)
-  useEffect(() => {
-    // SET LOADING
-    setLoading(true);
-    // SIMULATE API CALL
-    setTimeout(() => {
-      // GET USER FROM LOCAL STORAGE (UI ONLY)
-      const authUser = JSON.parse(localStorage.getItem("authUser") || "{}");
-      // SET EMAIL
-      setFormData((prev) => ({ ...prev, email: authUser.email || "" }));
-      // SET LOADING TO FALSE
-      setLoading(false);
-      // SET ERROR TO NULL
-      setError(null);
-    }, 500);
-  }, []);
-  // HANDLE CHANGE FUNCTION
+  // HANDLE CHANGE EMAIL FUNCTION
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    // GET NAME AND VALUE FROM EVENT
+    // GET THE NAME AND VALUE FROM THE TARGET
     const { name, value } = e.target;
-    // UPDATE FORM DATA STATE
+    // SET THE FORM DATA
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  // HANDLE SAVE FUNCTION
-  const handleSave = (): void => {
-    // CHECK IF NEW PASSWORD EXISTS
-    if (formData.newPassword) {
-      // CHECK IF CURRENT PASSWORD IS ENTERED
-      if (!formData.currentPassword) {
-        alert("Please enter your current password to change it.");
-        return;
+  // HANDLE CURRENT EMAIL OTP CHANGE FUNCTION
+  const handleOtpChange = (
+    value: string,
+    index: number,
+    setOtp: React.Dispatch<React.SetStateAction<string[]>>,
+    refs: React.RefObject<Array<HTMLInputElement | null>>
+  ): void => {
+    // ONLY ALLOW NUMBERS TO BE ADDED
+    if (value && !/^[0-9]$/.test(value)) return;
+    // GET THE NEW OTP
+    setOtp((prev) => {
+      const newOtp = [...prev];
+      // ASSIGNING THE VALUE
+      newOtp[index] = value;
+      // AUTO-FOCUSING THE NEXT INPUT
+      if (value && index < 5) {
+        // AUTO-FOCUSING THE NEXT INPUT
+        refs.current[index + 1]?.focus();
       }
-      // CHECK IF PASSWORDS MATCH
-      if (formData.newPassword !== formData.confirmPassword) {
-        alert("New password and confirmation password do not match.");
-        return;
-      }
-    }
-    // SET LOADING
-    setLoading(true);
-    // SIMULATE API CALL (UI ONLY)
-    setTimeout(() => {
-      // LOG UPDATE DATA (UI ONLY)
-      console.log("Account update data:", {
-        newEmail: formData.newEmail || undefined,
-        currentPassword: formData.currentPassword || undefined,
-        newPassword: formData.newPassword || undefined,
-      });
-      // UPDATE EMAIL IF NEW EMAIL PROVIDED
-      if (formData.newEmail) {
-        setFormData((prev) => ({
-          ...prev,
-          email: formData.newEmail,
-          newEmail: "",
-        }));
-      }
-      // CLEAR PASSWORD FIELDS
-      setFormData((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-      // SHOW SUCCESS MESSAGE
-      alert("Account details updated successfully!");
-      // SET LOADING TO FALSE
-      setLoading(false);
-    }, 500);
+      return newOtp;
+    });
   };
-  // HANDLE CANCEL FUNCTION
-  const handleCancel = (): void => {
-    // RESET INPUT FIELDS
+  // HANDLE CURRENT EMAIL OTP KEY DOWN FUNCTION
+  const handleOtpKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+    setOtp: React.Dispatch<React.SetStateAction<string[]>>,
+    refs: React.RefObject<(HTMLInputElement | null)[]>
+  ): void => {
+    // BACKSPACE INPUT REMOVAL HANDLING
+    if (
+      e.key === "Backspace" &&
+      !(e.target as HTMLInputElement).value &&
+      index > 0
+    ) {
+      // AUTO-FOCUSING THE PREVIOUS INPUT
+      refs.current[index - 1]?.focus();
+      // SETTING THE NEW OTP
+      setOtp((prev) => {
+        // GET THE NEW OTP
+        const newOtp = [...prev];
+        // REMOVING THE VALUE
+        newOtp[index - 1] = "";
+        // RETURNING THE NEW OTP
+        return newOtp;
+      });
+    }
+  };
+  // HANDLE SEND VERIFICATION CODE (CURRENT EMAIL)
+  const handleSendCurrentEmailCode = (): void => {
+    // IF NO EMAIL, SHOW ERROR MODAL
+    if (!currentEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "No email address found. Please contact support.",
+      });
+      return;
+    }
+    // IF NO NEW EMAIL, SHOW ERROR MODAL
+    if (!formData.newEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "Please enter a new email address.",
+      });
+      return;
+    }
+    // VALIDATING EMAIL FORMAT
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // IF EMAIL FORMAT IS INVALID, SHOW ERROR MODAL
+    if (!emailRegex.test(formData.newEmail)) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Email",
+        message: "Please enter a valid email address.",
+      });
+      return;
+    }
+    // SENDING CURRENT EMAIL CODE TO API
+    sendCurrentEmailCode({ newEmail: formData.newEmail })
+      .then(() => {
+        // SETTING EMAIL STEP TO VERIFY CURRENT
+        setEmailStep("verifyCurrent");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Sent",
+          message: "Verification code sent to your current email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to send verification code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
+  // HANDLE SEND PASSWORD CHANGE CODE
+  const handleSendPasswordCode = (): void => {
+    // IF NO EMAIL, SHOW ERROR MODAL
+    if (!currentEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "No email address found. Please contact support.",
+      });
+      return;
+    }
+    // SHOW COMING SOON MODAL
+    setModalState({
+      isOpen: true,
+      type: "info",
+      title: "Coming Soon",
+      message: "Password change functionality will be available soon.",
+    });
+  };
+  // HANDLE VERIFY CURRENT EMAIL
+  const handleVerifyCurrentEmail = (): void => {
+    // GET CODE FROM CURRENT EMAIL CODE STATES
+    const code = currentEmailCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter the complete 6-digit code.",
+      });
+      return;
+    }
+    // IF NO NEW EMAIL, SHOW ERROR MODAL
+    if (!formData.newEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "New email address is required.",
+      });
+      return;
+    }
+    // VERIFYING CURRENT EMAIL CODE TO API
+    verifyCurrentEmailCode({ newEmail: formData.newEmail, code })
+      .then(() => {
+        // SETTING EMAIL STEP TO VERIFY NEW
+        setEmailStep("verifyNew");
+        // RESET CURRENT EMAIL CODE STATES
+        setCurrentEmailCode(["", "", "", "", "", ""]);
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Email Verified",
+          message:
+            "Current email verified. Verification code sent to your new email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please check and try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Verification Failed",
+          message: errorMessage,
+        });
+        // RESET CODE ON ERROR
+        setCurrentEmailCode(["", "", "", "", "", ""]);
+        // FOCUS ON FIRST INPUT
+        currentEmailCodeRefs.current[0]?.focus();
+      });
+  };
+  // HANDLE VERIFY NEW EMAIL
+  const handleVerifyNewEmail = (): void => {
+    // GET CODE FROM NEW EMAIL CODE STATES
+    const code = newEmailCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter the complete 6-digit code.",
+      });
+      return;
+    }
+    // IF NO NEW EMAIL, SHOW ERROR MODAL
+    if (!formData.newEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "New email address is required.",
+      });
+      return;
+    }
+    // VERIFYING NEW EMAIL CODE TO API
+    verifyNewEmailCode({ newEmail: formData.newEmail, code })
+      .then((response) => {
+        // SETTING EMAIL STEP TO NEW EMAIL
+        setEmailStep("newEmail");
+        // RESET FORM DATA
+        setFormData((prev) => ({ ...prev, newEmail: "" }));
+        // RESET CURRENT EMAIL CODE STATES
+        setCurrentEmailCode(["", "", "", "", "", ""]);
+        // RESET NEW EMAIL CODE STATES
+        setNewEmailCode(["", "", "", "", "", ""]);
+        // BUILD SUCCESS MESSAGE WITH OAUTH SYNC INFO
+        let successMessage =
+          "Your email address has been successfully updated! Confirmation emails have been sent to both your old and new email addresses.";
+        // IF OAUTH USER, ADD OAUTH SYNC INFO TO SUCCESS MESSAGE
+        if (response.isOAuthUser && response.provider) {
+          // GET PROVIDER NAME
+          const providerName =
+            response.provider === "google"
+              ? "Google"
+              : response.provider === "github"
+              ? "GitHub"
+              : response.provider;
+          successMessage += `\n\nYour OAuth account information will be automatically synced the next time you log in with ${providerName}.`;
+        }
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Email Updated",
+          message: successMessage,
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please check and try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Verification Failed",
+          message: errorMessage,
+        });
+        // RESET NEW EMAIL CODE STATES
+        setNewEmailCode(["", "", "", "", "", ""]);
+        // FOCUS ON FIRST INPUT
+        newEmailCodeRefs.current[0]?.focus();
+      });
+  };
+  // HANDLE VERIFY PASSWORD CODE
+  const handleVerifyPasswordCode = (): void => {
+    // GET CODE FROM PASSWORD CHANGE CODE STATES
+    const code = passwordChangeCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter the complete 6-digit code.",
+      });
+      return;
+    }
+    // SHOW COMING SOON MODAL
+    setModalState({
+      isOpen: true,
+      type: "info",
+      title: "Coming Soon",
+      message: "Password change functionality will be available soon.",
+    });
+  };
+  // HANDLE CHANGE PASSWORD
+  const handleChangePassword = (): void => {
+    // IF NO NEW PASSWORD OR CONFIRM PASSWORD, SHOW ERROR MODAL
+    if (!formData.newPassword || !formData.confirmPassword) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "Please fill in all password fields.",
+      });
+      return;
+    }
+    // IF NEW PASSWORD AND CONFIRM PASSWORD DO NOT MATCH, SHOW ERROR MODAL
+    if (formData.newPassword !== formData.confirmPassword) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "New password and confirmation password do not match.",
+      });
+      return;
+    }
+    // SHOW COMING SOON MODAL
+    setModalState({
+      isOpen: true,
+      type: "info",
+      title: "Coming Soon",
+      message: "Password change functionality will be available soon.",
+    });
+  };
+  // HANDLE DELETE ACCOUNT
+  const handleDeleteAccount = (): void => {
+    // SHOW WARNING MODAL
+    setModalState({
+      isOpen: true,
+      type: "warning",
+      title: "Delete Account",
+      message:
+        "Are you sure you want to delete your account? This action is irreversible and will permanently delete all your data.",
+      onConfirm: () => {
+        // SHOW COMING SOON MODAL
+        setModalState({
+          isOpen: true,
+          type: "info",
+          title: "Coming Soon",
+          message: "Account deletion functionality will be available soon.",
+        });
+      },
+    });
+  };
+  // RESET EMAIL FLOW
+  const handleResetEmailFlow = (): void => {
+    // CANCEL EMAIL CHANGE ON BACKEND IF IN PROGRESS
+    if (emailStep !== "newEmail" && formData.newEmail) {
+      // CANCELING EMAIL CHANGE ON BACKEND IF IN PROGRESS
+      cancelEmailChange({ newEmail: formData.newEmail }).catch(() => {
+        // SILENTLY FAIL - CLEANUP WILL HAPPEN ON BACKEND
+      });
+    }
+    // SETTING EMAIL STEP TO NEW EMAIL
+    setEmailStep("newEmail");
+    // RESET FORM DATA
+    setFormData((prev) => ({ ...prev, newEmail: "" }));
+    // RESET CURRENT EMAIL CODE STATES
+    setCurrentEmailCode(["", "", "", "", "", ""]);
+    // RESET NEW EMAIL CODE STATES
+    setNewEmailCode(["", "", "", "", "", ""]);
+  };
+  // HANDLE RESEND CODE
+  const handleResendCode = (type: "current" | "new"): void => {
+    // IF NO NEW EMAIL, SHOW ERROR MODAL
+    if (!formData.newEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "New email address is required.",
+      });
+      return;
+    }
+    // RESENDING CODE TO API
+    resendCode({ newEmail: formData.newEmail, type })
+      .then(() => {
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Resent",
+          message: `Verification code sent to your ${
+            type === "current" ? "current" : "new"
+          } email address.`,
+        });
+        // RESET CODE INPUTS
+        if (type === "current") {
+          // RESET CURRENT EMAIL CODE STATES
+          setCurrentEmailCode(["", "", "", "", "", ""]);
+          // FOCUS ON FIRST INPUT
+          currentEmailCodeRefs.current[0]?.focus();
+        } else {
+          // RESET NEW EMAIL CODE STATES
+          setNewEmailCode(["", "", "", "", "", ""]);
+          // FOCUS ON FIRST INPUT
+          newEmailCodeRefs.current[0]?.focus();
+        }
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to resend code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
+  // CLOSE MODAL FUNCTION
+  const closeModal = (): void => {
+    // CLOSE MODAL
+    setModalState((prev) => ({ ...prev, isOpen: false }));
+  };
+  // RESET PASSWORD FLOW
+  const handleResetPasswordFlow = (): void => {
+    // SETTING PASSWORD STEP TO REQUEST
+    setPasswordStep("request");
+    // RESET FORM DATA
     setFormData((prev) => ({
       ...prev,
-      newEmail: "",
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     }));
-    // SHOW INFO MESSAGE
-    alert("Changes cancelled and form fields reset.");
+    // RESET PASSWORD CHANGE CODE STATES
+    setPasswordChangeCode(["", "", "", "", "", ""]);
   };
-  // HANDLE DELETE USER FUNCTION
-  const handleDeleteUser = (): void => {
-    // CONFIRM DELETION
-    if (
-      !window.confirm(
-        "Are you sure you want to delete your account? This action is irreversible."
-      )
-    ) {
-      return;
+  // AUTO-FOCUS FIRST OTP INPUT
+  useEffect(() => {
+    // IF EMAIL STEP IS VERIFY CURRENT, FOCUS ON FIRST CURRENT EMAIL CODE INPUT
+    if (emailStep === "verifyCurrent") {
+      currentEmailCodeRefs.current[0]?.focus();
+    } else if (emailStep === "verifyNew") {
+      // IF EMAIL STEP IS VERIFY NEW, FOCUS ON FIRST NEW EMAIL CODE INPUT
+      newEmailCodeRefs.current[0]?.focus();
+    } else if (passwordStep === "verify") {
+      // IF PASSWORD STEP IS VERIFY, FOCUS ON FIRST PASSWORD CHANGE CODE INPUT
+      passwordChangeCodeRefs.current[0]?.focus();
     }
-    // SET LOADING
-    setLoading(true);
-    // SIMULATE API CALL (UI ONLY)
-    setTimeout(() => {
-      // CLEAR USER DATA FROM LOCAL STORAGE
-      localStorage.removeItem("authUser");
-      // LOG DELETION (UI ONLY)
-      console.log("Account deleted");
-      // SHOW SUCCESS MESSAGE
-      alert("Your account has been successfully deleted.");
-      // SET LOADING TO FALSE
-      setLoading(false);
-      // REDIRECT TO REGISTER PAGE
-      window.location.href = "/register";
-    }, 500);
-  };
-  // PASSWORD FIELDS ARRAY
-  const passwordFields = [
-    {
-      label: "Current Password",
-      name: "currentPassword",
-      state: showPassword,
-      setState: setShowPassword,
-      value: formData.currentPassword,
-      placeholder: "Enter current password...",
-    },
-    {
-      label: "New Password",
-      name: "newPassword",
-      state: showNewPassword,
-      setState: setShowNewPassword,
-      value: formData.newPassword,
-      placeholder: "Enter new password...",
-    },
-    {
-      label: "Confirm New Password",
-      name: "confirmPassword",
-      state: showConfirmPassword,
-      setState: setShowConfirmPassword,
-      value: formData.confirmPassword,
-      placeholder: "Re-enter new password...",
-    },
-  ];
-  // CHECK IF HAS CHANGES
-  const hasChanges = Boolean(
-    formData.newEmail ||
-      formData.currentPassword ||
-      formData.newPassword ||
-      formData.confirmPassword
-  );
+  }, [emailStep, passwordStep]);
   // RETURNING THE ACCOUNT COMPONENT
   return (
     // ACCOUNT MAIN CONTAINER
-    <div className="m-4 border border-[var(--border)] rounded-2xl p-6 bg-[var(--cards-bg)] space-y-10 shadow-sm">
+    <div className="m-4 border border-[var(--border)] rounded-2xl p-6 bg-[var(--cards-bg)] space-y-6 shadow-sm">
       {/* HEADER SECTION */}
       <div>
         {/* TITLE */}
         <p className="text-xl font-semibold">Account</p>
         {/* DESCRIPTION */}
         <p className="text-sm text-[var(--light-text)]">
-          Update your personal information and security details.
+          Manage your account settings and security preferences.
         </p>
       </div>
-      {/* ERROR MESSAGE */}
-      {error && (
-        <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
-      {/* CHANGE EMAIL SECTION */}
-      <section className="space-y-4">
-        {/* SECTION TITLE */}
-        <p className="text-lg font-medium border-b border-[var(--border)] pb-2">
-          Change Email
-        </p>
-        {/* CURRENT EMAIL INFO */}
-        <p className="text-[var(--light-text)]">
-          Your current email is{" "}
-          <span className="font-medium">{formData.email || "N/A"}</span>
-        </p>
-        {/* NEW EMAIL INPUT */}
-        <div className="flex flex-col sm:w-1/2">
-          {/* NEW EMAIL LABEL */}
-          <label
-            htmlFor="newEmail"
-            className="block text-sm font-medium text-[var(--light-text)] mb-1"
+      {/* SUB-TABS */}
+      <div className="border-b border-[var(--border)]">
+        <div className="flex gap-2">
+          {/* CHANGE EMAIL TAB */}
+          <button
+            onClick={() => {
+              setActiveTab("email");
+              handleResetEmailFlow();
+            }}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
+              activeTab === "email"
+                ? "bg-[var(--inside-card-bg)] text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+            }`}
           >
-            New Email Address
-          </label>
-          {/* NEW EMAIL INPUT */}
-          <input
-            type="email"
-            id="newEmail"
-            name="newEmail"
-            value={formData.newEmail}
-            onChange={handleChange}
-            placeholder="Enter new email..."
-            className="border border-[var(--border)] rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
-            disabled={loading}
-          />
+            Change Email
+          </button>
+          {/* CHANGE PASSWORD TAB */}
+          <button
+            onClick={() => {
+              setActiveTab("password");
+              handleResetPasswordFlow();
+            }}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
+              activeTab === "password"
+                ? "bg-[var(--inside-card-bg)] text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Change Password
+          </button>
+          {/* DELETE ACCOUNT TAB */}
+          <button
+            onClick={() => setActiveTab("delete")}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
+              activeTab === "delete"
+                ? "bg-[var(--inside-card-bg)] text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Delete Account
+          </button>
         </div>
-      </section>
-      {/* CHANGE PASSWORD SECTION */}
-      <section className="space-y-5">
-        {/* SECTION TITLE */}
-        <p className="text-lg font-medium border-b border-[var(--border)] pb-2">
-          Change Password
-        </p>
-        {/* PASSWORD FIELDS */}
-        {/* MAPPING THROUGH PASSWORD FIELDS */}
-        {passwordFields.map((field, i) => (
-          // PASSWORD FIELD CONTAINER
-          <div key={i} className="flex flex-col sm:w-1/2">
-            {/* PASSWORD LABEL */}
-            <label
-              htmlFor={field.name}
-              className="block text-sm font-medium mb-1"
-            >
-              {field.label}
-            </label>
-            {/* PASSWORD INPUT CONTAINER */}
-            <div className="relative">
-              {/* PASSWORD INPUT */}
-              <input
-                type={field.state ? "text" : "password"}
-                id={field.name}
-                name={field.name}
-                value={field.value}
-                onChange={handleChange}
-                placeholder={field.placeholder}
-                className="w-full border border-[var(--border)] rounded-lg px-3 py-2 pr-10 focus:outline-none focus:border-violet-500 bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
-                disabled={loading}
-              />
-              {/* SHOW/HIDE PASSWORD BUTTON */}
-              <button
-                type="button"
-                onClick={() => field.setState((prev) => !prev)}
-                className="absolute cursor-pointer right-3 top-2.5 text-[var(--light-text)] hover:text-gray-700"
-                disabled={loading}
-              >
-                {/* EYE ICON */}
-                {field.state ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-        ))}
-      </section>
-      {/* DELETE ACCOUNT SECTION */}
-      <section className="space-y-3">
-        {/* SECTION TITLE */}
-        <p className="font-medium border-b text-lg border-[var(--border)] pb-2">
-          Delete Account
-        </p>
-        {/* WARNING MESSAGE */}
-        <p className="text-[var(--light-text)]">
-          Once you delete your account, there's{" "}
-          <span className="font-semibold text-[var(--high-priority-color)]">
-            no going back
-          </span>
-          . Please be certain.
-        </p>
-        {/* DELETE BUTTON */}
-        <button
-          type="button"
-          onClick={handleDeleteUser}
-          className="flex items-center gap-2 text-[var(--high-priority-color)] hover:text-white border border-red-500 cursor-pointer hover:bg-red-500 transition rounded-lg px-4 py-2 font-medium w-fit disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          {/* TRASH ICON */}
-          <Trash2 size={16} />
-          {/* BUTTON TEXT */}
-          {loading ? "Deleting..." : "Delete your account"}
-        </button>
-      </section>
-      {/* FOOTER BUTTONS */}
-      <div className="pt-6 flex justify-end gap-3 border-t border-[var(--border)]">
-        {/* CANCEL BUTTON */}
-        <button
-          type="button"
-          className="w-full sm:w-auto border border-[var(--border)] hover:bg-[var(--hover-bg)] px-6 py-2.5 cursor-pointer rounded-lg font-medium transition disabled:opacity-50"
-          onClick={handleCancel}
-          disabled={loading}
-        >
-          Cancel
-        </button>
-        {/* SAVE BUTTON */}
-        <button
-          type="button"
-          className="w-full sm:w-auto text-white px-6 py-2.5 rounded-lg cursor-pointer font-medium transition disabled:opacity-50 disabled:bg-violet-400"
-          style={{ backgroundColor: "var(--accent-color)" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "var(--accent-btn-hover-color)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--accent-color)")
-          }
-          onClick={handleSave}
-          disabled={loading || !hasChanges}
-        >
-          {loading ? "Saving..." : "Save Changes"}
-        </button>
       </div>
+      {/* TAB CONTENT */}
+      <div className="pt-4">
+        {/* CHANGE EMAIL TAB CONTENT */}
+        {activeTab === "email" && (
+          <div className="space-y-6">
+            {/* CURRENT EMAIL INFO */}
+            <div className="p-4 bg-[var(--inside-card-bg)] rounded-lg border border-[var(--border)] space-y-2">
+              <div>
+                <p className="text-sm text-[var(--light-text)] mb-1">
+                  Current Email
+                </p>
+                <p className="text-base font-medium">{currentEmail || "N/A"}</p>
+              </div>
+              {/* OAUTH INFO */}
+              {(() => {
+                const userWithProvider = user as User & {
+                  provider?: string;
+                  providerEmail?: string;
+                };
+                return (
+                  userWithProvider?.provider && (
+                    <div className="pt-2 border-t border-[var(--border)]">
+                      <p className="text-xs text-[var(--light-text)]">
+                        Account created via{" "}
+                        <span className="font-medium capitalize">
+                          {userWithProvider.provider}
+                        </span>
+                        {userWithProvider.providerEmail &&
+                          userWithProvider.providerEmail !== currentEmail && (
+                            <>
+                              <br />
+                              <span className="text-[var(--light-text)]">
+                                Original OAuth email:{" "}
+                                <span className="font-medium">
+                                  {userWithProvider.providerEmail}
+                                </span>
+                              </span>
+                            </>
+                          )}
+                        <br />
+                        <span className="text-[var(--light-text)] italic">
+                          Note: Your OAuth account information will be
+                          automatically synced the next time you log in with{" "}
+                          <span className="font-medium capitalize">
+                            {userWithProvider.provider}
+                          </span>
+                          .
+                        </span>
+                      </p>
+                    </div>
+                  )
+                );
+              })()}
+            </div>
+            {/* NEW EMAIL INPUT STEP */}
+            {emailStep === "newEmail" && (
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="newEmail"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    New Email Address
+                  </label>
+                  <div className="relative flex items-center">
+                    <Mail
+                      className="absolute left-3 text-[var(--light-text)]"
+                      size={18}
+                    />
+                    <input
+                      type="email"
+                      id="newEmail"
+                      name="newEmail"
+                      value={formData.newEmail}
+                      onChange={handleChange}
+                      placeholder="Enter new email address"
+                      className="w-full pl-10 pr-10 py-2.5 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                      disabled={isSendingCurrentCode}
+                    />
+                    {formData.newEmail && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, newEmail: "" }))
+                        }
+                        className="absolute right-3 p-1 rounded-full hover:bg-[var(--hover-bg)] cursor-pointer"
+                      >
+                        <X size={16} className="text-[var(--light-text)]" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={handleSendCurrentEmailCode}
+                  disabled={!formData.newEmail || isSendingCurrentCode}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                >
+                  {isSendingCurrentCode ? (
+                    <>
+                      <RotateCcw size={18} className="animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight size={18} />
+                      Continue
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+            {/* VERIFY CURRENT EMAIL STEP */}
+            {emailStep === "verifyCurrent" && (
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    A verification code has been sent to{" "}
+                    <strong>{currentEmail}</strong>. Please enter the code to
+                    verify your current email.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Verification Code
+                  </label>
+                  <div className="flex gap-2 justify-center">
+                    {currentEmailCode.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => {
+                          currentEmailCodeRefs.current[index] = el;
+                        }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) =>
+                          handleOtpChange(
+                            e.target.value,
+                            index,
+                            setCurrentEmailCode,
+                            currentEmailCodeRefs
+                          )
+                        }
+                        onKeyDown={(e) =>
+                          handleOtpKeyDown(
+                            e,
+                            index,
+                            setCurrentEmailCode,
+                            currentEmailCodeRefs
+                          )
+                        }
+                        className="w-12 h-12 text-center text-lg font-semibold border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        disabled={isVerifyingCurrentCode || isResendingCode}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleResetEmailFlow}
+                      disabled={isCancelling}
+                      className="px-4 py-2 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <X size={18} />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleVerifyCurrentEmail}
+                      disabled={
+                        currentEmailCode.some((d) => !d) ||
+                        isVerifyingCurrentCode ||
+                        isResendingCode
+                      }
+                      className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      style={{ backgroundColor: "var(--accent-color)" }}
+                    >
+                      {isVerifyingCurrentCode ? (
+                        <>
+                          <RotateCcw size={18} className="animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={18} />
+                          Verify
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => handleResendCode("current")}
+                    disabled={isResendingCode || isVerifyingCurrentCode}
+                    className="w-full px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                  >
+                    {isResendingCode ? (
+                      <>
+                        <RotateCcw size={16} className="animate-spin" />
+                        Resending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        Resend Code
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+            {/* VERIFY NEW EMAIL STEP */}
+            {emailStep === "verifyNew" && (
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    A verification code has been sent to{" "}
+                    <strong>{formData.newEmail}</strong>. Please enter the code
+                    to verify your new email.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Verification Code
+                  </label>
+                  <div className="flex gap-2 justify-center">
+                    {newEmailCode.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => {
+                          newEmailCodeRefs.current[index] = el;
+                        }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) =>
+                          handleOtpChange(
+                            e.target.value,
+                            index,
+                            setNewEmailCode,
+                            newEmailCodeRefs
+                          )
+                        }
+                        onKeyDown={(e) =>
+                          handleOtpKeyDown(
+                            e,
+                            index,
+                            setNewEmailCode,
+                            newEmailCodeRefs
+                          )
+                        }
+                        className="w-12 h-12 text-center text-lg font-semibold border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        disabled={isVerifyingNewCode || isResendingCode}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setEmailStep("verifyCurrent")}
+                      className="px-4 py-2 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--hover-bg)] transition cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <ArrowLeft size={18} />
+                      Back
+                    </button>
+                    <button
+                      onClick={handleVerifyNewEmail}
+                      disabled={
+                        newEmailCode.some((d) => !d) ||
+                        isVerifyingNewCode ||
+                        isResendingCode
+                      }
+                      className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      style={{ backgroundColor: "var(--accent-color)" }}
+                    >
+                      {isVerifyingNewCode ? (
+                        <>
+                          <RotateCcw size={18} className="animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={18} />
+                          Verify & Update Email
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => handleResendCode("new")}
+                    disabled={isResendingCode || isVerifyingNewCode}
+                    className="w-full px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                  >
+                    {isResendingCode ? (
+                      <>
+                        <RotateCcw size={16} className="animate-spin" />
+                        Resending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        Resend Code
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {/* CHANGE PASSWORD TAB CONTENT */}
+        {activeTab === "password" && (
+          <div className="space-y-6">
+            {/* REQUEST VERIFICATION STEP */}
+            {passwordStep === "request" && (
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    To change your password, we need to verify your identity. A
+                    verification code will be sent to{" "}
+                    <strong>{currentEmail}</strong>.
+                  </p>
+                </div>
+                <button
+                  onClick={handleSendPasswordCode}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                >
+                  <Send size={18} />
+                  Send Verification Code
+                </button>
+              </div>
+            )}
+            {/* VERIFY CODE STEP */}
+            {passwordStep === "verify" && (
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    A verification code has been sent to{" "}
+                    <strong>{currentEmail}</strong>. Please enter the code to
+                    continue.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Verification Code
+                  </label>
+                  <div className="flex gap-2 justify-center">
+                    {passwordChangeCode.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => {
+                          passwordChangeCodeRefs.current[index] = el;
+                        }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) =>
+                          handleOtpChange(
+                            e.target.value,
+                            index,
+                            setPasswordChangeCode,
+                            passwordChangeCodeRefs
+                          )
+                        }
+                        onKeyDown={(e) =>
+                          handleOtpKeyDown(
+                            e,
+                            index,
+                            setPasswordChangeCode,
+                            passwordChangeCodeRefs
+                          )
+                        }
+                        className="w-12 h-12 text-center text-lg font-semibold border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleResetPasswordFlow}
+                    className="px-4 py-2 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--hover-bg)] transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <X size={18} />
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleVerifyPasswordCode}
+                    disabled={passwordChangeCode.some((d) => !d)}
+                    className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                    style={{ backgroundColor: "var(--accent-color)" }}
+                  >
+                    <CheckCircle size={18} />
+                    Verify
+                  </button>
+                </div>
+              </div>
+            )}
+            {/* CHANGE PASSWORD STEP */}
+            {passwordStep === "change" && (
+              <div className="space-y-4">
+                {/* NEW PASSWORD */}
+                <div>
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    New Password
+                  </label>
+                  <div className="relative flex items-center">
+                    <Lock
+                      className="absolute left-3 text-[var(--light-text)]"
+                      size={18}
+                    />
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      id="newPassword"
+                      name="newPassword"
+                      value={formData.newPassword}
+                      onChange={handleChange}
+                      placeholder="Enter new password"
+                      className="w-full pl-10 pr-20 py-2.5 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword((prev) => !prev)}
+                      className="absolute right-3 p-1 rounded-full hover:bg-[var(--hover-bg)] cursor-pointer"
+                    >
+                      {showNewPassword ? (
+                        <EyeOff
+                          size={18}
+                          className="text-[var(--light-text)]"
+                        />
+                      ) : (
+                        <Eye size={18} className="text-[var(--light-text)]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {/* CONFIRM PASSWORD */}
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    Confirm New Password
+                  </label>
+                  <div className="relative flex items-center">
+                    <Lock
+                      className="absolute left-3 text-[var(--light-text)]"
+                      size={18}
+                    />
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Re-enter new password"
+                      className="w-full pl-10 pr-20 py-2.5 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-3 p-1 rounded-full hover:bg-[var(--hover-bg)] cursor-pointer"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff
+                          size={18}
+                          className="text-[var(--light-text)]"
+                        />
+                      ) : (
+                        <Eye size={18} className="text-[var(--light-text)]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setPasswordStep("verify")}
+                    className="px-4 py-2 border border-[var(--border)] rounded-lg font-medium hover:bg-[var(--hover-bg)] transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft size={18} />
+                    Back
+                  </button>
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={
+                      !formData.newPassword || !formData.confirmPassword
+                    }
+                    className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                    style={{ backgroundColor: "var(--accent-color)" }}
+                  >
+                    <Lock size={18} />
+                    Change Password
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {/* DELETE ACCOUNT TAB CONTENT */}
+        {activeTab === "delete" && (
+          <div className="space-y-6">
+            <div className="p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Shield
+                  className="text-red-600 dark:text-red-400 mt-0.5"
+                  size={24}
+                />
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+                    Delete Your Account
+                  </h3>
+                  <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                    Once you delete your account, there's{" "}
+                    <strong>no going back</strong>. This action is irreversible
+                    and will permanently delete:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1 mb-4">
+                    <li>All your projects and tasks</li>
+                    <li>Your profile information</li>
+                    <li>All your settings and preferences</li>
+                    <li>Your account history</li>
+                  </ul>
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    Please be certain before proceeding.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleDeleteAccount}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Trash2 size={18} />
+              Delete My Account
+            </button>
+          </div>
+        )}
+      </div>
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        showCancel={modalState.type === "warning"}
+      />
     </div>
   );
 };
