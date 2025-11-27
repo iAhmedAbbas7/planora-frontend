@@ -14,11 +14,13 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useEmailChange } from "../../hooks/useEmailChange";
 import ConfirmationModal from "../common/ConfirmationModal";
 import type { ModalType } from "../common/ConfirmationModal";
 import { usePasswordChange } from "../../hooks/usePasswordChange";
 import { useAuthStore, type User } from "../../store/useAuthStore";
+import { useAccountDeletion } from "../../hooks/useAccountDeletion";
 import { useState, useRef, useEffect, JSX, ChangeEvent } from "react";
 
 // <== CONDITION ITEM COMPONENT ==>
@@ -147,6 +149,36 @@ const Account = (): JSX.Element => {
   const newEmailCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
   // PASSWORD CHANGE VERIFICATION CODE REFS
   const passwordChangeCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // ACCOUNT DELETION HOOK
+  const {
+    sendCode: sendDeletionCode,
+    isSendingCode: isSendingDeletionCode,
+    verifyCode: verifyDeletionCode,
+    isVerifyingCode: isVerifyingDeletionCode,
+    confirmDeletion,
+    isConfirmingDeletion,
+    resendCode: resendDeletionCode,
+    isResendingCode: isResendingDeletionCode,
+    cancelDeletion,
+    isCancelling: isCancellingDeletion,
+  } = useAccountDeletion();
+  // NAVIGATE HOOK
+  const navigate = useNavigate();
+  // DELETION STEP STATE
+  const [deletionStep, setDeletionStep] = useState<
+    "request" | "verify" | "confirm"
+  >("request");
+  // DELETION VERIFICATION CODE STATES
+  const [deletionCode, setDeletionCode] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  // DELETION VERIFICATION CODE REFS
+  const deletionCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
   // EMAIL VERIFICATION STEPS
   const [emailStep, setEmailStep] = useState<
     "newEmail" | "verifyCurrent" | "verifyNew"
@@ -604,25 +636,212 @@ const Account = (): JSX.Element => {
         });
       });
   };
-  // HANDLE DELETE ACCOUNT
-  const handleDeleteAccount = (): void => {
+  // HANDLE SEND DELETION CODE
+  const handleSendDeletionCode = (): void => {
+    // SENDING DELETION CODE TO API
+    sendDeletionCode()
+      .then(() => {
+        // SETTING DELETION STEP TO VERIFY
+        setDeletionStep("verify");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Sent",
+          message: "Verification code sent to your email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to send verification code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
+  // HANDLE VERIFY DELETION CODE
+  const handleVerifyDeletionCode = (): void => {
+    // GET CODE FROM STATE
+    const code = deletionCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter a valid 6-digit verification code.",
+      });
+      return;
+    }
+    // VERIFYING DELETION CODE TO API
+    verifyDeletionCode({ code })
+      .then(() => {
+        // SETTING DELETION STEP TO CONFIRM
+        setDeletionStep("confirm");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Verified",
+          message:
+            "Verification code verified successfully. You can now confirm deletion.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+        // RESET CODE
+        setDeletionCode(["", "", "", "", "", ""]);
+        // FOCUS FIRST INPUT
+        deletionCodeRefs.current[0]?.focus();
+      });
+  };
+  // HANDLE CONFIRM DELETION
+  const handleConfirmDeletion = (): void => {
     // SHOW WARNING MODAL
     setModalState({
       isOpen: true,
       type: "warning",
-      title: "Delete Account",
+      title: "Confirm Account Deletion",
       message:
-        "Are you sure you want to delete your account? This action is irreversible and will permanently delete all your data.",
+        "Are you sure you want to delete your account? Your account will be flagged for deletion and you will have 30 days to reactivate it by logging in. After 30 days, your account and all data will be permanently deleted.",
       onConfirm: () => {
-        // SHOW COMING SOON MODAL
-        setModalState({
-          isOpen: true,
-          type: "info",
-          title: "Coming Soon",
-          message: "Account deletion functionality will be available soon.",
-        });
+        // CONFIRMING DELETION TO API
+        confirmDeletion()
+          .then(() => {
+            // SHOW SUCCESS MODAL
+            setModalState({
+              isOpen: true,
+              type: "success",
+              title: "Account Flagged for Deletion",
+              message:
+                "Your account has been flagged for deletion. You will be logged out shortly. You have 30 days to log in and reactivate your account.",
+              onConfirm: () => {
+                // AUTH STORE
+                const { logout } = useAuthStore.getState();
+                // CALL LOGOUT FUNCTION
+                logout();
+                // NAVIGATE TO LOGIN PAGE
+                navigate("/login");
+              },
+            });
+          })
+          .catch((error) => {
+            // GET ERROR MESSAGE FROM RESPONSE
+            const errorMessage =
+              error.response?.data?.message ||
+              "Failed to confirm deletion. Please try again.";
+            // SHOW ERROR MODAL
+            setModalState({
+              isOpen: true,
+              type: "error",
+              title: "Error",
+              message: errorMessage,
+            });
+          });
       },
     });
+  };
+  // HANDLE RESEND DELETION CODE
+  const handleResendDeletionCode = (): void => {
+    // RESENDING DELETION CODE TO API
+    resendDeletionCode()
+      .then(() => {
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Resent",
+          message: "Verification code resent to your email address.",
+        });
+        // RESET CODE
+        setDeletionCode(["", "", "", "", "", ""]);
+        // FOCUS FIRST INPUT
+        deletionCodeRefs.current[0]?.focus();
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to resend code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
+  // HANDLE CANCEL DELETION
+  const handleCancelDeletion = (): void => {
+    // SHOW WARNING MODAL
+    setModalState({
+      isOpen: true,
+      type: "warning",
+      title: "Cancel Account Deletion",
+      message: "Are you sure you want to cancel the account deletion process?",
+      onConfirm: () => {
+        // CANCELING DELETION TO API
+        cancelDeletion()
+          .then(() => {
+            // RESET DELETION STEP
+            setDeletionStep("request");
+            // RESET CODE
+            setDeletionCode(["", "", "", "", "", ""]);
+            // SHOW SUCCESS MODAL
+            setModalState({
+              isOpen: true,
+              type: "success",
+              title: "Deletion Cancelled",
+              message: "Account deletion process has been cancelled.",
+            });
+          })
+          .catch((error) => {
+            // GET ERROR MESSAGE FROM RESPONSE
+            const errorMessage =
+              error.response?.data?.message ||
+              "Failed to cancel deletion. Please try again.";
+            // SHOW ERROR MODAL
+            setModalState({
+              isOpen: true,
+              type: "error",
+              title: "Error",
+              message: errorMessage,
+            });
+          });
+      },
+    });
+  };
+  // RESET DELETION FLOW
+  const handleResetDeletionFlow = (): void => {
+    // CANCEL DELETION ON BACKEND IF IN PROGRESS
+    if (deletionStep !== "request") {
+      // CANCELING DELETION ON BACKEND IF IN PROGRESS
+      cancelDeletion().catch(() => {
+        // SILENTLY FAIL - CLEANUP WILL HAPPEN ON BACKEND
+      });
+    }
+    // SETTING DELETION STEP TO REQUEST
+    setDeletionStep("request");
+    // RESET CODE
+    setDeletionCode(["", "", "", "", "", ""]);
   };
   // RESET EMAIL FLOW
   const handleResetEmailFlow = (): void => {
@@ -1386,6 +1605,7 @@ const Account = (): JSX.Element => {
         {/* DELETE ACCOUNT TAB CONTENT */}
         {activeTab === "delete" && (
           <div className="space-y-6">
+            {/* WARNING MESSAGE */}
             <div className="p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg">
               <div className="flex items-start gap-3">
                 <Shield
@@ -1397,9 +1617,10 @@ const Account = (): JSX.Element => {
                     Delete Your Account
                   </h3>
                   <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-                    Once you delete your account, there's{" "}
-                    <strong>no going back</strong>. This action is irreversible
-                    and will permanently delete:
+                    Once you delete your account, it will be flagged for
+                    deletion. You will have <strong>30 days</strong> to log in
+                    and reactivate your account. After 30 days, your account and
+                    all data will be permanently deleted:
                   </p>
                   <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1 mb-4">
                     <li>All your projects and tasks</li>
@@ -1413,13 +1634,179 @@ const Account = (): JSX.Element => {
                 </div>
               </div>
             </div>
-            <button
-              onClick={handleDeleteAccount}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <Trash2 size={18} />
-              Delete My Account
-            </button>
+            {/* STEP 1: REQUEST VERIFICATION CODE */}
+            {deletionStep === "request" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                    1
+                  </div>
+                  <span>Request Verification Code</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Click the button below to receive a verification code via
+                  email. This code is required to proceed with account deletion.
+                </p>
+                <button
+                  onClick={handleSendDeletionCode}
+                  disabled={isSendingDeletionCode}
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isSendingDeletionCode ? (
+                    <>
+                      <RotateCcw size={18} className="animate-spin" />
+                      Sending Code...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      Send Verification Code
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+            {/* STEP 2: VERIFY CODE */}
+            {deletionStep === "verify" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                    2
+                  </div>
+                  <span>Verify Code</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Enter the 6-digit verification code sent to your email
+                  address.
+                </p>
+                <div className="flex gap-2 justify-center">
+                  {deletionCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => {
+                        deletionCodeRefs.current[index] = el;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) =>
+                        handleOtpChange(
+                          e.target.value,
+                          index,
+                          setDeletionCode,
+                          deletionCodeRefs
+                        )
+                      }
+                      onKeyDown={(e) =>
+                        handleOtpKeyDown(
+                          e,
+                          index,
+                          setDeletionCode,
+                          deletionCodeRefs
+                        )
+                      }
+                      className="w-12 h-12 text-center text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-red-500 dark:focus:border-red-500 focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleVerifyDeletionCode}
+                    disabled={
+                      isVerifyingDeletionCode ||
+                      deletionCode.join("").length !== 6
+                    }
+                    className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isVerifyingDeletionCode ? (
+                      <>
+                        <RotateCcw size={18} className="animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle size={18} />
+                        Verify Code
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleResendDeletionCode}
+                    disabled={isResendingDeletionCode}
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isResendingDeletionCode ? (
+                      <>
+                        <RotateCcw size={18} className="animate-spin" />
+                        Resending...
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw size={18} />
+                        Resend Code
+                      </>
+                    )}
+                  </button>
+                </div>
+                <button
+                  onClick={handleResetDeletionFlow}
+                  disabled={isCancellingDeletion}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <ArrowLeft size={16} />
+                  Back
+                </button>
+              </div>
+            )}
+            {/* STEP 3: CONFIRM DELETION */}
+            {deletionStep === "confirm" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                    3
+                  </div>
+                  <span>Confirm Deletion</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Your verification code has been verified. Click the button
+                  below to confirm account deletion.
+                </p>
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    <strong>Important:</strong> After confirming, your account
+                    will be flagged for deletion. You will be logged out and
+                    have 30 days to log in and reactivate your account. After 30
+                    days, your account will be permanently deleted.
+                  </p>
+                </div>
+                <button
+                  onClick={handleConfirmDeletion}
+                  disabled={isConfirmingDeletion}
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isConfirmingDeletion ? (
+                    <>
+                      <RotateCcw size={18} className="animate-spin" />
+                      Confirming...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={18} />
+                      Confirm Account Deletion
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleCancelDeletion}
+                  disabled={isCancellingDeletion}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <X size={16} />
+                  Cancel Deletion
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
