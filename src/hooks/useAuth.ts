@@ -83,8 +83,17 @@ export const useLogin = () => {
         // FALLBACK TO RESPONSE DATA IF FETCH FAILS
         login(data.data);
       }
-      // SHOW SUCCESS TOAST
-      toast.success(data.message || "Login successful!");
+      // CHECK IF ACCOUNT WAS REACTIVATED
+      const accountReactivated = (data.data as any)?.accountReactivated;
+      // SHOW SUCCESS TOAST WITH REACTIVATION MESSAGE IF APPLICABLE
+      if (accountReactivated) {
+        toast.success(
+          "🎉 Welcome back! Your account has been successfully reactivated. All your data has been restored.",
+          { duration: 6000 }
+        );
+      } else {
+        toast.success(data.message || "Login successful!");
+      }
       // NAVIGATE TO DASHBOARD
       navigate("/dashboard");
     },
