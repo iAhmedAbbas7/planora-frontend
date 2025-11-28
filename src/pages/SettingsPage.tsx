@@ -4,6 +4,7 @@ import useTitle from "../hooks/useTitle";
 import { useSearchParams } from "react-router-dom";
 import Profile from "../components/settings/Profile";
 import Account from "../components/settings/Account";
+import Security from "../components/settings/Security";
 import Appearance from "../components/settings/Appearance";
 import Notifications from "../components/settings/Notifications";
 import DashboardHeader from "../components/layout/DashboardHeader";
@@ -20,13 +21,18 @@ const SettingsPage = (): JSX.Element => {
     | "Appearance"
     | "Notifications"
     | "Account"
+    | "Security"
     | null;
   // DERIVE ACTIVE TAB FROM URL PARAM
-  const activeTab: "Profile" | "Appearance" | "Notifications" | "Account" =
-    tabParam || "Profile";
+  const activeTab:
+    | "Profile"
+    | "Appearance"
+    | "Notifications"
+    | "Account"
+    | "Security" = tabParam || "Profile";
   // HANDLE TAB CHANGE FUNCTION
   const handleTabChange = (
-    tab: "Profile" | "Appearance" | "Notifications" | "Account"
+    tab: "Profile" | "Appearance" | "Notifications" | "Account" | "Security"
   ): void => {
     // UPDATE URL PARAM (THIS WILL TRIGGER RE-RENDER WITH NEW TAB)
     setSearchParams({ tab });
@@ -52,13 +58,24 @@ const SettingsPage = (): JSX.Element => {
         {/* TABS */}
         <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
           {/* MAPPING THROUGH TABS */}
-          {["Profile", "Appearance", "Notifications", "Account"].map((tab) => (
+          {[
+            "Profile",
+            "Appearance",
+            "Notifications",
+            "Account",
+            "Security",
+          ].map((tab) => (
             // TAB BUTTON
             <button
               key={tab}
               onClick={() =>
                 handleTabChange(
-                  tab as "Profile" | "Appearance" | "Notifications" | "Account"
+                  tab as
+                    | "Profile"
+                    | "Appearance"
+                    | "Notifications"
+                    | "Account"
+                    | "Security"
                 )
               }
               className={`px-4 py-1.5 text-sm sm:text-base font-medium rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer ${
@@ -81,6 +98,8 @@ const SettingsPage = (): JSX.Element => {
       {activeTab === "Notifications" && <Notifications />}
       {/* ACCOUNT TAB */}
       {activeTab === "Account" && <Account />}
+      {/* SECURITY TAB */}
+      {activeTab === "Security" && <Security />}
     </div>
   );
 };
