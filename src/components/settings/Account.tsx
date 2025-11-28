@@ -1327,8 +1327,8 @@ const Account = (): JSX.Element => {
             {/* REQUEST VERIFICATION STEP */}
             {passwordStep === "request" && (
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
+                  <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
                     To change your password, we need to verify your identity. A
                     verification code will be sent to{" "}
                     <strong>{currentEmail}</strong>.
@@ -1637,13 +1637,13 @@ const Account = (): JSX.Element => {
             {/* STEP 1: REQUEST VERIFICATION CODE */}
             {deletionStep === "request" && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
                   <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
                     1
                   </div>
                   <span>Request Verification Code</span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-[var(--text-primary)]">
                   Click the button below to receive a verification code via
                   email. This code is required to proceed with account deletion.
                 </p>
@@ -1669,13 +1669,13 @@ const Account = (): JSX.Element => {
             {/* STEP 2: VERIFY CODE */}
             {deletionStep === "verify" && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
                   <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
                     2
                   </div>
                   <span>Verify Code</span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-[var(--text-primary)]">
                   Enter the 6-digit verification code sent to your email
                   address.
                 </p>
@@ -1762,13 +1762,13 @@ const Account = (): JSX.Element => {
             {/* STEP 3: CONFIRM DELETION */}
             {deletionStep === "confirm" && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
                   <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
                     3
                   </div>
                   <span>Confirm Deletion</span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-[var(--text-primary)]">
                   Your verification code has been verified. Click the button
                   below to confirm account deletion.
                 </p>
