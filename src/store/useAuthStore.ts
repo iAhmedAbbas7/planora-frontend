@@ -10,6 +10,10 @@ export type User = {
   name: string;
   // <== USER EMAIL ==>
   email: string;
+  // <== RECOVERY EMAIL ==>
+  recoveryEmail?: string | null;
+  // <== RECOVERY EMAIL VERIFIED ==>
+  recoveryEmailVerified?: boolean;
 };
 
 // <== AUTH STORE INTERFACE ==>
