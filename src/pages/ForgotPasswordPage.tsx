@@ -50,6 +50,8 @@ const ForgotPasswordPage = (): JSX.Element => {
   const [step, setStep] = useState<1 | 2>(1);
   // EMAIL STATE
   const [email, setEmail] = useState<string>("");
+  // USE RECOVERY EMAIL STATE
+  const [useRecoveryEmail, setUseRecoveryEmail] = useState<boolean>(false);
   // OTP INPUT REFS
   const otpInputRef = useRef<(HTMLInputElement | null)[]>([]);
   // OTP STATE (6 DIGITS)
@@ -128,7 +130,7 @@ const ForgotPasswordPage = (): JSX.Element => {
     }
     // CALL REQUEST PASSWORD RESET MUTATION WITH EMAIL
     requestResetMutation.mutate(
-      { email },
+      { email, useRecoveryEmail },
       {
         onSuccess: () => {
           // MOVE TO STEP 2
@@ -240,7 +242,7 @@ const ForgotPasswordPage = (): JSX.Element => {
         <p className="text-gray-500 mb-4 text-sm sm:text-base">
           {step === 1
             ? "Enter your email address and we'll send you a verification code to reset your password."
-            : `We've sent a 6-digit verification code to ${email}. Enter the code and your new password below.`}
+            : `We've sent a 6-digit verification code to ${useRecoveryEmail ? "your recovery email" : email}. Enter the code and your new password below.`}
         </p>
         {/* STEP 1: REQUEST RESET CODE */}
         {step === 1 && (
@@ -280,6 +282,22 @@ const ForgotPasswordPage = (): JSX.Element => {
                   </button>
                 )}
               </div>
+            </div>
+            {/* USE RECOVERY EMAIL OPTION */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="useRecoveryEmail"
+                checked={useRecoveryEmail}
+                onChange={(e) => setUseRecoveryEmail(e.target.checked)}
+                className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500 cursor-pointer"
+              />
+              <label
+                htmlFor="useRecoveryEmail"
+                className="text-sm text-gray-600 cursor-pointer"
+              >
+                Use recovery email instead (if you have one set up)
+              </label>
             </div>
             {/* SUBMIT BUTTON */}
             <button
