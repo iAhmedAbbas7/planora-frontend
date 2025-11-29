@@ -9,6 +9,8 @@ import { useMutation } from "@tanstack/react-query";
 type RequestPasswordResetRequest = {
   // <== EMAIL ==>
   email: string;
+  // <== USE RECOVERY EMAIL ==>
+  useRecoveryEmail?: boolean;
 };
 // <== REQUEST PASSWORD RESET RESPONSE TYPE ==>
 type RequestPasswordResetResponse = {
