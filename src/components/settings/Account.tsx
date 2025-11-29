@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { useEmailChange } from "../../hooks/useEmailChange";
 import ConfirmationModal from "../common/ConfirmationModal";
 import type { ModalType } from "../common/ConfirmationModal";
+import { useRecoveryEmail } from "../../hooks/useRecoveryEmail";
 import { usePasswordChange } from "../../hooks/usePasswordChange";
 import { useAuthStore, type User } from "../../store/useAuthStore";
 import { useAccountDeletion } from "../../hooks/useAccountDeletion";
@@ -53,9 +54,9 @@ const ConditionItem = ({
 // <== ACCOUNT COMPONENT ==>
 const Account = (): JSX.Element => {
   // ACTIVE SUB-TAB STATE
-  const [activeTab, setActiveTab] = useState<"email" | "password" | "delete">(
-    "email"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "email" | "password" | "recovery" | "delete"
+  >("email");
   // AUTH STORE
   const { user } = useAuthStore();
   // CURRENT EMAIL
@@ -162,6 +163,27 @@ const Account = (): JSX.Element => {
     cancelDeletion,
     isCancelling: isCancellingDeletion,
   } = useAccountDeletion();
+  // RECOVERY EMAIL HOOK
+  const {
+    requestAddRecoveryEmail,
+    isRequestingAddCode,
+    verifyAddRecoveryEmail,
+    isVerifyingAddCode,
+    requestUpdateRecoveryEmail,
+    isRequestingUpdateCode,
+    verifyUpdateRecoveryEmailCurrent,
+    isVerifyingUpdateCurrentCode,
+    verifyUpdateRecoveryEmailNew,
+    isVerifyingUpdateNewCode,
+    requestRemoveRecoveryEmail,
+    isRequestingRemoveCode,
+    verifyRemoveRecoveryEmail,
+    isVerifyingRemoveCode,
+    resendRecoveryEmailCode,
+    isResendingCode: isResendingRecoveryCode,
+    cancelRecoveryEmail,
+    isCancelling: isCancellingRecovery,
+  } = useRecoveryEmail();
   // NAVIGATE HOOK
   const navigate = useNavigate();
   // DELETION STEP STATE
@@ -179,6 +201,33 @@ const Account = (): JSX.Element => {
   ]);
   // DELETION VERIFICATION CODE REFS
   const deletionCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // RECOVERY EMAIL VERIFICATION STEPS
+  const [recoveryEmailStep, setRecoveryEmailStep] = useState<
+    "add" | "update" | "remove"
+  >("add");
+  // RECOVERY EMAIL ADD STEP
+  const [recoveryEmailAddStep, setRecoveryEmailAddStep] = useState<
+    "request" | "verify"
+  >("request");
+  // RECOVERY EMAIL UPDATE STEP
+  const [recoveryEmailUpdateStep, setRecoveryEmailUpdateStep] = useState<
+    "request" | "verifyCurrent" | "verifyNew"
+  >("request");
+  // RECOVERY EMAIL REMOVE STEP
+  const [recoveryEmailRemoveStep, setRecoveryEmailRemoveStep] = useState<
+    "request" | "verify"
+  >("request");
+  // RECOVERY EMAIL VERIFICATION CODE STATES
+  const [recoveryEmailCode, setRecoveryEmailCode] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
+  // RECOVERY EMAIL VERIFICATION CODE REFS
+  const recoveryEmailCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
   // EMAIL VERIFICATION STEPS
   const [emailStep, setEmailStep] = useState<
     "newEmail" | "verifyCurrent" | "verifyNew"
@@ -193,6 +242,8 @@ const Account = (): JSX.Element => {
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
+    recoveryEmail: "",
+    newRecoveryEmail: "",
   });
   // CHECKING FOR EACH PASSWORD CONDITION WHEN NEW PASSWORD CHANGES
   useEffect(() => {
@@ -938,6 +989,424 @@ const Account = (): JSX.Element => {
     // RESET PASSWORD CHANGE CODE STATES
     setPasswordChangeCode(["", "", "", "", "", ""]);
   };
+  // RESET RECOVERY EMAIL FLOW
+  const handleResetRecoveryEmailFlow = (): void => {
+    // CANCEL RECOVERY EMAIL PROCESS ON BACKEND IF IN PROGRESS
+    if (
+      recoveryEmailAddStep !== "request" ||
+      recoveryEmailUpdateStep !== "request" ||
+      recoveryEmailRemoveStep !== "request"
+    ) {
+      cancelRecoveryEmail({ type: recoveryEmailStep }).catch(() => {
+        // SILENTLY FAIL - CLEANUP WILL HAPPEN ON BACKEND
+      });
+    }
+    // SETTING RECOVERY EMAIL STEP BASED ON WHETHER USER HAS RECOVERY EMAIL
+    if (user?.recoveryEmail && user?.recoveryEmailVerified) {
+      // SETTING RECOVERY EMAIL STEP TO UPDATE
+      setRecoveryEmailStep("update");
+    } else {
+      // SETTING RECOVERY EMAIL STEP TO ADD
+      setRecoveryEmailStep("add");
+    }
+    // SETTING RECOVERY EMAIL ADD STEP TO REQUEST
+    setRecoveryEmailAddStep("request");
+    // SETTING RECOVERY EMAIL UPDATE STEP TO REQUEST
+    setRecoveryEmailUpdateStep("request");
+    // SETTING RECOVERY EMAIL REMOVE STEP TO REQUEST
+    setRecoveryEmailRemoveStep("request");
+    // RESET FORM DATA
+    setFormData((prev) => ({
+      ...prev,
+      recoveryEmail: "",
+      newRecoveryEmail: "",
+    }));
+    // RESET RECOVERY EMAIL CODE STATES
+    setRecoveryEmailCode(["", "", "", "", "", ""]);
+  };
+  // HANDLE REQUEST ADD RECOVERY EMAIL
+  const handleRequestAddRecoveryEmail = (): void => {
+    // IF NO RECOVERY EMAIL, SHOW ERROR MODAL
+    if (!formData.recoveryEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "Recovery email address is required.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    // VALIDATE EMAIL FORMAT
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // IF EMAIL FORMAT IS INVALID, SHOW ERROR MODAL
+    if (!emailRegex.test(formData.recoveryEmail)) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Email",
+        message: "Please provide a valid email address.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    // REQUESTING ADD RECOVERY EMAIL CODE
+    requestAddRecoveryEmail({ recoveryEmail: formData.recoveryEmail })
+      .then(() => {
+        // SETTING RECOVERY EMAIL ADD STEP TO VERIFY
+        setRecoveryEmailAddStep("verify");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Sent",
+          message: "Verification code sent to your recovery email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to send verification code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
+  // HANDLE VERIFY ADD RECOVERY EMAIL
+  const handleVerifyAddRecoveryEmail = (): void => {
+    // GETTING CODE FROM RECOVERY EMAIL CODE STATES
+    const code = recoveryEmailCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter the complete 6-digit code.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    verifyAddRecoveryEmail({ code })
+      .then(() => {
+        // SETTING RECOVERY EMAIL ADD STEP TO REQUEST
+        setRecoveryEmailAddStep("request");
+        // RESET FORM DATA
+        setFormData((prev) => ({ ...prev, recoveryEmail: "" }));
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Recovery Email Added",
+          message:
+            "Your recovery email has been successfully added! Confirmation email has been sent to your primary email.",
+        });
+        // SETTING RECOVERY EMAIL STEP TO UPDATE
+        setRecoveryEmailStep("update");
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please check and try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Verification Failed",
+          message: errorMessage,
+        });
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // FOCUS ON FIRST INPUT
+        recoveryEmailCodeRefs.current[0]?.focus();
+      });
+  };
+  // HANDLE REQUEST UPDATE RECOVERY EMAIL
+  const handleRequestUpdateRecoveryEmail = (): void => {
+    // IF NO NEW RECOVERY EMAIL, SHOW ERROR MODAL
+    if (!formData.newRecoveryEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "New recovery email address is required.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    // VALIDATE EMAIL FORMAT
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // IF EMAIL FORMAT IS INVALID, SHOW ERROR MODAL
+    if (!emailRegex.test(formData.newRecoveryEmail)) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Email",
+        message: "Please provide a valid email address.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    requestUpdateRecoveryEmail({ newRecoveryEmail: formData.newRecoveryEmail })
+      .then(() => {
+        // SETTING RECOVERY EMAIL UPDATE STEP TO VERIFY CURRENT
+        setRecoveryEmailUpdateStep("verifyCurrent");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Sent",
+          message:
+            "Verification code sent to your current recovery email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to send verification code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
+  // HANDLE VERIFY UPDATE RECOVERY EMAIL CURRENT
+  const handleVerifyUpdateRecoveryEmailCurrent = (): void => {
+    // GETTING CODE FROM RECOVERY EMAIL CODE STATES
+    const code = recoveryEmailCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter the complete 6-digit code.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    // IF NO NEW RECOVERY EMAIL, SHOW ERROR MODAL
+    if (!formData.newRecoveryEmail) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "New recovery email address is required.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    verifyUpdateRecoveryEmailCurrent({
+      code,
+      newRecoveryEmail: formData.newRecoveryEmail,
+    })
+      .then(() => {
+        // SETTING RECOVERY EMAIL UPDATE STEP TO VERIFY NEW
+        setRecoveryEmailUpdateStep("verifyNew");
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Email Verified",
+          message:
+            "Current recovery email verified. Verification code sent to your new recovery email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please check and try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Verification Failed",
+          message: errorMessage,
+        });
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // FOCUS ON FIRST INPUT
+        recoveryEmailCodeRefs.current[0]?.focus();
+      });
+  };
+  // HANDLE VERIFY UPDATE RECOVERY EMAIL NEW
+  const handleVerifyUpdateRecoveryEmailNew = (): void => {
+    // GETTING CODE FROM RECOVERY EMAIL CODE STATES
+    const code = recoveryEmailCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      // SHOW ERROR MODAL
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter the complete 6-digit code.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    verifyUpdateRecoveryEmailNew({ code })
+      .then(() => {
+        // SETTING RECOVERY EMAIL UPDATE STEP TO REQUEST
+        setRecoveryEmailUpdateStep("request");
+        // RESET FORM DATA
+        setFormData((prev) => ({ ...prev, newRecoveryEmail: "" }));
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Recovery Email Updated",
+          message:
+            "Your recovery email has been successfully updated! Confirmation email has been sent to your primary email.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please check and try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Verification Failed",
+          message: errorMessage,
+        });
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // FOCUS ON FIRST INPUT
+        recoveryEmailCodeRefs.current[0]?.focus();
+      });
+  };
+  // HANDLE REQUEST REMOVE RECOVERY EMAIL
+  const handleRequestRemoveRecoveryEmail = (): void => {
+    // REQUESTING REMOVE RECOVERY EMAIL CODE
+    requestRemoveRecoveryEmail()
+      .then(() => {
+        // SETTING RECOVERY EMAIL REMOVE STEP TO VERIFY
+        setRecoveryEmailRemoveStep("verify");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Sent",
+          message: "Verification code sent to your primary email address.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to send verification code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
+  // HANDLE VERIFY REMOVE RECOVERY EMAIL
+  const handleVerifyRemoveRecoveryEmail = (): void => {
+    // GETTING CODE FROM RECOVERY EMAIL CODE STATES
+    const code = recoveryEmailCode.join("");
+    // IF CODE IS NOT 6 DIGITS, SHOW ERROR MODAL
+    if (code.length !== 6) {
+      setModalState({
+        isOpen: true,
+        type: "error",
+        title: "Invalid Code",
+        message: "Please enter the complete 6-digit code.",
+      });
+      // RETURNING FROM THE FUNCTION
+      return;
+    }
+    verifyRemoveRecoveryEmail({ code })
+      .then(() => {
+        // SETTING RECOVERY EMAIL REMOVE STEP TO REQUEST
+        setRecoveryEmailRemoveStep("request");
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // SETTING RECOVERY EMAIL STEP TO ADD
+        setRecoveryEmailStep("add");
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Recovery Email Removed",
+          message:
+            "Your recovery email has been successfully removed! Confirmation email has been sent to your primary email.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to verify code. Please check and try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Verification Failed",
+          message: errorMessage,
+        });
+        // RESET RECOVERY EMAIL CODE STATES
+        setRecoveryEmailCode(["", "", "", "", "", ""]);
+        // FOCUS ON FIRST INPUT
+        recoveryEmailCodeRefs.current[0]?.focus();
+      });
+  };
+  // HANDLE RESEND RECOVERY EMAIL CODE
+  const handleResendRecoveryEmailCode = (): void => {
+    resendRecoveryEmailCode({ type: recoveryEmailStep })
+      .then(() => {
+        // SHOW SUCCESS MODAL
+        setModalState({
+          isOpen: true,
+          type: "success",
+          title: "Code Resent",
+          message: "New verification code sent successfully.",
+        });
+      })
+      .catch((error) => {
+        // GET ERROR MESSAGE FROM RESPONSE
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to resend code. Please try again.";
+        // SHOW ERROR MODAL
+        setModalState({
+          isOpen: true,
+          type: "error",
+          title: "Error",
+          message: errorMessage,
+        });
+      });
+  };
   // AUTO-FOCUS FIRST OTP INPUT
   useEffect(() => {
     // IF EMAIL STEP IS VERIFY CURRENT, FOCUS ON FIRST CURRENT EMAIL CODE INPUT
@@ -949,8 +1418,30 @@ const Account = (): JSX.Element => {
     } else if (passwordStep === "verify") {
       // IF PASSWORD STEP IS VERIFY, FOCUS ON FIRST PASSWORD CHANGE CODE INPUT
       passwordChangeCodeRefs.current[0]?.focus();
+    } else if (
+      recoveryEmailAddStep === "verify" ||
+      recoveryEmailUpdateStep === "verifyCurrent" ||
+      recoveryEmailUpdateStep === "verifyNew" ||
+      recoveryEmailRemoveStep === "verify"
+    ) {
+      // IF RECOVERY EMAIL STEP IS VERIFY, FOCUS ON FIRST RECOVERY EMAIL CODE INPUT
+      recoveryEmailCodeRefs.current[0]?.focus();
     }
-  }, [emailStep, passwordStep]);
+  }, [
+    emailStep,
+    passwordStep,
+    recoveryEmailAddStep,
+    recoveryEmailUpdateStep,
+    recoveryEmailRemoveStep,
+  ]);
+  // SET RECOVERY EMAIL STEP BASED ON USER STATE
+  useEffect(() => {
+    if (user?.recoveryEmail && user?.recoveryEmailVerified) {
+      setRecoveryEmailStep("update");
+    } else {
+      setRecoveryEmailStep("add");
+    }
+  }, [user?.recoveryEmail, user?.recoveryEmailVerified]);
   // RETURNING THE ACCOUNT COMPONENT
   return (
     // ACCOUNT MAIN CONTAINER
@@ -994,6 +1485,20 @@ const Account = (): JSX.Element => {
             }`}
           >
             Change Password
+          </button>
+          {/* RECOVERY EMAIL TAB */}
+          <button
+            onClick={() => {
+              setActiveTab("recovery");
+              handleResetRecoveryEmailFlow();
+            }}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
+              activeTab === "recovery"
+                ? "bg-[var(--inside-card-bg)] text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Recovery Email
           </button>
           {/* DELETE ACCOUNT TAB */}
           <button
@@ -1598,6 +2103,682 @@ const Account = (): JSX.Element => {
                     )}
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+        {/* RECOVERY EMAIL TAB CONTENT */}
+        {activeTab === "recovery" && (
+          <div className="space-y-6">
+            {/* RECOVERY EMAIL INFO */}
+            <div className="p-4 bg-[var(--inside-card-bg)] rounded-lg border border-[var(--border)] space-y-2">
+              <div>
+                <p className="text-sm text-[var(--light-text)] mb-1">
+                  Recovery Email Status
+                </p>
+                <p className="text-base font-medium text-[var(--text-primary)]">
+                  {user?.recoveryEmail && user?.recoveryEmailVerified
+                    ? user.recoveryEmail
+                    : "Not Set"}
+                </p>
+              </div>
+              {user?.recoveryEmail && user?.recoveryEmailVerified && (
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  ✓ Verified
+                </p>
+              )}
+            </div>
+            {/* ADD RECOVERY EMAIL SECTION */}
+            {recoveryEmailStep === "add" && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Add Recovery Email
+                  </h3>
+                  <p className="text-sm text-[var(--light-text)]">
+                    Add a recovery email to help you regain access to your
+                    account if you lose access to your primary email.
+                  </p>
+                </div>
+                {/* REQUEST STEP */}
+                {recoveryEmailAddStep === "request" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                        A verification code will be sent to the recovery email
+                        address you provide. This email will be used for account
+                        recovery and security notifications.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="recoveryEmail"
+                        className="block text-sm font-medium text-[var(--text-primary)]"
+                      >
+                        Recovery Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail
+                          size={20}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--light-text)]"
+                        />
+                        <input
+                          type="email"
+                          id="recoveryEmail"
+                          name="recoveryEmail"
+                          value={formData.recoveryEmail}
+                          onChange={handleChange}
+                          placeholder="Enter recovery email address"
+                          className="w-full pl-10 pr-4 py-2.5 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleRequestAddRecoveryEmail}
+                      disabled={isRequestingAddCode || !formData.recoveryEmail}
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      style={{ backgroundColor: "var(--accent-color)" }}
+                    >
+                      {isRequestingAddCode ? (
+                        <>
+                          <RotateCcw size={18} className="animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={18} />
+                          Send Verification Code
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+                {/* VERIFY STEP */}
+                {recoveryEmailAddStep === "verify" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                        Enter the 6-digit verification code sent to{" "}
+                        <strong>{formData.recoveryEmail}</strong>
+                      </p>
+                    </div>
+                    <div className="flex gap-2 justify-center">
+                      {recoveryEmailCode.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => {
+                            recoveryEmailCodeRefs.current[index] = el;
+                          }}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) =>
+                            handleOtpChange(
+                              e.target.value,
+                              index,
+                              setRecoveryEmailCode,
+                              recoveryEmailCodeRefs
+                            )
+                          }
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === "Backspace" &&
+                              !recoveryEmailCode[index] &&
+                              index > 0
+                            ) {
+                              recoveryEmailCodeRefs.current[index - 1]?.focus();
+                              e.preventDefault();
+                              setRecoveryEmailCode((prev) => {
+                                const newOtp = [...prev];
+                                newOtp[index - 1] = "";
+                                return newOtp;
+                              });
+                            }
+                          }}
+                          className="w-12 h-12 text-center text-lg font-semibold border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        />
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleVerifyAddRecoveryEmail}
+                        disabled={
+                          recoveryEmailCode.some((d) => !d) ||
+                          isVerifyingAddCode
+                        }
+                        className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                        style={{ backgroundColor: "var(--accent-color)" }}
+                      >
+                        {isVerifyingAddCode ? (
+                          <>
+                            <RotateCcw size={18} className="animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={18} />
+                            Verify & Add
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleResendRecoveryEmailCode}
+                        disabled={isResendingRecoveryCode || isVerifyingAddCode}
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        {isResendingRecoveryCode ? (
+                          <>
+                            <RotateCcw size={16} className="animate-spin" />
+                            Resending...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            Resend
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setRecoveryEmailAddStep("request");
+                          setRecoveryEmailCode(["", "", "", "", "", ""]);
+                          cancelRecoveryEmail({ type: "add" }).catch(() => {});
+                        }}
+                        disabled={isCancellingRecovery}
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        <X size={16} />
+                        Cancel
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setRecoveryEmailAddStep("request");
+                        setRecoveryEmailCode(["", "", "", "", "", ""]);
+                      }}
+                      className="flex items-center gap-2 text-sm text-[var(--light-text)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                    >
+                      <ArrowLeft size={16} />
+                      Back
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* UPDATE RECOVERY EMAIL SECTION */}
+            {recoveryEmailStep === "update" && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Update Recovery Email
+                  </h3>
+                  <p className="text-sm text-[var(--light-text)]">
+                    Update your recovery email address. You'll need to verify
+                    both your current recovery email and the new one.
+                  </p>
+                </div>
+                {/* CURRENT RECOVERY EMAIL INFO */}
+                <div className="p-4 bg-[var(--inside-card-bg)] rounded-lg border border-[var(--border)]">
+                  <p className="text-sm text-[var(--text-primary)]">
+                    Current Recovery Email:{" "}
+                    <strong>{user?.recoveryEmail}</strong>
+                  </p>
+                </div>
+                {/* REQUEST STEP */}
+                {recoveryEmailUpdateStep === "request" && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="newRecoveryEmail"
+                        className="block text-sm font-medium text-[var(--text-primary)]"
+                      >
+                        New Recovery Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail
+                          size={20}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--light-text)]"
+                        />
+                        <input
+                          type="email"
+                          id="newRecoveryEmail"
+                          name="newRecoveryEmail"
+                          value={formData.newRecoveryEmail}
+                          onChange={handleChange}
+                          placeholder="Enter new recovery email address"
+                          className="w-full pl-10 pr-4 py-2.5 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleRequestUpdateRecoveryEmail}
+                      disabled={
+                        isRequestingUpdateCode || !formData.newRecoveryEmail
+                      }
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      style={{ backgroundColor: "var(--accent-color)" }}
+                    >
+                      {isRequestingUpdateCode ? (
+                        <>
+                          <RotateCcw size={18} className="animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={18} />
+                          Send Verification Code
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+                {/* VERIFY CURRENT STEP */}
+                {recoveryEmailUpdateStep === "verifyCurrent" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                        Enter the 6-digit verification code sent to your current
+                        recovery email: <strong>{user?.recoveryEmail}</strong>
+                      </p>
+                    </div>
+                    <div className="flex gap-2 justify-center">
+                      {recoveryEmailCode.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => {
+                            recoveryEmailCodeRefs.current[index] = el;
+                          }}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) =>
+                            handleOtpChange(
+                              e.target.value,
+                              index,
+                              setRecoveryEmailCode,
+                              recoveryEmailCodeRefs
+                            )
+                          }
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === "Backspace" &&
+                              !recoveryEmailCode[index] &&
+                              index > 0
+                            ) {
+                              recoveryEmailCodeRefs.current[index - 1]?.focus();
+                              e.preventDefault();
+                              setRecoveryEmailCode((prev) => {
+                                const newOtp = [...prev];
+                                newOtp[index - 1] = "";
+                                return newOtp;
+                              });
+                            }
+                          }}
+                          className="w-12 h-12 text-center text-lg font-semibold border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        />
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleVerifyUpdateRecoveryEmailCurrent}
+                        disabled={
+                          recoveryEmailCode.some((d) => !d) ||
+                          isVerifyingUpdateCurrentCode
+                        }
+                        className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                        style={{ backgroundColor: "var(--accent-color)" }}
+                      >
+                        {isVerifyingUpdateCurrentCode ? (
+                          <>
+                            <RotateCcw size={18} className="animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={18} />
+                            Verify
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleResendRecoveryEmailCode}
+                        disabled={
+                          isResendingRecoveryCode ||
+                          isVerifyingUpdateCurrentCode
+                        }
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        {isResendingRecoveryCode ? (
+                          <>
+                            <RotateCcw size={16} className="animate-spin" />
+                            Resending...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            Resend
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setRecoveryEmailUpdateStep("request");
+                          setRecoveryEmailCode(["", "", "", "", "", ""]);
+                          cancelRecoveryEmail({ type: "update" }).catch(
+                            () => {}
+                          );
+                        }}
+                        disabled={isCancellingRecovery}
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        <X size={16} />
+                        Cancel
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setRecoveryEmailUpdateStep("request");
+                        setRecoveryEmailCode(["", "", "", "", "", ""]);
+                      }}
+                      className="flex items-center gap-2 text-sm text-[var(--light-text)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                    >
+                      <ArrowLeft size={16} />
+                      Back
+                    </button>
+                  </div>
+                )}
+                {/* VERIFY NEW STEP */}
+                {recoveryEmailUpdateStep === "verifyNew" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                        Enter the 6-digit verification code sent to your new
+                        recovery email:{" "}
+                        <strong>{formData.newRecoveryEmail}</strong>
+                      </p>
+                    </div>
+                    <div className="flex gap-2 justify-center">
+                      {recoveryEmailCode.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => {
+                            recoveryEmailCodeRefs.current[index] = el;
+                          }}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) =>
+                            handleOtpChange(
+                              e.target.value,
+                              index,
+                              setRecoveryEmailCode,
+                              recoveryEmailCodeRefs
+                            )
+                          }
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === "Backspace" &&
+                              !recoveryEmailCode[index] &&
+                              index > 0
+                            ) {
+                              recoveryEmailCodeRefs.current[index - 1]?.focus();
+                              e.preventDefault();
+                              setRecoveryEmailCode((prev) => {
+                                const newOtp = [...prev];
+                                newOtp[index - 1] = "";
+                                return newOtp;
+                              });
+                            }
+                          }}
+                          className="w-12 h-12 text-center text-lg font-semibold border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        />
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleVerifyUpdateRecoveryEmailNew}
+                        disabled={
+                          recoveryEmailCode.some((d) => !d) ||
+                          isVerifyingUpdateNewCode
+                        }
+                        className="flex-1 px-6 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                        style={{ backgroundColor: "var(--accent-color)" }}
+                      >
+                        {isVerifyingUpdateNewCode ? (
+                          <>
+                            <RotateCcw size={18} className="animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={18} />
+                            Verify & Update
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleResendRecoveryEmailCode}
+                        disabled={
+                          isResendingRecoveryCode || isVerifyingUpdateNewCode
+                        }
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        {isResendingRecoveryCode ? (
+                          <>
+                            <RotateCcw size={16} className="animate-spin" />
+                            Resending...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            Resend
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setRecoveryEmailUpdateStep("verifyCurrent");
+                          setRecoveryEmailCode(["", "", "", "", "", ""]);
+                        }}
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        <ArrowLeft size={16} />
+                        Back
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {/* REMOVE RECOVERY EMAIL OPTION */}
+                <div className="pt-4 border-t border-[var(--border)]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-base font-semibold text-[var(--text-primary)]">
+                        Remove Recovery Email
+                      </h4>
+                      <p className="text-sm text-[var(--light-text)]">
+                        Remove your recovery email from your account. You'll
+                        need to verify your identity using your primary email.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setRecoveryEmailStep("remove");
+                        setRecoveryEmailRemoveStep("request");
+                      }}
+                      className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <Trash2 size={16} />
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* REMOVE RECOVERY EMAIL SECTION */}
+            {recoveryEmailStep === "remove" && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Remove Recovery Email
+                  </h3>
+                  <p className="text-sm text-[var(--light-text)]">
+                    Remove your recovery email from your account. This will
+                    reduce your account recovery options.
+                  </p>
+                </div>
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    <strong>⚠️ Warning:</strong> Without a recovery email, you
+                    may have difficulty recovering your account if you lose
+                    access to your primary email.
+                  </p>
+                </div>
+                {/* REQUEST STEP */}
+                {recoveryEmailRemoveStep === "request" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                        A verification code will be sent to your primary email
+                        address: <strong>{currentEmail}</strong>
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleRequestRemoveRecoveryEmail}
+                      disabled={isRequestingRemoveCode}
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      {isRequestingRemoveCode ? (
+                        <>
+                          <RotateCcw size={18} className="animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send size={18} />
+                          Send Verification Code
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+                {/* VERIFY STEP */}
+                {recoveryEmailRemoveStep === "verify" && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                        Enter the 6-digit verification code sent to your primary
+                        email: <strong>{currentEmail}</strong>
+                      </p>
+                    </div>
+                    <div className="flex gap-2 justify-center">
+                      {recoveryEmailCode.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={(el) => {
+                            recoveryEmailCodeRefs.current[index] = el;
+                          }}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) =>
+                            handleOtpChange(
+                              e.target.value,
+                              index,
+                              setRecoveryEmailCode,
+                              recoveryEmailCodeRefs
+                            )
+                          }
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === "Backspace" &&
+                              !recoveryEmailCode[index] &&
+                              index > 0
+                            ) {
+                              recoveryEmailCodeRefs.current[index - 1]?.focus();
+                              e.preventDefault();
+                              setRecoveryEmailCode((prev) => {
+                                const newOtp = [...prev];
+                                newOtp[index - 1] = "";
+                                return newOtp;
+                              });
+                            }
+                          }}
+                          className="w-12 h-12 text-center text-lg font-semibold border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
+                        />
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleVerifyRemoveRecoveryEmail}
+                        disabled={
+                          recoveryEmailCode.some((d) => !d) ||
+                          isVerifyingRemoveCode
+                        }
+                        className="flex-1 px-6 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        {isVerifyingRemoveCode ? (
+                          <>
+                            <RotateCcw size={18} className="animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={18} />
+                            Verify & Remove
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleResendRecoveryEmailCode}
+                        disabled={
+                          isResendingRecoveryCode || isVerifyingRemoveCode
+                        }
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        {isResendingRecoveryCode ? (
+                          <>
+                            <RotateCcw size={16} className="animate-spin" />
+                            Resending...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={16} />
+                            Resend
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setRecoveryEmailRemoveStep("request");
+                          setRecoveryEmailCode(["", "", "", "", "", ""]);
+                          cancelRecoveryEmail({ type: "remove" }).catch(
+                            () => {}
+                          );
+                        }}
+                        disabled={isCancellingRecovery}
+                        className="px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 text-[var(--text-primary)]"
+                      >
+                        <X size={16} />
+                        Cancel
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setRecoveryEmailRemoveStep("request");
+                        setRecoveryEmailCode(["", "", "", "", "", ""]);
+                        setRecoveryEmailStep("update");
+                      }}
+                      className="flex items-center gap-2 text-sm text-[var(--light-text)] hover:text-[var(--text-primary)] transition cursor-pointer"
+                    >
+                      <ArrowLeft size={16} />
+                      Back
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
