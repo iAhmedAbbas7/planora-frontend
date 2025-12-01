@@ -1,8 +1,9 @@
 // <== IMPORTS ==>
 import { AxiosError } from "axios";
+import { toast } from "../lib/toast";
 import { apiClient } from "../lib/axios";
-import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store/useAuthStore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // <== PROJECT STATS TYPE INTERFACE ==>
 export type ProjectStats = {
@@ -53,6 +54,23 @@ type ApiResponse<T> = {
   // <== MESSAGE ==>
   message?: string;
 };
+// <== CREATE PROJECT REQUEST TYPE ==>
+type CreateProjectRequest = {
+  // <== TITLE ==>
+  title: string;
+  // <== DESCRIPTION ==>
+  description?: string;
+  // <== PRIORITY ==>
+  priority?: string;
+  // <== IN CHARGE NAME ==>
+  inChargeName: string;
+  // <== ROLE ==>
+  role: string;
+  // <== STATUS ==>
+  status?: string;
+  // <== DUE DATE ==>
+  dueDate?: string | null;
+};
 
 /**
  * FETCH PROJECT STATISTICS
@@ -78,6 +96,7 @@ const fetchProjectStats = async (): Promise<ProjectStats> => {
   } catch (error: unknown) {
     // IF 404 OR ANY ERROR, RETURN DEFAULT STATS
     const axiosError = error as AxiosError;
+    // DON'T RETURN ON 404
     if (axiosError.response?.status === 404) {
       return {
         totalCount: 0,
@@ -118,10 +137,53 @@ const fetchProjects = async (): Promise<Project[]> => {
 };
 
 /**
+ * CREATE PROJECT
+ * @param projectData - Project Data
+ * @returns Created Project
+ */
+const createProjectAPI = async (
+  projectData: CreateProjectRequest
+): Promise<Project> => {
+  const response = await apiClient.post<ApiResponse<Project>>(
+    "/projects",
+    projectData
+  );
+  if (!response.data?.data) {
+    throw new Error("Failed to create project");
+  }
+  return response.data.data;
+};
+
+/**
  * USE PROJECTS DATA HOOK
  * @returns Projects Data Query
  */
-export const useProjects = () => {
+export const useProjects = (): {
+  // PROJECTS QUERY
+  projects: Project[];
+  // PROJECTS LOADING
+  isLoadingProjects: boolean;
+  // PROJECTS ERROR
+  isErrorProjects: boolean;
+  // PROJECTS ERROR OBJECT
+  projectsError: unknown;
+  // PROJECT STATS
+  projectStats: ProjectStats | undefined;
+  // PROJECT STATS LOADING
+  isLoadingStats: boolean;
+  // PROJECT STATS ERROR
+  isErrorStats: boolean;
+  // PROJECT STATS ERROR OBJECT
+  statsError: unknown;
+  // OVERALL LOADING
+  isLoading: boolean;
+  // OVERALL ERROR
+  isError: boolean;
+  // REFETCH PROJECTS
+  refetchProjects: () => Promise<unknown>;
+  // REFETCH STATS
+  refetchStats: () => Promise<unknown>;
+} => {
   // GET AUTH STATE
   const { isAuthenticated, isLoggingOut } = useAuthStore();
   // FETCH PROJECTS DATA
@@ -220,4 +282,38 @@ export const useProjects = () => {
     // REFETCH STATS
     refetchStats: statsQuery.refetch,
   };
+};
+
+/**
+ * USE CREATE PROJECT HOOK
+ * @returns Create Project Mutation
+ */
+export const useCreateProject = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE PROJECT MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: createProjectAPI,
+    // <== ON SUCCESS ==>
+    onSuccess: () => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE PROJECT STATS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projectStats"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Project created successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to create project. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
 };
