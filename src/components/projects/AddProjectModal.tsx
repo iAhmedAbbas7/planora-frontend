@@ -8,6 +8,11 @@ import {
   Calendar,
   Flag,
 } from "lucide-react";
+import {
+  useCreateProject,
+  Project as ProjectType,
+} from "../../hooks/useProjects";
+import { toast } from "@/lib/toast";
 import "react-day-picker/dist/style.css";
 import { DayPicker } from "react-day-picker";
 import { useState, useEffect, JSX, FormEvent } from "react";
@@ -49,6 +54,8 @@ const AddProjectModal = ({
   initialProject = {},
   showButtons = true,
 }: Props): JSX.Element => {
+  // CREATE PROJECT MUTATION
+  const createProjectMutation = useCreateProject();
   // STATUS DROPDOWN OPEN STATE
   const [isStatusOpen, setIsStatusOpen] = useState<boolean>(false);
   // PRIORITY STATE
@@ -111,61 +118,65 @@ const AddProjectModal = ({
     }
   };
   // HANDLE SUBMIT FUNCTION
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     // PREVENT DEFAULT FORM SUBMISSION
     e.preventDefault();
     // CHECK IF STATUS IS SELECTED
     if (!status) {
-      alert("Please select a status.");
+      toast.error("Please select a status.");
       return;
     }
     // CHECK IF DATE IS SELECTED
     if (!selected) {
-      alert("Please select a due date.");
+      toast.error("Please select a due date.");
       return;
     }
     // CHECK IF PRIORITY IS SELECTED
     if (!priority) {
-      alert("Please select priority.");
+      toast.error("Please select priority.");
       return;
     }
-    // CREATE PROJECT OBJECT
-    const newProject: Project = {
-      _id: project._id || Date.now().toString(),
-      title: project.title,
-      description: project.description,
-      dueDate: selected ? selected.toISOString() : "",
-      role: project.role,
-      status: status || project.status,
-      inChargeName: project.inChargeName,
-      priority: priority || project.priority,
-    };
-    // LOG PROJECT (UI ONLY - NO API)
-    console.log("Project data:", newProject);
-    // CALL ON PROJECT ADDED CALLBACK
-    onProjectAdded?.(newProject);
-    // RESET FORM IF NEW PROJECT
-    if (!project._id) {
-      // SET PROJECT TO DEFAULT VALUES
-      setProject({
-        _id: "",
-        title: "",
-        description: "",
-        dueDate: "",
-        status: "To Do",
-        inChargeName: "",
-        role: "",
-        priority: "Low",
-      });
-      // SET STATUS TO NULL
-      setStatus(null);
-      // SET PRIORITY TO NULL
-      setPriority(null);
-      // SET SELECTED TO NULL
-      setSelected(null);
+    // CHECK IF EDITING (FOR FUTURE UPDATE FUNCTIONALITY)
+    if (project._id) {
+      console.log("Update project:", project);
+      return;
     }
-    // CLOSE MODAL
-    onClose?.();
+    // PREPARE PROJECT DATA FOR API
+    const projectData = {
+      title: project.title,
+      description: project.description || "",
+      priority: (priority || "medium").toLowerCase(),
+      inChargeName: project.inChargeName,
+      role: project.role,
+      status: status || "To Do",
+      dueDate: selected ? selected.toISOString() : null,
+    };
+    // CALL CREATE PROJECT MUTATION
+    createProjectMutation.mutate(projectData, {
+      onSuccess: (createdProject: ProjectType) => {
+        // CALL ON PROJECT ADDED CALLBACK
+        onProjectAdded?.(createdProject as Project);
+        // RESET FORM
+        setProject({
+          _id: "",
+          title: "",
+          description: "",
+          dueDate: "",
+          status: "To Do",
+          inChargeName: "",
+          role: "",
+          priority: "Low",
+        });
+        // SET STATUS TO NULL
+        setStatus(null);
+        // SET PRIORITY TO NULL
+        setPriority(null);
+        // SET SELECTED TO NULL
+        setSelected(null);
+        // CLOSE MODAL
+        onClose?.();
+      },
+    });
   };
   // RETURNING THE ADD PROJECT MODAL COMPONENT
   return (
@@ -262,8 +273,8 @@ const AddProjectModal = ({
                 onChange={(e) =>
                   setProject({ ...project, inChargeName: e.target.value })
                 }
-              placeholder="Enter incharge name"
-              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
+                placeholder="Enter incharge name"
+                className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none focus:ring-violet-500"
               />
             </div>
           </div>
@@ -484,10 +495,15 @@ const AddProjectModal = ({
           {/* SUBMIT BUTTON */}
           <button
             type="button"
-            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer"
+            disabled={createProjectMutation.isPending}
+            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleButtonClick}
           >
-            {project._id ? "Update Project" : "Add Project"}
+            {createProjectMutation.isPending
+              ? "Creating..."
+              : project._id
+              ? "Update Project"
+              : "Add Project"}
           </button>
         </div>
       )}
