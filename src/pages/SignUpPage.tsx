@@ -1,11 +1,22 @@
 // <== IMPORTS ==>
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  X,
+  CheckCircle2,
+  Phone,
+} from "lucide-react";
 import { toast } from "../lib/toast";
 import { Link } from "react-router-dom";
 import useTitle from "../hooks/useTitle";
+import "react-phone-number-input/style.css";
 import { useSignup } from "../hooks/useAuth";
+import PhoneInput from "react-phone-number-input";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { useState, useEffect, ChangeEvent, FormEvent, JSX } from "react";
-import { User, Mail, Lock, Eye, EyeOff, X, CheckCircle2 } from "lucide-react";
 
 // <== SIGN UP INFO TYPE INTERFACE ==>
 type SignUpInfo = {
@@ -17,6 +28,8 @@ type SignUpInfo = {
   password: string;
   // <== CONFIRM PASSWORD ==>
   confirmPassword: string;
+  // <== PHONE NUMBER ==>
+  phoneNumber: string;
 };
 
 // <== CONDITION ITEM COMPONENT ==>
@@ -51,7 +64,10 @@ const SignUpPage = (): JSX.Element => {
     email: "",
     password: "",
     confirmPassword: "",
+    phoneNumber: "",
   });
+  // PHONE NUMBER VALUE STATE (FOR PHONE INPUT COMPONENT)
+  const [phoneValue, setPhoneValue] = useState<string | undefined>(undefined);
   // SHOW PASSWORD STATE
   const [showPassword, setShowPassword] = useState<boolean>(false);
   // SHOW CONFIRM PASSWORD STATE
@@ -124,6 +140,16 @@ const SignUpPage = (): JSX.Element => {
     // UPDATE SIGN UP INFO STATE
     setSignUpInfo((prev) => ({ ...prev, [name]: value }));
   };
+  // HANDLING PHONE NUMBER CHANGE
+  const handlePhoneChange = (value: string | undefined): void => {
+    // UPDATE PHONE VALUE STATE
+    setPhoneValue(value);
+    // UPDATE SIGN UP INFO STATE
+    setSignUpInfo((prev) => ({
+      ...prev,
+      phoneNumber: value || "",
+    }));
+  };
   // HANDLING SIGN UP FORM SUBMISSION
   const handleSignUp = (e: FormEvent<HTMLFormElement>): void => {
     // PREVENT DEFAULT FORM SUBMISSION
@@ -142,8 +168,25 @@ const SignUpPage = (): JSX.Element => {
       toast.error("Please ensure all fields meet the requirements");
       return;
     }
+    // PREPARE SIGNUP DATA
+    const signupData: {
+      name: string;
+      email: string;
+      password: string;
+      acceptedTerms: boolean;
+      phoneNumber?: string;
+    } = {
+      name,
+      email,
+      password,
+      acceptedTerms: true,
+    };
+    // ADD PHONE NUMBER IF PROVIDED
+    if (signupInfo.phoneNumber && signupInfo.phoneNumber.trim() !== "") {
+      signupData.phoneNumber = signupInfo.phoneNumber;
+    }
     // CALL SIGNUP MUTATION
-    signupMutation.mutate({ name, email, password, acceptedTerms: true });
+    signupMutation.mutate(signupData);
   };
   // RETURNING THE SIGN UP PAGE COMPONENT
   return (
@@ -251,6 +294,54 @@ const SignUpPage = (): JSX.Element => {
             {signupInfo.email && isValidEmail && (
               <p className="text-xs text-gray-500 mt-1">
                 A verification code will be sent to this email address
+              </p>
+            )}
+          </div>
+          {/* PHONE NUMBER INPUT FIELD */}
+          <div className="flex flex-col">
+            {/* PHONE NUMBER LABEL */}
+            <label
+              htmlFor="phoneNumber"
+              className="text-sm text-gray-600 mb-0.5"
+            >
+              Phone Number <span className="text-gray-400">(Optional)</span>
+            </label>
+            {/* PHONE NUMBER INPUT CONTAINER */}
+            <div className="relative flex items-center">
+              {/* PHONE ICON */}
+              <Phone className="absolute left-3 text-gray-400 z-10" size={18} />
+              {/* PHONE INPUT COMPONENT */}
+              <PhoneInput
+                international
+                defaultCountry="PK"
+                value={phoneValue}
+                onChange={handlePhoneChange}
+                placeholder="Enter your phone number"
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base"
+                numberInputProps={{
+                  className:
+                    "w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 transition text-sm sm:text-base",
+                }}
+              />
+              {/* CLEAR BUTTON */}
+              {phoneValue && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhoneValue(undefined);
+                    setSignUpInfo((prev) => ({ ...prev, phoneNumber: "" }));
+                  }}
+                  className="absolute right-3 p-1 rounded-full flex items-center justify-center hover:bg-gray-100 cursor-pointer z-10"
+                  title="Clear"
+                >
+                  <X size={16} className="text-gray-400" />
+                </button>
+              )}
+            </div>
+            {/* PHONE NUMBER INFO */}
+            {signupInfo.phoneNumber && (
+              <p className="text-xs text-gray-500 mt-1">
+                Phone number will be saved in international format
               </p>
             )}
           </div>
