@@ -103,29 +103,77 @@ const DashboardSkeleton = (): JSX.Element => {
                 </div>
                 {/* TABLE CONTAINER */}
                 <div className="overflow-x-auto flex-1">
-                  {/* TABLE HEADER */}
-                  <div className="grid grid-cols-4 gap-4 pb-2 border-b border-[var(--border)] mb-2">
-                    {[1, 2, 3, 4].map((item) => (
-                      <div
-                        key={item}
-                        className="h-4 bg-[var(--inside-card-bg)] rounded animate-pulse"
-                      />
-                    ))}
-                  </div>
-                  {/* TABLE ROWS */}
-                  {[1, 2, 3, 4, 5].map((item) => (
-                    <div
-                      key={item}
-                      className="grid grid-cols-4 gap-4 py-2 border-b border-[var(--border)]"
-                    >
-                      {[1, 2, 3, 4].map((cell) => (
-                        <div
-                          key={cell}
-                          className="h-4 bg-[var(--inside-card-bg)] rounded animate-pulse"
-                        />
+                  {/* TABLE SKELETON */}
+                  <table className="w-full border-collapse">
+                    {/* TABLE HEADER */}
+                    <thead>
+                      <tr className="text-left text-sm border-b border-[var(--border)]">
+                        {/* TASK NAME HEADER - ALWAYS VISIBLE */}
+                        <th className="py-2.5 px-1">
+                          <div className="flex items-center gap-2">
+                            {/* ICON SKELETON */}
+                            <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                            {/* TEXT SKELETON */}
+                            <div className="h-4 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </div>
+                        </th>
+                        {/* DUE DATE HEADER - HIDDEN ON MOBILE, VISIBLE FROM SM */}
+                        <th className="py-2.5 px-1 hidden sm:table-cell">
+                          <div className="flex items-center gap-2">
+                            {/* ICON SKELETON */}
+                            <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                            {/* TEXT SKELETON */}
+                            <div className="h-4 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </div>
+                        </th>
+                        {/* PRIORITY HEADER - VISIBLE FROM MD */}
+                        <th className="py-2.5 px-1 hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            {/* ICON SKELETON */}
+                            <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                            {/* TEXT SKELETON */}
+                            <div className="h-4 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </div>
+                        </th>
+                        {/* STATUS HEADER - ALWAYS VISIBLE */}
+                        <th className="py-2.5 px-1">
+                          <div className="flex items-center gap-2">
+                            {/* ICON SKELETON */}
+                            <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                            {/* TEXT SKELETON */}
+                            <div className="h-4 w-14 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    {/* TABLE BODY */}
+                    <tbody>
+                      {/* TABLE ROWS */}
+                      {[1, 2, 3, 4, 5].map((item) => (
+                        <tr
+                          key={item}
+                          className="border-b border-[var(--border)]"
+                        >
+                          {/* TASK NAME CELL - ALWAYS VISIBLE */}
+                          <td className="py-3 px-1">
+                            <div className="h-4 w-32 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </td>
+                          {/* DUE DATE CELL - HIDDEN ON MOBILE, VISIBLE FROM SM */}
+                          <td className="py-3 px-1 hidden sm:table-cell">
+                            <div className="h-4 w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </td>
+                          {/* PRIORITY CELL - VISIBLE FROM MD */}
+                          <td className="py-3 px-1 hidden md:table-cell">
+                            <div className="h-6 w-16 bg-[var(--inside-card-bg)] rounded-full animate-pulse" />
+                          </td>
+                          {/* STATUS CELL - ALWAYS VISIBLE */}
+                          <td className="py-3 px-1">
+                            <div className="h-4 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </td>
+                        </tr>
                       ))}
-                    </div>
-                  ))}
+                    </tbody>
+                  </table>
                 </div>
                 {/* FOOTER */}
                 <div className="flex justify-end mt-3">
