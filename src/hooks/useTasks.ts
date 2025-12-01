@@ -1,8 +1,9 @@
 // <== IMPORTS ==>
 import { AxiosError } from "axios";
+import { toast } from "../lib/toast";
 import { apiClient } from "../lib/axios";
-import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store/useAuthStore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // <== TASK STATS TYPE INTERFACE ==>
 export type TaskStats = {
@@ -52,6 +53,21 @@ type ApiResponse<T> = {
   data: T;
   // <== MESSAGE ==>
   message?: string;
+};
+// <== CREATE TASK REQUEST TYPE ==>
+type CreateTaskRequest = {
+  // <== TITLE ==>
+  title: string;
+  // <== DESCRIPTION ==>
+  description?: string;
+  // <== STATUS ==>
+  status?: string;
+  // <== PRIORITY ==>
+  priority?: string;
+  // <== DUE DATE ==>
+  dueDate?: string | null;
+  // <== PROJECT ID ==>
+  projectId: string;
 };
 
 /**
@@ -116,6 +132,19 @@ const fetchTasks = async (): Promise<Task[]> => {
     // FOR OTHER ERRORS, RE-THROW
     throw error;
   }
+};
+
+/**
+ * CREATE TASK
+ * @param taskData - Task Data
+ * @returns Created Task
+ */
+const createTaskAPI = async (taskData: CreateTaskRequest): Promise<Task> => {
+  const response = await apiClient.post<ApiResponse<Task>>("/tasks", taskData);
+  if (!response.data?.data) {
+    throw new Error("Failed to create task");
+  }
+  return response.data.data;
 };
 
 /**
@@ -226,4 +255,38 @@ export const useTasks = () => {
     // REFETCH STATS
     refetchStats: statsQuery.refetch,
   };
+};
+
+/**
+ * USE CREATE TASK HOOK
+ * @returns Create Task Mutation
+ */
+export const useCreateTask = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE TASK MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: createTaskAPI,
+    // <== ON SUCCESS ==>
+    onSuccess: () => {
+      // INVALIDATE TASKS QUERY
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // INVALIDATE TASK STATS QUERY
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Task created successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to create task. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
 };
