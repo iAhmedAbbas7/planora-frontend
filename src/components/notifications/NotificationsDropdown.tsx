@@ -8,6 +8,7 @@ import {
   Clock,
   CheckCircle2,
   Maximize2,
+  RefreshCw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, JSX } from "react";
@@ -98,8 +99,17 @@ const NotificationsDropdown = ({
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target as Node)
       ) {
-        // CLOSE DROPDOWN
-        onClose?.();
+        // CHECK IF CLICK IS ON NOTIFICATION TAB BUTTON
+        const target = e.target as HTMLElement;
+        // CHECK IF CLICK IS ON NOTIFICATION TAB BUTTON
+        const isNotificationTab = target.closest(
+          'button[data-notification-tab="true"]'
+        );
+        // IF NOT CLICKING ON NOTIFICATION TAB, CLOSE DROPDOWN
+        if (!isNotificationTab) {
+          // CLOSE DROPDOWN
+          onClose?.();
+        }
       }
     };
     // ADD EVENT LISTENER
@@ -118,6 +128,7 @@ const NotificationsDropdown = ({
     if (isMarkingAllAsRead) return;
     // CALL MARK ALL AS READ MUTATION
     markAllAsRead(undefined, {
+      // ON SUCCESS
       onSuccess: () => {
         // SHOW SUCCESS MESSAGE
         setModalState({
@@ -141,7 +152,7 @@ const NotificationsDropdown = ({
     // DROPDOWN MAIN CONTAINER
     <div
       ref={dropdownRef}
-      className={`fixed top-6 bottom-6 h-auto w-[90%] sm:w-80 bg-[var(--bg)] border border-[var(--border)] shadow-xl rounded-xl z-50 overflow-hidden ${
+      className={`fixed top-6 bottom-6 h-auto w-[90%] sm:w-80 bg-[var(--bg)] border border-[var(--border)] shadow-xl rounded-xl z-50 overflow-hidden flex flex-col ${
         collapsed
           ? "left-24 md:left-24"
           : "left-1/2 -translate-x-1/2 md:left-[17rem] md:translate-x-0"
@@ -164,12 +175,19 @@ const NotificationsDropdown = ({
         </div>
         {/* HEADER RIGHT */}
         <div className="flex items-center gap-2">
+          {/* REFRESH BUTTON */}
+          <button
+            onClick={() => refetchNotifications()}
+            className="p-1.5 rounded-md hover:bg-[var(--accent-btn-hover-color)] cursor-pointer hover:text-white transition"
+            title="Refresh notifications"
+          >
+            {/* REFRESH ICON */}
+            <RefreshCw size={16} className="text-white" />
+          </button>
           {/* EXPAND BUTTON */}
           <button
             onClick={() => {
-              // CLOSE DROPDOWN
               onClose?.();
-              // NAVIGATE TO NOTIFICATIONS PAGE
               navigate("/notifications");
             }}
             className="p-1.5 rounded-md hover:bg-[var(--accent-btn-hover-color)] cursor-pointer hover:text-white transition"
@@ -195,115 +213,110 @@ const NotificationsDropdown = ({
         </div>
       </div>
       {/* BODY */}
-      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-2 max-h-116">
+      <div className="flex-1 overflow-y-auto w-full h-full">
         {/* CHECK IF LOADING */}
         {isLoading ? (
           // LOADING STATE
-          <div className="text-center py-4 text-[var(--light-text)]">
+          <div className="flex items-center justify-center h-full text-[var(--light-text)]">
             Loading notifications...
           </div>
         ) : notifications.length === 0 ? (
           // EMPTY STATE
-          <div className="text-center py-8 text-[var(--light-text)]">
+          <div className="flex flex-col items-center justify-center h-full text-[var(--light-text)]">
             {/* BELL ICON */}
-            <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <Bell className="h-12 w-12 mb-2 opacity-50" />
             {/* EMPTY STATE TEXT */}
             <p>No notifications yet</p>
           </div>
         ) : (
           // NOTIFICATIONS LIST
-          // MAPPING THROUGH NOTIFICATIONS
-          notifications.map((notification) => (
-            // NOTIFICATION ITEM
-            <div
-              key={notification._id}
-              className={`p-3 rounded-md border cursor-pointer transition ${
-                notification.isRead
-                  ? "bg-[var(--cards-bg)] hover:bg-[var(--hover-bg)]"
-                  : "bg-[var(--bg)] hover:bg-[var(--hover-bg)]"
-              } ${getNotificationColor()}`}
-            >
-              {/* NOTIFICATION CONTENT */}
-              <div className="flex items-start gap-3">
-                {/* NOTIFICATION ICON */}
-                <div className="flex-shrink-0 mt-0.5">
-                  {getNotificationIcon(notification.type)}
-                </div>
-                {/* NOTIFICATION DETAILS */}
-                <div className="flex-1 min-w-0">
-                  {/* NOTIFICATION HEADER */}
-                  <div className="flex items-start justify-between">
-                    {/* NOTIFICATION TEXT */}
-                    <div className="flex-1">
-                      {/* NOTIFICATION TITLE */}
-                      <p
-                        className={`text-sm font-medium ${
-                          notification.isRead
-                            ? "text-[var(--light-text)]"
-                            : "text-[var(--text-primary)]"
-                        }`}
-                      >
-                        {notification.title}
-                      </p>
-                      {/* NOTIFICATION MESSAGE */}
-                      <p className="text-xs text-[var(--text-primary)] mt-1">
-                        {notification.message}
-                      </p>
-                      {/* NOTIFICATION DATE */}
-                      <p className="text-xs text-[var(--light-text)] mt-1">
-                        {new Date(notification.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    {/* NOTIFICATION ACTIONS */}
-                    <div className="flex items-center gap-1 ml-2">
-                      {/* MARK AS READ BUTTON */}
-                      {!notification.isRead && (
-                        <button
-                          onClick={() => handleMarkAsRead(notification._id)}
-                          className="p-1 rounded hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                          title="Mark as read"
+          <div className="px-2 py-2 space-y-2">
+            {/* MAPPING THROUGH NOTIFICATIONS */}
+            {notifications.map((notification) => (
+              // NOTIFICATION ITEM
+              <div
+                key={notification._id}
+                className={`p-3 rounded-md border cursor-pointer transition ${
+                  notification.isRead
+                    ? "bg-[var(--cards-bg)] hover:bg-[var(--hover-bg)]"
+                    : "bg-[var(--bg)] hover:bg-[var(--hover-bg)]"
+                } ${getNotificationColor()}`}
+              >
+                {/* NOTIFICATION CONTENT */}
+                <div className="flex items-start gap-3">
+                  {/* NOTIFICATION ICON */}
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getNotificationIcon(notification.type)}
+                  </div>
+                  {/* NOTIFICATION DETAILS */}
+                  <div className="flex-1 min-w-0">
+                    {/* NOTIFICATION HEADER */}
+                    <div className="flex items-start justify-between">
+                      {/* NOTIFICATION TEXT */}
+                      <div className="flex-1">
+                        {/* NOTIFICATION TITLE */}
+                        <p
+                          className={`text-sm font-medium ${
+                            notification.isRead
+                              ? "text-[var(--light-text)]"
+                              : "text-[var(--text-primary)]"
+                          }`}
                         >
-                          {/* CHECK ICON */}
-                          <Check
-                            size={14}
-                            className="text-[var(--light-text)]"
-                          />
+                          {notification.title}
+                        </p>
+                        {/* NOTIFICATION MESSAGE */}
+                        <p className="text-xs text-[var(--text-primary)] mt-1">
+                          {notification.message}
+                        </p>
+                        {/* NOTIFICATION DATE */}
+                        <p className="text-xs text-[var(--light-text)] mt-1">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      {/* NOTIFICATION ACTIONS */}
+                      <div className="flex items-center gap-1 ml-2">
+                        {/* MARK AS READ BUTTON */}
+                        {!notification.isRead && (
+                          <button
+                            onClick={() => handleMarkAsRead(notification._id)}
+                            className="p-1 rounded hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                            title="Mark as read"
+                          >
+                            {/* CHECK ICON */}
+                            <Check
+                              size={14}
+                              className="text-[var(--light-text)]"
+                            />
+                          </button>
+                        )}
+                        {/* DELETE BUTTON */}
+                        <button
+                          onClick={() =>
+                            handleDeleteNotification(notification._id)
+                          }
+                          className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900 transition cursor-pointer"
+                          title="Delete"
+                        >
+                          {/* TRASH ICON */}
+                          <Trash2 size={14} className="text-red-500" />
                         </button>
-                      )}
-                      {/* DELETE BUTTON */}
-                      <button
-                        onClick={() =>
-                          handleDeleteNotification(notification._id)
-                        }
-                        className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900 transition cursor-pointer"
-                        title="Delete"
-                      >
-                        {/* TRASH ICON */}
-                        <Trash2 size={14} className="text-red-500" />
-                      </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
       {/* FOOTER */}
       <div className="border-t border-[var(--border)] bg-[var(--bg)] px-4 py-2">
         {/* FOOTER CONTENT */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-center items-center">
           {/* TOTAL NOTIFICATIONS COUNT */}
           <p className="text-xs text-[var(--light-text)]">
             {notifications.length} total notifications
           </p>
-          {/* REFRESH BUTTON */}
-          <button
-            onClick={() => refetchNotifications()}
-            className="text-xs text-[var(--accent-color)] hover:underline font-medium cursor-pointer"
-          >
-            Refresh
-          </button>
         </div>
       </div>
       {/* CONFIRMATION MODAL */}
