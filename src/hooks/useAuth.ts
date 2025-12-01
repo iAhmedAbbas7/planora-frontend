@@ -23,6 +23,8 @@ type SignupRequest = {
   password: string;
   // <== ACCEPTED TERMS ==>
   acceptedTerms: boolean;
+  // <== PHONE NUMBER (OPTIONAL) ==>
+  phoneNumber?: string;
 };
 // <== AUTH RESPONSE TYPE ==>
 type AuthResponse = {
@@ -34,6 +36,28 @@ type AuthResponse = {
   data: User;
   // <== REQUIRES 2FA ==>
   requires2FA?: boolean;
+  // <== REQUIRES DEVICE VERIFICATION ==>
+  requiresDeviceVerification?: boolean;
+  // <== DEVICE INFO ==>
+  deviceInfo?: {
+    // <== DEVICE TYPE ==>
+    deviceType: string;
+    // <== DEVICE NAME ==>
+    deviceName: string;
+    // <== BROWSER NAME ==>
+    browserName: string;
+    // <== OPERATING SYSTEM ==>
+    operatingSystem: string;
+    // <== LOCATION ==>
+    location?: {
+      // <== COUNTRY ==>
+      country: string;
+      // <== CITY ==>
+      city: string;
+      // <== REGION ==>
+      region: string;
+    };
+  };
 };
 // <== API ERROR RESPONSE TYPE ==>
 type ApiErrorResponse = {
@@ -53,7 +77,6 @@ type UserResponse = {
   // <== DATA ==>
   data: User;
 };
-
 // <== VERIFY 2FA REQUEST TYPE ==>
 type Verify2FARequest = {
   // <== EMAIL ==>
@@ -74,6 +97,7 @@ export const useLogin = () => {
   const { login } = useAuthStore();
   // LOGIN MUTATION
   return useMutation({
+    // <== MUTATION FN ==>
     mutationFn: async (credentials: LoginRequest): Promise<AuthResponse> => {
       // CALL LOGIN API
       const response = await apiClient.post<AuthResponse>(
@@ -82,7 +106,13 @@ export const useLogin = () => {
       );
       return response.data;
     },
+    // <== ON SUCCESS ==>
     onSuccess: async (data) => {
+      // CHECK IF DEVICE VERIFICATION IS REQUIRED
+      if (data.requiresDeviceVerification) {
+        // RETURN EARLY - DON'T LOGIN YET, WAIT FOR DEVICE VERIFICATION
+        return;
+      }
       // CHECK IF 2FA IS REQUIRED
       if (data.requires2FA) {
         // RETURN EARLY - DON'T LOGIN YET, WAIT FOR 2FA VERIFICATION
@@ -118,6 +148,7 @@ export const useLogin = () => {
       // NAVIGATE TO DASHBOARD
       navigate("/dashboard");
     },
+    // <== ON ERROR ==>
     onError: (error: unknown) => {
       // TYPE ERROR AS AXIOS ERROR
       const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -138,6 +169,7 @@ export const useVerify2FA = () => {
   const { login } = useAuthStore();
   // VERIFY 2FA MUTATION
   return useMutation({
+    // <== MUTATION FN ==>
     mutationFn: async (
       credentials: Verify2FARequest
     ): Promise<AuthResponse> => {
@@ -148,6 +180,7 @@ export const useVerify2FA = () => {
       );
       return response.data;
     },
+    // <== ON SUCCESS ==>
     onSuccess: async (data) => {
       try {
         // FETCH LATEST USER DATA FROM SERVER TO ENSURE CONSISTENCY
@@ -178,6 +211,7 @@ export const useVerify2FA = () => {
       // NAVIGATE TO DASHBOARD
       navigate("/dashboard");
     },
+    // <== ON ERROR ==>
     onError: (error: unknown) => {
       // TYPE ERROR AS AXIOS ERROR
       const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -196,6 +230,7 @@ export const useSignup = () => {
   const navigate = useNavigate();
   // SIGNUP MUTATION
   return useMutation({
+    // <== MUTATION FN ==>
     mutationFn: async (userData: SignupRequest): Promise<AuthResponse> => {
       // CALL SIGNUP API
       const response = await apiClient.post<AuthResponse>(
@@ -204,6 +239,7 @@ export const useSignup = () => {
       );
       return response.data;
     },
+    // <== ON SUCCESS ==>
     onSuccess: async (data) => {
       // SHOW SUCCESS TOAST
       toast.success(
@@ -216,6 +252,7 @@ export const useSignup = () => {
         replace: true,
       });
     },
+    // <== ON ERROR ==>
     onError: (error: unknown) => {
       // TYPE ERROR AS AXIOS ERROR
       const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -238,10 +275,12 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
   // LOGOUT MUTATION
   return useMutation({
+    // <== MUTATION FN ==>
     mutationFn: async (): Promise<void> => {
       // CALL LOGOUT API
       await apiClient.post("/auth/logout");
     },
+    // <== ON SUCCESS ==>
     onSuccess: () => {
       // SET LOGGING OUT FLAG FIRST (PREVENTS OTHER QUERIES FROM RUNNING)
       setLoggingOut(true);
@@ -256,6 +295,7 @@ export const useLogout = () => {
       // SHOW SUCCESS TOAST
       toast.success("Logout successful!");
     },
+    // <== ON ERROR ==>
     onError: (error: unknown) => {
       // TYPE ERROR AS AXIOS ERROR
       const axiosError = error as AxiosError<ApiErrorResponse>;
