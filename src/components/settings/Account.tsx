@@ -4,6 +4,8 @@ import {
   EyeOff,
   Trash2,
   Mail,
+  MailCheck,
+  MailX,
   Lock,
   X,
   Shield,
@@ -2111,22 +2113,34 @@ const Account = (): JSX.Element => {
         {activeTab === "recovery" && (
           <div className="space-y-6">
             {/* RECOVERY EMAIL INFO */}
-            <div className="p-4 bg-[var(--inside-card-bg)] rounded-lg border border-[var(--border)] space-y-2">
-              <div>
-                <p className="text-sm text-[var(--light-text)] mb-1">
-                  Recovery Email Status
-                </p>
-                <p className="text-base font-medium text-[var(--text-primary)]">
-                  {user?.recoveryEmail && user?.recoveryEmailVerified
-                    ? user.recoveryEmail
-                    : "Not Set"}
-                </p>
+            <div className="p-4 bg-[var(--inside-card-bg)] rounded-lg border border-[var(--border)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Mail
+                    size={24}
+                    className="text-[var(--accent-color)]"
+                  />
+                  <div>
+                    <p className="font-medium text-[var(--text-primary)] flex items-center gap-2">
+                      Recovery Email:{" "}
+                      {user?.recoveryEmail && user?.recoveryEmailVerified ? (
+                        <span className="flex items-center gap-1 text-green-500 dark:text-green-400">
+                          <MailCheck size={18} />
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[var(--light-text)]">
+                          <MailX size={18} />
+                        </span>
+                      )}
+                    </p>
+                    {user?.recoveryEmail && user?.recoveryEmailVerified && (
+                      <p className="text-sm text-[var(--light-text)]">
+                        {user.recoveryEmail}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-              {user?.recoveryEmail && user?.recoveryEmailVerified && (
-                <p className="text-xs text-green-600 dark:text-green-400">
-                  ✓ Verified
-                </p>
-              )}
             </div>
             {/* ADD RECOVERY EMAIL SECTION */}
             {recoveryEmailStep === "add" && (
