@@ -51,6 +51,112 @@ const SecuritySkeleton = (): JSX.Element => {
         {/* BUTTON SKELETON */}
         <div className="h-10 w-48 sm:w-auto bg-[var(--inside-card-bg)] rounded-lg animate-pulse" />
       </div>
+      {/* SESSION MANAGEMENT SECTION SKELETON */}
+      <div className="mt-8 p-6 bg-[var(--cards-bg)] border border-[var(--border)] rounded-lg">
+        {/* SESSION HEADER SKELETON */}
+        <div className="flex items-center gap-3 mb-4">
+          {/* MONITOR ICON SKELETON */}
+          <div className="w-6 h-6 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+          {/* TITLE SKELETON */}
+          <div className="h-6 w-40 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+        </div>
+        {/* SESSION LIST SKELETON */}
+        <div className="space-y-6">
+          {/* REVOKE ALL OTHERS BUTTON SKELETON */}
+          <div className="flex items-center justify-end mb-4">
+            <div className="h-9 w-40 bg-[var(--inside-card-bg)] rounded-lg animate-pulse" />
+          </div>
+          {/* CURRENT SESSION SECTION SKELETON */}
+          <div>
+            {/* SECTION TITLE SKELETON */}
+            <div className="h-4 w-32 bg-[var(--inside-card-bg)] rounded animate-pulse mb-3" />
+            {/* CURRENT SESSION CARD SKELETON */}
+            <div className="p-4 rounded-lg border border-[var(--border)] bg-[var(--inside-card-bg)]">
+              {/* CARD HEADER SKELETON */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {/* DEVICE ICON SKELETON */}
+                  <div className="w-8 h-8 bg-[var(--cards-bg)] rounded animate-pulse" />
+                  <div>
+                    {/* DEVICE NAME AND BADGES SKELETON */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-5 w-32 bg-[var(--cards-bg)] rounded animate-pulse" />
+                      {/* CURRENT BADGE SKELETON */}
+                      <div className="h-5 w-16 bg-[var(--cards-bg)] rounded animate-pulse" />
+                    </div>
+                    {/* BROWSER/OS INFO SKELETON */}
+                    <div className="h-4 w-48 bg-[var(--cards-bg)] rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+              {/* DETAILS SKELETON */}
+              <div className="space-y-2">
+                {/* LOCATION SKELETON */}
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 bg-[var(--cards-bg)] rounded animate-pulse" />
+                  <div className="h-4 w-40 bg-[var(--cards-bg)] rounded animate-pulse" />
+                </div>
+                {/* LAST ACTIVITY SKELETON */}
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 bg-[var(--cards-bg)] rounded animate-pulse" />
+                  <div className="h-4 w-32 bg-[var(--cards-bg)] rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* OTHER SESSIONS SECTION SKELETON */}
+          <div>
+            {/* SECTION TITLE SKELETON */}
+            <div className="h-4 w-40 bg-[var(--inside-card-bg)] rounded animate-pulse mb-3" />
+            {/* OTHER SESSIONS CARDS SKELETON */}
+            <div className="space-y-3">
+              {[1, 2].map((item) => (
+                <div
+                  key={item}
+                  className="p-4 rounded-lg border border-[var(--border)] bg-[var(--inside-card-bg)]"
+                >
+                  {/* CARD HEADER SKELETON */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      {/* DEVICE ICON SKELETON */}
+                      <div className="w-8 h-8 bg-[var(--cards-bg)] rounded animate-pulse" />
+                      <div>
+                        {/* DEVICE NAME AND BADGES SKELETON */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-5 w-32 bg-[var(--cards-bg)] rounded animate-pulse" />
+                          {/* TRUSTED BADGE SKELETON */}
+                          <div className="h-5 w-20 bg-[var(--cards-bg)] rounded animate-pulse" />
+                        </div>
+                        {/* BROWSER/OS INFO SKELETON */}
+                        <div className="h-4 w-48 bg-[var(--cards-bg)] rounded animate-pulse" />
+                      </div>
+                    </div>
+                    {/* REVOKE BUTTON SKELETON */}
+                    <div className="w-9 h-9 bg-[var(--cards-bg)] rounded-lg animate-pulse" />
+                  </div>
+                  {/* DETAILS SKELETON */}
+                  <div className="space-y-2">
+                    {/* LOCATION SKELETON */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 bg-[var(--cards-bg)] rounded animate-pulse" />
+                      <div className="h-4 w-40 bg-[var(--cards-bg)] rounded animate-pulse" />
+                    </div>
+                    {/* LAST ACTIVITY SKELETON */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 bg-[var(--cards-bg)] rounded animate-pulse" />
+                      <div className="h-4 w-32 bg-[var(--cards-bg)] rounded animate-pulse" />
+                    </div>
+                  </div>
+                  {/* ACTIONS SKELETON */}
+                  <div className="mt-3 pt-3 border-t border-[var(--border)]">
+                    <div className="h-8 w-32 bg-[var(--cards-bg)] rounded animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
