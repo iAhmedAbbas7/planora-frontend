@@ -1,14 +1,18 @@
 // <== IMPORTS ==>
 import {
   Shield,
+  ShieldCheck,
+  ShieldOff,
   Send,
   CheckCircle,
   ArrowLeft,
   RotateCcw,
   X,
   RefreshCw,
+  Monitor,
 } from "lucide-react";
 import { AxiosError } from "axios";
+import SessionList from "./SessionList";
 import { useTwoFactor } from "../../hooks/useTwoFactor";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useState, useRef, useEffect, JSX } from "react";
@@ -637,7 +641,7 @@ const Security = (): JSX.Element => {
       {/* HEADER SECTION */}
       <div>
         {/* TITLE */}
-        <p className="text-xl font-semibold">Security</p>
+        <p className="text-xl font-semibold text-[var(--text-primary)]">Security</p>
         {/* DESCRIPTION */}
         <p className="text-sm text-[var(--light-text)]">
           Manage your Two-Factor Authentication settings and backup codes.
@@ -650,24 +654,20 @@ const Security = (): JSX.Element => {
             <div className="flex items-center gap-3">
               <Shield
                 size={24}
-                className={
-                  status.enabled
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-gray-400"
-                }
+                className="text-[var(--accent-color)]"
               />
               <div>
-                <p className="font-medium">
+                <p className="font-medium text-[var(--text-primary)] flex items-center gap-2">
                   Two-Factor Authentication:{" "}
-                  <span
-                    className={
-                      status.enabled
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-gray-500"
-                    }
-                  >
-                    {status.enabled ? "Enabled" : "Disabled"}
-                  </span>
+                  {status.enabled ? (
+                    <span className="flex items-center gap-1 text-green-500 dark:text-green-400">
+                      <ShieldCheck size={18} />
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[var(--light-text)]">
+                      <ShieldOff size={18} />
+                    </span>
+                  )}
                 </p>
                 {status.enabled && (
                   <p className="text-sm text-[var(--light-text)]">
@@ -685,7 +685,7 @@ const Security = (): JSX.Element => {
       {!isStatusLoading && status && !status.enabled && (
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Enable 2FA</h3>
+            <h3 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">Enable 2FA</h3>
             <p className="text-sm text-[var(--light-text)]">
               Add an extra layer of security to your account by enabling
               Two-Factor Authentication.
@@ -694,14 +694,14 @@ const Security = (): JSX.Element => {
           {/* STEP 1: REQUEST CODE */}
           {enableStep === "request" && (
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+              <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                <p className="text-sm text-[var(--text-primary)]">
                   To enable 2FA, we need to verify your identity. A verification
                   code will be sent to <strong>{currentEmail}</strong>.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                   1
                 </div>
                 <span>Request Verification Code</span>
@@ -730,7 +730,7 @@ const Security = (): JSX.Element => {
           {enableStep === "verify" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                   2
                 </div>
                 <span>Verify Code</span>
@@ -825,7 +825,7 @@ const Security = (): JSX.Element => {
           {enableStep === "qr" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                   3
                 </div>
                 <span>Scan QR Code</span>
@@ -958,7 +958,7 @@ const Security = (): JSX.Element => {
       {!isStatusLoading && status && status.enabled && (
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Disable 2FA</h3>
+            <h3 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">Disable 2FA</h3>
             <p className="text-sm text-[var(--light-text)]">
               Disabling 2FA will reduce your account security. We recommend
               keeping it enabled.
@@ -968,17 +968,17 @@ const Security = (): JSX.Element => {
           {/* STEP 1: REQUEST CODE */}
           {disableStep === "request" && (
             <div className="space-y-4">
-              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm text-red-800 dark:text-red-200 font-semibold mb-2">
+              <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                <p className="text-sm text-red-500 dark:text-red-400 font-semibold mb-2">
                   ⚠️ Security Warning
                 </p>
-                <p className="text-sm text-red-700 dark:text-red-300">
+                <p className="text-sm text-[var(--text-primary)]">
                   Disabling 2FA will reduce the security of your account. Your
                   account will only be protected by your password.
                 </p>
               </div>
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-red-500 dark:text-red-400 font-semibold">
                   1
                 </div>
                 <span>Request Verification Code</span>
@@ -1006,7 +1006,7 @@ const Security = (): JSX.Element => {
           {disableStep === "verify" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-red-500 dark:text-red-400 font-semibold">
                   2
                 </div>
                 <span>Verify Code</span>
@@ -1105,7 +1105,7 @@ const Security = (): JSX.Element => {
           {disableStep === "totp" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-red-500 dark:text-red-400 font-semibold">
                   3
                 </div>
                 <span>Verify Authenticator Code</span>
@@ -1284,6 +1284,16 @@ const Security = (): JSX.Element => {
           </div>
         </div>
       )}
+      {/* SESSION MANAGEMENT SECTION */}
+      <div className="mt-8 p-6 bg-[var(--cards-bg)] border border-[var(--border)] rounded-lg">
+        <div className="flex items-center gap-3 mb-4">
+          <Monitor className="text-[var(--accent-color)]" size={24} />
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+            Active Sessions
+          </h2>
+        </div>
+        <SessionList />
+      </div>
     </div>
   );
 };
