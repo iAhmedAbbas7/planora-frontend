@@ -15,6 +15,7 @@ import { useVerify2FA } from "../hooks/useAuth";
 import { useAuthStore } from "../store/useAuthStore";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { Mail, Lock, Eye, EyeOff, X, Shield, Smartphone } from "lucide-react";
+import DeviceVerificationModal from "../components/auth/DeviceVerificationModal";
 
 // <== LOGIN INFO TYPE INTERFACE ==>
 type LoginInfo = {
@@ -37,6 +38,21 @@ const LoginPage = (): JSX.Element => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   // 2FA REQUIRED STATE
   const [requires2FA, setRequires2FA] = useState<boolean>(false);
+  // DEVICE VERIFICATION REQUIRED STATE
+  const [requiresDeviceVerification, setRequiresDeviceVerification] =
+    useState<boolean>(false);
+  // DEVICE INFO STATE
+  const [deviceInfo, setDeviceInfo] = useState<{
+    deviceType: string;
+    deviceName: string;
+    browserName: string;
+    operatingSystem: string;
+    location?: {
+      country: string;
+      city: string;
+      region: string;
+    };
+  } | null>(null);
   // 2FA CODE STATE
   const [twoFactorCode, setTwoFactorCode] = useState<string[]>([
     "",
@@ -152,6 +168,17 @@ const LoginPage = (): JSX.Element => {
       { email, password },
       {
         onSuccess: (data) => {
+          // CHECK IF DEVICE VERIFICATION IS REQUIRED
+          if (data.requiresDeviceVerification) {
+            // SET DEVICE VERIFICATION REQUIRED STATE
+            setRequiresDeviceVerification(true);
+            // SET DEVICE INFO STATE
+            if (data.deviceInfo) {
+              setDeviceInfo(data.deviceInfo);
+            }
+            // RETURN EARLY - DON'T PROCEED WITH NORMAL LOGIN
+            return;
+          }
           // CHECK IF 2FA IS REQUIRED
           if (data.requires2FA) {
             // SET REQUIRES 2FA STATE
@@ -535,6 +562,18 @@ const LoginPage = (): JSX.Element => {
           </>
         )}
       </div>
+      {/* DEVICE VERIFICATION MODAL */}
+      <DeviceVerificationModal
+        isOpen={requiresDeviceVerification}
+        onClose={() => {
+          setRequiresDeviceVerification(false);
+          setDeviceInfo(null);
+        }}
+        email={loginInfo.email}
+        password={loginInfo.password}
+        deviceInfo={deviceInfo || undefined}
+        requires2FA={false}
+      />
     </div>
   );
 };
