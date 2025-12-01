@@ -33,19 +33,16 @@ const ConditionItem = ({
   passed: boolean;
 }) => (
   <div
-    className={`w-full flex items-center gap-2 p-1.5 rounded ${
+    className={`w-full flex items-center gap-2 p-1.5 rounded border ${
       passed
-        ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400"
-        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+        ? "bg-[var(--inside-card-bg)] border-[var(--accent-color)] text-[var(--accent-color)]"
+        : "bg-[var(--inside-card-bg)] border-[var(--border)] text-[var(--light-text)]"
     }`}
   >
     {passed ? (
-      <CheckCircle2
-        size={16}
-        className="text-violet-600 dark:text-violet-400"
-      />
+      <CheckCircle2 size={16} className="text-[var(--accent-color)]" />
     ) : (
-      <Lock size={16} className="text-gray-400" />
+      <Lock size={16} className="text-[var(--light-text)]" />
     )}
     <span className="text-xs">{label}</span>
   </div>
@@ -1579,7 +1576,7 @@ const Account = (): JSX.Element => {
                   </label>
                   <div className="relative flex items-center">
                     <Mail
-                      className="absolute left-3 text-[var(--light-text)]"
+                      className="absolute left-3 text-[var(--accent-color)]"
                       size={18}
                     />
                     <input
@@ -1628,8 +1625,8 @@ const Account = (): JSX.Element => {
             {/* VERIFY CURRENT EMAIL STEP */}
             {emailStep === "verifyCurrent" && (
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                  <p className="text-sm text-[var(--text-primary)]">
                     A verification code has been sent to{" "}
                     <strong>{currentEmail}</strong>. Please enter the code to
                     verify your current email.
@@ -1728,8 +1725,8 @@ const Account = (): JSX.Element => {
             {/* VERIFY NEW EMAIL STEP */}
             {emailStep === "verifyNew" && (
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                  <p className="text-sm text-[var(--text-primary)]">
                     A verification code has been sent to{" "}
                     <strong>{formData.newEmail}</strong>. Please enter the code
                     to verify your new email.
@@ -1832,8 +1829,8 @@ const Account = (): JSX.Element => {
             {/* REQUEST VERIFICATION STEP */}
             {passwordStep === "request" && (
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                  <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                  <p className="text-sm text-[var(--text-primary)]">
                     To change your password, we need to verify your identity. A
                     verification code will be sent to{" "}
                     <strong>{currentEmail}</strong>.
@@ -1862,8 +1859,8 @@ const Account = (): JSX.Element => {
             {/* VERIFY CODE STEP */}
             {passwordStep === "verify" && (
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                  <p className="text-sm text-[var(--text-primary)]">
                     A verification code has been sent to{" "}
                     <strong>{currentEmail}</strong>. Please enter the code to
                     continue.
@@ -2097,7 +2094,10 @@ const Account = (): JSX.Element => {
                       </>
                     ) : (
                       <>
-                        <Lock size={18} />
+                        <Lock
+                          size={18}
+                          className="text-[var(--accent-color)]"
+                        />
                         Change Password
                       </>
                     )}
@@ -2143,8 +2143,8 @@ const Account = (): JSX.Element => {
                 {/* REQUEST STEP */}
                 {recoveryEmailAddStep === "request" && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                    <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-[var(--text-primary)]">
                         A verification code will be sent to the recovery email
                         address you provide. This email will be used for account
                         recovery and security notifications.
@@ -2196,8 +2196,8 @@ const Account = (): JSX.Element => {
                 {/* VERIFY STEP */}
                 {recoveryEmailAddStep === "verify" && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                    <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-[var(--text-primary)]">
                         Enter the 6-digit verification code sent to{" "}
                         <strong>{formData.recoveryEmail}</strong>
                       </p>
@@ -2376,8 +2376,8 @@ const Account = (): JSX.Element => {
                 {/* VERIFY CURRENT STEP */}
                 {recoveryEmailUpdateStep === "verifyCurrent" && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                    <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-[var(--text-primary)]">
                         Enter the 6-digit verification code sent to your current
                         recovery email: <strong>{user?.recoveryEmail}</strong>
                       </p>
@@ -2492,8 +2492,8 @@ const Account = (): JSX.Element => {
                 {/* VERIFY NEW STEP */}
                 {recoveryEmailUpdateStep === "verifyNew" && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                    <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-[var(--text-primary)]">
                         Enter the 6-digit verification code sent to your new
                         recovery email:{" "}
                         <strong>{formData.newRecoveryEmail}</strong>
@@ -2608,7 +2608,7 @@ const Account = (): JSX.Element => {
                         setRecoveryEmailStep("remove");
                         setRecoveryEmailRemoveStep("request");
                       }}
-                      className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition cursor-pointer flex items-center justify-center gap-2"
+                      className="px-4 py-2 text-sm font-medium text-red-500 dark:text-red-400 border border-red-500/30 dark:border-red-800 rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer flex items-center justify-center gap-2"
                     >
                       <Trash2 size={16} />
                       Remove
@@ -2629,18 +2629,20 @@ const Account = (): JSX.Element => {
                     reduce your account recovery options.
                   </p>
                 </div>
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    <strong>⚠️ Warning:</strong> Without a recovery email, you
-                    may have difficulty recovering your account if you lose
-                    access to your primary email.
+                <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                  <p className="text-sm text-[var(--text-primary)]">
+                    <strong className="text-red-500 dark:text-red-400">
+                      ⚠️ Warning:
+                    </strong>{" "}
+                    Without a recovery email, you may have difficulty recovering
+                    your account if you lose access to your primary email.
                   </p>
                 </div>
                 {/* REQUEST STEP */}
                 {recoveryEmailRemoveStep === "request" && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                    <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-[var(--text-primary)]">
                         A verification code will be sent to your primary email
                         address: <strong>{currentEmail}</strong>
                       </p>
@@ -2667,8 +2669,8 @@ const Account = (): JSX.Element => {
                 {/* VERIFY STEP */}
                 {recoveryEmailRemoveStep === "verify" && (
                   <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-[var(--inside-card-bg)] border border-blue-200 dark:border-[var(--border)] rounded-lg">
-                      <p className="text-sm text-blue-800 dark:text-[var(--text-primary)]">
+                    <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                      <p className="text-sm text-[var(--text-primary)]">
                         Enter the 6-digit verification code sent to your primary
                         email: <strong>{currentEmail}</strong>
                       </p>
@@ -2787,29 +2789,29 @@ const Account = (): JSX.Element => {
         {activeTab === "delete" && (
           <div className="space-y-6">
             {/* WARNING MESSAGE */}
-            <div className="p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg">
+            <div className="p-6 bg-[var(--inside-card-bg)] border-2 border-[var(--border)] rounded-lg">
               <div className="flex items-start gap-3">
                 <Shield
-                  className="text-red-600 dark:text-red-400 mt-0.5"
+                  className="text-[var(--accent-color)] mt-0.5"
                   size={24}
                 />
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
                     Delete Your Account
                   </h3>
-                  <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                  <p className="text-sm text-[var(--text-primary)] mb-4">
                     Once you delete your account, it will be flagged for
                     deletion. You will have <strong>30 days</strong> to log in
                     and reactivate your account. After 30 days, your account and
                     all data will be permanently deleted:
                   </p>
-                  <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1 mb-4">
+                  <ul className="list-disc list-inside text-sm text-[var(--text-primary)] space-y-1 mb-4">
                     <li>All your projects and tasks</li>
                     <li>Your profile information</li>
                     <li>All your settings and preferences</li>
                     <li>Your account history</li>
                   </ul>
-                  <p className="text-sm text-red-700 dark:text-red-300">
+                  <p className="text-sm text-[var(--text-primary)]">
                     Please be certain before proceeding.
                   </p>
                 </div>
@@ -2819,7 +2821,7 @@ const Account = (): JSX.Element => {
             {deletionStep === "request" && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                     1
                   </div>
                   <span>Request Verification Code</span>
@@ -2831,7 +2833,8 @@ const Account = (): JSX.Element => {
                 <button
                   onClick={handleSendDeletionCode}
                   disabled={isSendingDeletionCode}
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  style={{ backgroundColor: "var(--accent-color)" }}
                 >
                   {isSendingDeletionCode ? (
                     <>
@@ -2851,7 +2854,7 @@ const Account = (): JSX.Element => {
             {deletionStep === "verify" && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                     2
                   </div>
                   <span>Verify Code</span>
@@ -2887,7 +2890,7 @@ const Account = (): JSX.Element => {
                           deletionCodeRefs
                         )
                       }
-                      className="w-12 h-12 text-center text-lg font-semibold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-red-500 dark:focus:border-red-500 focus:outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      className="w-12 h-12 text-center text-lg font-semibold border-2 border-[var(--border)] rounded-lg focus:border-red-500 dark:focus:border-red-500 focus:outline-none bg-[var(--inside-card-bg)] text-[var(--text-primary)]"
                     />
                   ))}
                 </div>
@@ -2898,7 +2901,8 @@ const Account = (): JSX.Element => {
                       isVerifyingDeletionCode ||
                       deletionCode.join("").length !== 6
                     }
-                    className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    style={{ backgroundColor: "var(--accent-color)" }}
                   >
                     {isVerifyingDeletionCode ? (
                       <>
@@ -2915,7 +2919,7 @@ const Account = (): JSX.Element => {
                   <button
                     onClick={handleResendDeletionCode}
                     disabled={isResendingDeletionCode}
-                    className="flex items-center gap-2 px-4 py-3 rounded-lg font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg font-medium border border-[var(--border)] hover:bg-[var(--hover-bg)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-[var(--text-primary)]"
                   >
                     {isResendingDeletionCode ? (
                       <>
@@ -2933,7 +2937,7 @@ const Account = (): JSX.Element => {
                 <button
                   onClick={handleResetDeletionFlow}
                   disabled={isCancellingDeletion}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:text-[var(--accent-color)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ArrowLeft size={16} />
                   Back
@@ -2944,7 +2948,7 @@ const Account = (): JSX.Element => {
             {deletionStep === "confirm" && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                     3
                   </div>
                   <span>Confirm Deletion</span>
@@ -2953,8 +2957,8 @@ const Account = (): JSX.Element => {
                   Your verification code has been verified. Click the button
                   below to confirm account deletion.
                 </p>
-                <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
+                  <p className="text-sm text-[var(--text-primary)]">
                     <strong>Important:</strong> After confirming, your account
                     will be flagged for deletion. You will be logged out and
                     have 30 days to log in and reactivate your account. After 30
@@ -2964,7 +2968,8 @@ const Account = (): JSX.Element => {
                 <button
                   onClick={handleConfirmDeletion}
                   disabled={isConfirmingDeletion}
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  style={{ backgroundColor: "var(--accent-color)" }}
                 >
                   {isConfirmingDeletion ? (
                     <>
@@ -2981,7 +2986,7 @@ const Account = (): JSX.Element => {
                 <button
                   onClick={handleCancelDeletion}
                   disabled={isCancellingDeletion}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:text-[var(--accent-color)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <X size={16} />
                   Cancel Deletion
