@@ -47,6 +47,8 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
   // NOTIFICATIONS OPEN STATE
   const [isNotificationsOpen, setIsNotificationsOpen] =
     useState<boolean>(false);
+  // IS MOBILE STATE
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
   // SYNC SIDEBAR OPEN STATE WITH PARENT (FOR FUTURE API INTEGRATION)
   useEffect(() => {
     // SYNC PARENT STATE WITH STORE STATE
@@ -60,13 +62,26 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
     const isMobile = window.innerWidth < 768;
     // IF MOBILE, NAVIGATE TO NOTIFICATIONS PAGE
     if (isMobile) {
+      // CLOSE NOTIFICATIONS PANEL IF OPEN
+      setIsNotificationsOpen(false);
       // CLOSE SIDEBAR
       closeSidebar();
       // NAVIGATE TO NOTIFICATIONS PAGE
       navigate("/notifications");
     } else {
-      // IF DESKTOP, TOGGLE NOTIFICATIONS DROPDOWN
-      setIsNotificationsOpen((prev) => !prev);
+      // IF DESKTOP, CHECK IF ALREADY ON NOTIFICATIONS PAGE
+      if (location.pathname === "/notifications") {
+        // IF ON NOTIFICATIONS PAGE, CLOSE PANEL IF OPEN
+        setIsNotificationsOpen(false);
+      } else {
+        // IF NOT ON NOTIFICATIONS PAGE, TOGGLE NOTIFICATIONS DROPDOWN
+        // IF PANEL IS ALREADY OPEN, CLOSE IT
+        if (isNotificationsOpen) {
+          setIsNotificationsOpen(false);
+        } else {
+          setIsNotificationsOpen(true);
+        }
+      }
     }
   };
   // MENU ITEMS ARRAY
@@ -92,6 +107,37 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
     // CLOSE SIDEBAR WHEN LOCATION CHANGES
     closeSidebar();
   }, [location.pathname, closeSidebar]);
+  // TRACK MOBILE STATE AND CLOSE NOTIFICATIONS PANEL WHEN SIDEBAR CLOSES
+  useEffect(() => {
+    // HANDLE WINDOW RESIZE
+    const handleResize = (): void => {
+      // GET WINDOW INNER WIDTH
+      const mobile = window.innerWidth < 768;
+      // SET IS MOBILE STATE
+      setIsMobile(mobile);
+      // IF RESIZING TO MOBILE, CLOSE NOTIFICATIONS PANEL
+      if (mobile) {
+        // CLOSE NOTIFICATIONS PANEL
+        setIsNotificationsOpen(false);
+      }
+    };
+    // HANDLE SIDEBAR CLOSE
+    const handleSidebarStateChange = (): void => {
+      // IF MOBILE AND SIDEBAR CLOSES, CLOSE NOTIFICATIONS PANEL
+      if (isMobile && !isOpen) {
+        // CLOSE NOTIFICATIONS PANEL
+        setIsNotificationsOpen(false);
+      }
+    };
+    // CALL HANDLERS IMMEDIATELY
+    handleResize();
+    // CALL HANDLER FOR SIDEBAR STATE CHANGE IMMEDIATELY
+    handleSidebarStateChange();
+    // ADD WINDOW RESIZE LISTENER
+    window.addEventListener("resize", handleResize);
+    // CLEANUP
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isOpen, isMobile]);
   // LOGOUT MUTATION
   const logoutMutation = useLogout();
   // HANDLE LOGOUT FUNCTION
@@ -196,15 +242,17 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
                     // RETURN NOTIFICATIONS ITEM WITH CUSTOM HANDLING
                     return (
                       <div key={index} className="relative">
-                        <Link
-                          to={item.path}
+                        <button
+                          data-notification-tab="true"
                           onClick={(e) => {
                             // PREVENT DEFAULT NAVIGATION
                             e.preventDefault();
+                            // STOP PROPAGATION TO PREVENT CLICK-OUTSIDE HANDLER
+                            e.stopPropagation();
                             // CALL CUSTOM ONCLICK HANDLER
-                            item.onClick?.();
+                            handleNotificationsClick();
                           }}
-                          className={`flex items-center py-2 rounded-md text-sm font-medium transition-all ${
+                          className={`flex items-center w-full py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${
                             isCollapsed ? "justify-center px-0" : "px-3"
                           } ${
                             isActive
@@ -213,7 +261,7 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
                           }`}
                         >
                           {content}
-                        </Link>
+                        </button>
                       </div>
                     );
                   }
@@ -338,8 +386,8 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
           </div>
         </div>
       </div>
-      {/* NOTIFICATIONS DROPDOWN */}
-      {isNotificationsOpen && (
+      {/* NOTIFICATIONS DROPDOWN - ONLY SHOW ON DESKTOP */}
+      {isNotificationsOpen && !isMobile && (
         <NotificationsDropdown
           collapsed={isCollapsed}
           onClose={() => setIsNotificationsOpen(false)}
