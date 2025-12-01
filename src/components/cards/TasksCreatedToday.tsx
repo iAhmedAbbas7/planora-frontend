@@ -1,7 +1,14 @@
 // <== IMPORTS ==>
+import {
+  ClipboardList,
+  X,
+  FileText,
+  Calendar,
+  Flag,
+  Circle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import AddNewTask from "../tasks/AddNewTask";
-import { ClipboardList, X } from "lucide-react";
 import { JSX, useState, useEffect } from "react";
 import { useDashboardStore } from "../../store/useDashboardStore";
 
@@ -27,9 +34,16 @@ const TasksCreatedToday = (): JSX.Element => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   // PRIORITY COLORS MAPPING
   const priorityColors: Record<Task["priority"], string> = {
-    low: "bg-green-100 text-green-700",
-    medium: "bg-yellow-100 text-yellow-700",
-    high: "bg-red-100 text-red-700",
+    low: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    medium:
+      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+    high: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  };
+  // STATUS COLORS MAPPING
+  const statusColors: Record<Task["status"], string> = {
+    "to do": "text-[var(--light-text)]",
+    "in progress": "text-blue-500 dark:text-blue-400",
+    completed: "text-green-500 dark:text-green-400",
   };
   // HANDLE TASK ADDED FUNCTION
   const handleTaskAdded = (): void => {
@@ -87,14 +101,44 @@ const TasksCreatedToday = (): JSX.Element => {
             {/* TABLE HEADER */}
             <thead>
               <tr className="text-left text-sm text-[var(--light-text)] border-b border-[var(--border)]">
-                {/* TASK NAME HEADER */}
-                <th className="py-2">Task Name</th>
-                {/* DUE DATE HEADER */}
-                <th className="py-2">Due Date</th>
-                {/* PRIORITY HEADER */}
-                <th className="py-2">Priority</th>
-                {/* STATUS HEADER */}
-                <th className="py-2">Status</th>
+                {/* TASK NAME HEADER - ALWAYS VISIBLE */}
+                <th className="py-2.5 px-1">
+                  <div className="flex items-center gap-2">
+                    {/* FILE TEXT ICON */}
+                    <FileText
+                      size={16}
+                      className="text-[var(--accent-color)]"
+                    />
+                    <span className="font-medium">Task Name</span>
+                  </div>
+                </th>
+                {/* DUE DATE HEADER - HIDDEN ON MOBILE, VISIBLE FROM SM */}
+                <th className="py-2.5 px-1 hidden sm:table-cell">
+                  <div className="flex items-center gap-2">
+                    {/* CALENDAR ICON */}
+                    <Calendar
+                      size={16}
+                      className="text-[var(--accent-color)]"
+                    />
+                    <span className="font-medium">Due Date</span>
+                  </div>
+                </th>
+                {/* PRIORITY HEADER - VISIBLE FROM MD */}
+                <th className="py-2.5 px-1 hidden md:table-cell">
+                  <div className="flex items-center gap-2">
+                    {/* FLAG ICON */}
+                    <Flag size={16} className="text-[var(--accent-color)]" />
+                    <span className="font-medium">Priority</span>
+                  </div>
+                </th>
+                {/* STATUS HEADER - ALWAYS VISIBLE */}
+                <th className="py-2.5 px-1">
+                  <div className="flex items-center gap-2">
+                    {/* CIRCLE ICON */}
+                    <Circle size={16} className="text-[var(--accent-color)]" />
+                    <span className="font-medium">Status</span>
+                  </div>
+                </th>
               </tr>
             </thead>
             {/* TABLE BODY */}
@@ -104,33 +148,45 @@ const TasksCreatedToday = (): JSX.Element => {
                 // TABLE ROW
                 <tr
                   key={task._id || index}
-                  className="text-sm text-[var(--light-text)] odd:bg-[var(--bg)] even:bg-[var(--inside-card-bg)] border-b border-[var(--border)]"
+                  className="text-sm text-[var(--text-primary)] border-b border-[var(--border)] transition-colors duration-150 hover:bg-[var(--hover-bg)] cursor-pointer"
                 >
-                  {/* TASK NAME CELL */}
-                  <td className="py-2">{task.title}</td>
-                  {/* DUE DATE CELL */}
-                  <td>
-                    {task.dueDate
-                      ? new Date(task.dueDate).toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "N/A"}
+                  {/* TASK NAME CELL - ALWAYS VISIBLE */}
+                  <td className="py-3 px-1">
+                    <span className="font-medium text-[var(--text-primary)]">
+                      {task.title}
+                    </span>
                   </td>
-                  {/* PRIORITY CELL */}
-                  <td>
+                  {/* DUE DATE CELL - HIDDEN ON MOBILE, VISIBLE FROM SM */}
+                  <td className="py-3 px-1 hidden sm:table-cell">
+                    <span className="text-[var(--light-text)]">
+                      {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "N/A"}
+                    </span>
+                  </td>
+                  {/* PRIORITY CELL - VISIBLE FROM MD */}
+                  <td className="py-3 px-1 hidden md:table-cell">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-full uppercase ${
                         priorityColors[task.priority]
                       }`}
                     >
                       {task.priority}
                     </span>
                   </td>
-                  {/* STATUS CELL */}
-                  <td className="capitalize">
-                    {task.status.replace("-", " ")}
+                  {/* STATUS CELL - ALWAYS VISIBLE */}
+                  <td className="py-3 px-1">
+                    <span
+                      className={`capitalize font-medium ${
+                        statusColors[task.status]
+                      }`}
+                    >
+                      {task.status.replace("-", " ")}
+                    </span>
                   </td>
                 </tr>
               ))}
