@@ -52,11 +52,11 @@ const ProjectsSkeleton = (): JSX.Element => {
               <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-3">
                 {/* VIEW TOGGLE BUTTONS SKELETON */}
                 <div className="flex gap-2">
-                  <div className="h-10 w-20 bg-[var(--cards-bg)] rounded-xl animate-pulse" />
-                  <div className="h-10 w-20 bg-[var(--cards-bg)] rounded-xl animate-pulse" />
+                  <div className="h-8 sm:h-9 w-16 sm:w-20 bg-[var(--cards-bg)] rounded-md animate-pulse" />
+                  <div className="h-8 sm:h-9 w-16 sm:w-20 bg-[var(--cards-bg)] rounded-md animate-pulse" />
                 </div>
                 {/* ADD PROJECT BUTTON SKELETON */}
-                <div className="h-10 w-32 bg-[var(--cards-bg)] rounded-full animate-pulse" />
+                <div className="h-8 sm:h-9 w-24 sm:w-32 bg-[var(--cards-bg)] rounded-md animate-pulse" />
               </div>
             </div>
           </header>
@@ -65,62 +65,95 @@ const ProjectsSkeleton = (): JSX.Element => {
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <div
                 key={item}
-                className={`flex flex-col gap-3 rounded-xl p-4 shadow-sm transition ${
+                className={`flex flex-col gap-3 sm:gap-4 rounded-xl p-3 sm:p-4 shadow-sm transition ${
                   item % 2 === 0
                     ? "bg-[var(--cards-bg)] border border-[var(--border)]"
                     : "bg-[var(--bg)] border border-[var(--border)]"
                 }`}
               >
                 {/* CARD HEADER SKELETON */}
-                <header className="flex justify-between items-center">
-                  <div className="h-5 w-32 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                  <div className="flex gap-2 justify-center items-center">
-                    <div className="h-5 w-20 bg-[var(--inside-card-bg)] rounded-full animate-pulse" />
-                    <div className="h-5 w-5 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                  </div>
+                <header className="flex justify-between items-start gap-2">
+                  <div className="h-5 sm:h-6 w-32 sm:w-40 bg-[var(--inside-card-bg)] rounded animate-pulse flex-1" />
+                  <div className="h-5 w-5 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
                 </header>
-                {/* CARD INFO SECTION SKELETON */}
-                <section className="grid grid-cols-2 gap-3 text-sm">
+                {/* CARD INFO SECTION SKELETON - SINGLE COLUMN LAYOUT */}
+                <section className="flex flex-col gap-3 text-sm">
+                  {/* STATUS INFO SKELETON */}
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
+                    <div className="flex items-center gap-3 flex-1 justify-between">
+                      <div className="h-3 w-14 sm:w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                      <div className="h-5 w-16 sm:w-20 bg-[var(--inside-card-bg)] rounded-full animate-pulse" />
+                    </div>
+                  </div>
                   {/* INCHARGE INFO SKELETON */}
-                  <div>
-                    <div className="h-3 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse mb-1" />
-                    <div className="h-4 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
+                    <div className="flex items-center gap-3 flex-1 justify-between">
+                      <div className="h-3 w-14 sm:w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                      <div className="h-4 w-20 sm:w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                    </div>
                   </div>
                   {/* ROLE INFO SKELETON */}
-                  <div>
-                    <div className="h-3 w-12 bg-[var(--inside-card-bg)] rounded animate-pulse mb-1" />
-                    <div className="h-4 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
+                    <div className="flex items-center gap-3 flex-1 justify-between">
+                      <div className="h-3 w-12 sm:w-14 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                      <div className="h-4 w-16 sm:w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                    </div>
                   </div>
                   {/* TASKS INFO SKELETON */}
-                  <div>
-                    <div className="h-3 w-14 bg-[var(--inside-card-bg)] rounded animate-pulse mb-1" />
-                    <div className="h-4 w-12 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
+                    <div className="flex items-center gap-3 flex-1 justify-between">
+                      <div className="h-3 w-12 sm:w-14 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                      <div className="h-4 w-12 sm:w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                    </div>
                   </div>
                   {/* DEADLINE INFO SKELETON */}
-                  <div>
-                    <div className="h-3 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse mb-1" />
-                    <div className="h-4 w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
+                    <div className="flex items-center gap-3 flex-1 justify-between">
+                      <div className="h-3 w-16 sm:w-18 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                      <div className="h-4 w-20 sm:w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                    </div>
                   </div>
                 </section>
                 {/* PROGRESS SECTION SKELETON */}
-                <div>
-                  <div className="flex justify-between items-center text-sm mb-1">
-                    <div className="h-4 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                    <div className="h-4 w-12 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                <div className="mt-1">
+                  <div className="flex justify-between items-center text-sm mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-3.5 w-3.5 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                      <div className="h-4 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                    </div>
+                    <div className="h-4 w-10 bg-[var(--inside-card-bg)] rounded animate-pulse" />
                   </div>
                   <div className="h-2 w-full bg-[var(--inside-card-bg)] rounded-full animate-pulse" />
                 </div>
+                {/* CARD FOOTER SKELETON */}
+                <footer className="flex flex-col sm:flex-row gap-2 mt-2">
+                  <div className="flex-1 h-8 sm:h-9 bg-[var(--inside-card-bg)] rounded-md animate-pulse" />
+                  <div className="flex-1 h-8 sm:h-9 bg-[var(--inside-card-bg)] rounded-md animate-pulse" />
+                </footer>
               </div>
             ))}
           </div>
           {/* PAGINATION SKELETON */}
-          <div className="flex justify-between items-center mt-6 text-sm">
-            <div className="h-4 w-32 bg-[var(--cards-bg)] rounded animate-pulse" />
-            <div className="flex gap-2">
-              <div className="h-8 w-20 bg-[var(--cards-bg)] rounded animate-pulse" />
-              <div className="h-8 w-20 bg-[var(--cards-bg)] rounded animate-pulse" />
+          <footer className="flex justify-between items-center mt-6 flex-wrap gap-2">
+            {/* PREVIOUS BUTTON SKELETON */}
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--cards-bg)] rounded-full animate-pulse" />
+            {/* PAGE NUMBERS SKELETON */}
+            <div className="flex gap-1 sm:gap-1.5">
+              {[1, 2, 3].map((num) => (
+                <div
+                  key={num}
+                  className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--cards-bg)] rounded-full animate-pulse"
+                />
+              ))}
             </div>
-          </div>
+            {/* NEXT BUTTON SKELETON */}
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--cards-bg)] rounded-full animate-pulse" />
+          </footer>
         </div>
       </div>
     </div>
