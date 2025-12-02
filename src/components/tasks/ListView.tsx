@@ -1,20 +1,19 @@
 // <== IMPORTS ==>
 import {
-  useEffect,
-  useRef,
-  useState,
-  JSX,
-  Dispatch,
-  SetStateAction,
-} from "react";
-import type { Task } from "../../types/task";
-import ActionDropdown from "./dropdown/ActionDropdown";
-import {
   ChevronDown,
-  MoreHorizontal,
   ClipboardList,
   Search,
+  FileText,
+  CircleDot,
+  Calendar,
+  Flag,
+  Settings,
+  X,
+  Edit,
+  Trash2,
 } from "lucide-react";
+import type { Task } from "../../types/task";
+import { useEffect, useState, JSX, Dispatch, SetStateAction } from "react";
 
 // <== LIST VIEW PROPS TYPE INTERFACE ==>
 type ListViewProps = {
@@ -55,6 +54,8 @@ type ColumnProps = {
   onTaskDeleted?: (taskId: string) => void;
   // <== HAS LOADED ==>
   hasLoaded: boolean;
+  // <== LOADING ==>
+  loading: boolean;
   // <== SECTION SEARCH TERM ==>
   sectionSearchTerm?: string;
   // <== ON SECTION SEARCH CHANGE ==>
@@ -66,19 +67,13 @@ function TaskColumn({
   tasks,
   originalTasks,
   setTasks,
-  parentModalOpen,
   onTaskEdited,
   onTaskDeleted,
   hasLoaded,
+  loading,
   sectionSearchTerm = "",
   onSectionSearchChange,
 }: ColumnProps): JSX.Element {
-  // DROPDOWN TASK ID STATE
-  const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
-  // DROPDOWN POSITION STATE
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  // DROPDOWN REF
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
   // TABLE OPEN STATE
   const [isOpen, setIsOpen] = useState<boolean>(true);
   // SELECTED ITEMS STATE
@@ -90,8 +85,6 @@ function TaskColumn({
       : title === "In Progress"
       ? "bg-yellow-500"
       : "bg-green-500";
-  // CHECK IF ALL SELECTED
-  const allSelected = tasks.length > 0 && selectedItems.length === tasks.length;
   // HANDLE DELETE TASK FUNCTION
   const handleDeleteTask = (taskId: string): void => {
     // REMOVE TASK FROM STATE (UI ONLY - NO API)
@@ -118,55 +111,22 @@ function TaskColumn({
     // CLEAR SELECTED ITEMS
     setSelectedItems([]);
   };
-  // OPEN DROPDOWN FUNCTION
-  const openDropdown = (e: React.MouseEvent, taskId: string): void => {
-    // GET BUTTON POSITION
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    // GET DROPDOWN WIDTH
-    const dropdownWidth = 150;
-    // CALCULATE SPACE ON RIGHT
-    const spaceRight = window.innerWidth - rect.right;
-    // CALCULATE LEFT POSITION
-    const left =
-      spaceRight > dropdownWidth
-        ? rect.right + window.scrollX
-        : rect.left - dropdownWidth + window.scrollX;
-    // SET DROPDOWN TASK ID
-    setDropdownTaskId(taskId);
-    // SET DROPDOWN POSITION
-    setDropdownPosition({
-      top: rect.bottom + window.scrollY,
-      left,
-    });
-  };
-  // CLOSE DROPDOWN FUNCTION
-  const closeDropdown = (): void => {
-    // CLOSE DROPDOWN
-    setDropdownTaskId(null);
-  };
-  // HANDLE CLICK OUTSIDE EFFECT
+  // PREVENT BACKGROUND SCROLLING WHEN TASKS ARE SELECTED
   useEffect(() => {
-    // HANDLE CLICK OUTSIDE FUNCTION
-    const handleClickOutside = (e: MouseEvent): void => {
-      // CHECK IF CLICK IS OUTSIDE DROPDOWN
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        // CLOSE DROPDOWN
-        closeDropdown();
-      }
+    // CHECK IF SELECTED ITEMS ARE GREATER THAN 0
+    if (selectedItems.length > 0) {
+      // DISABLE BODY SCROLLING
+      document.body.style.overflow = "hidden";
+    } else {
+      // ENABLE BODY SCROLLING
+      document.body.style.overflow = "unset";
+    }
+    // RETURN FROM THE EFFECT
+    return () => {
+      // ENABLE BODY SCROLLING
+      document.body.style.overflow = "unset";
     };
-    // ADD EVENT LISTENER
-    document.addEventListener("mousedown", handleClickOutside);
-    // REMOVE EVENT LISTENER ON CLEANUP
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-  // CLOSE DROPDOWN WHEN COLUMN COLLAPSES OR MODAL OPENS EFFECT
-  useEffect(() => {
-    // CLOSE DROPDOWN IF COLUMN IS CLOSED OR MODAL IS OPEN
-    if (!isOpen || parentModalOpen) closeDropdown();
-  }, [isOpen, parentModalOpen]);
+  }, [selectedItems.length]);
   // RETURNING THE TASK COLUMN COMPONENT
   return (
     // COLUMN CONTAINER
@@ -193,6 +153,20 @@ function TaskColumn({
             />
           </button>
         </div>
+        {/* SELECT ALL CHECKBOX - VISIBLE ON ALL DEVICES */}
+        {tasks.length > 0 && (
+          <div className="flex items-center gap-2 md:hidden">
+            <input
+              type="checkbox"
+              className="accent-[var(--accent-color)] cursor-pointer"
+              checked={
+                tasks.length > 0 &&
+                tasks.every((task) => selectedItems.includes(task._id))
+              }
+              onChange={(e) => handleSelectAll(e.target.checked)}
+            />
+          </div>
+        )}
       </header>
       {/* SECTION SEARCH BAR - ONLY SHOW IF SECTION HAS TASKS */}
       {originalTasks.length > 0 && (
@@ -210,193 +184,556 @@ function TaskColumn({
       {/* TABLE */}
       {isOpen && (
         <main className="overflow-x-auto animate-fadeIn relative">
-          {/* TABLE */}
-          <table className="w-full border-collapse text-sm">
-            {/* TABLE HEADER */}
-            <thead>
-              <tr className="bg-[var(--inside-card-bg)] text-[var(--light-text)]">
-                {/* SELECT ALL CHECKBOX HEADER */}
-                <th className="p-2 text-center w-10">
-                  <input
-                    type="checkbox"
-                    className="accent-[var(--accent-color)] cursor-pointer"
-                    checked={allSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </th>
-                {/* TASK NAME HEADER */}
-                <th className="p-2 text-center">Task Name</th>
-                {/* DUE DATE HEADER */}
-                <th className="p-2 text-center">Due Date</th>
-                {/* PRIORITY HEADER */}
-                <th className="p-2 text-center">Priority</th>
-                {/* ACTION HEADER */}
-                <th className="p-2 text-center w-12">Action</th>
-              </tr>
-            </thead>
-            {/* TABLE BODY */}
-            <tbody>
-              {/* CHECK IF TASKS EXIST AND DATA HAS LOADED */}
-              {tasks.length === 0 && hasLoaded ? (
-                // EMPTY STATE ROW
-                <tr>
-                  <td colSpan={5} className="py-12">
-                    {/* EMPTY STATE CONTAINER */}
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      {/* CHECK IF SECTION HAS TASKS BUT SEARCH RETURNED NO RESULTS */}
-                      {originalTasks.length > 0 &&
-                      sectionSearchTerm.trim() !== "" ? (
-                        <>
-                          {/* SEARCH NO RESULTS ICON */}
-                          <Search
-                            size={48}
-                            className="text-[var(--light-text)] opacity-50"
-                          />
-                          {/* SEARCH NO RESULTS TEXT */}
-                          <p className="text-sm font-medium text-[var(--light-text)]">
-                            No tasks found
-                          </p>
-                          <p className="text-xs text-[var(--light-text)] text-center">
-                            Your search does not match any tasks in this
-                            section.
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          {/* NO TASKS ICON */}
-                          <ClipboardList
-                            size={48}
-                            className="text-[var(--light-text)] opacity-50"
-                          />
-                          {/* NO TASKS TEXT */}
-                          <p className="text-sm font-medium text-[var(--light-text)]">
-                            No tasks in this section
-                          </p>
-                          <p className="text-xs text-[var(--light-text)] text-center">
-                            Add tasks to this section to get started.
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : tasks.length > 0 ? (
-                // MAPPING THROUGH TASKS
-                tasks.map((task, i) => (
-                  // TABLE ROW
-                  <tr
-                    key={task._id}
-                    className={`text-center ${
-                      i % 2 === 0
-                        ? "bg-[var(--bg)]"
-                        : "bg-[var(--inside-card-bg)]"
-                    } ${
-                      i !== tasks.length - 1
-                        ? "border-b border-[var(--border)]"
-                        : ""
-                    }`}
-                  >
-                    {/* SELECT CHECKBOX CELL */}
-                    <td className="p-2">
-                      <input
-                        type="checkbox"
-                        className="accent-[var(--accent-color)] cursor-pointer"
-                        checked={selectedItems.includes(task._id)}
-                        onChange={(e) =>
-                          handleSelect(task._id, e.target.checked)
-                        }
+          {/* DESKTOP TABLE */}
+          <div className="hidden md:block">
+            <table className="w-full border-collapse">
+              {/* TABLE HEADER */}
+              <thead>
+                <tr className="text-left text-sm text-[var(--light-text)] border-b border-[var(--border)]">
+                  {/* SELECT ALL CHECKBOX HEADER */}
+                  <th className="py-2.5 px-4 w-12">
+                    <input
+                      type="checkbox"
+                      className="accent-[var(--accent-color)] cursor-pointer"
+                      checked={
+                        tasks.length > 0 &&
+                        tasks.every((task) => selectedItems.includes(task._id))
+                      }
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                    />
+                  </th>
+                  {/* TASK NAME COLUMN HEADER - ALWAYS VISIBLE */}
+                  <th className="py-2.5 px-4">
+                    <div className="flex items-center gap-2">
+                      <FileText
+                        size={16}
+                        className="text-[var(--accent-color)]"
                       />
-                    </td>
-                    {/* TASK NAME CELL */}
-                    <td className="p-2">{task.title}</td>
-                    {/* DUE DATE CELL */}
-                    <td className="p-2">
-                      {task.dueDate
-                        ? new Date(task.dueDate).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "No due date"}
-                    </td>
-                    {/* PRIORITY CELL */}
-                    <td
-                      className={`p-2 font-medium ${
-                        task.priority === "high"
-                          ? "text-red-500"
-                          : task.priority === "medium"
-                          ? "text-yellow-500"
-                          : "text-green-500"
-                      }`}
-                    >
-                      {task.priority
-                        ? task.priority.charAt(0).toUpperCase() +
-                          task.priority.slice(1)
-                        : "N/A"}
-                    </td>
-                    {/* ACTION CELL */}
-                    <td className="p-2">
-                      {/* DROPDOWN BUTTON */}
-                      <button
-                        onClick={(e) => openDropdown(e, task._id)}
-                        className="text-[var(--light-text)] hover:text-gray-700 cursor-pointer"
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
+                      <span className="font-medium">Task</span>
+                    </div>
+                  </th>
+                  {/* STATUS COLUMN HEADER - ALWAYS VISIBLE */}
+                  <th className="py-2.5 px-4">
+                    <div className="flex items-center gap-2">
+                      <CircleDot
+                        size={16}
+                        className="text-[var(--accent-color)]"
+                      />
+                      <span className="font-medium">Status</span>
+                    </div>
+                  </th>
+                  {/* DUE DATE COLUMN HEADER - HIDDEN ON SMALL, VISIBLE FROM LG */}
+                  <th className="py-2.5 px-4 hidden lg:table-cell">
+                    <div className="flex items-center gap-2">
+                      <Calendar
+                        size={16}
+                        className="text-[var(--accent-color)]"
+                      />
+                      <span className="font-medium">Due Date</span>
+                    </div>
+                  </th>
+                  {/* PRIORITY COLUMN HEADER - HIDDEN ON SMALL, VISIBLE FROM MD */}
+                  <th className="py-2.5 px-4 hidden md:table-cell">
+                    <div className="flex items-center gap-2">
+                      <Flag size={16} className="text-[var(--accent-color)]" />
+                      <span className="font-medium">Priority</span>
+                    </div>
+                  </th>
+                  {/* ACTION COLUMN HEADER - ALWAYS VISIBLE */}
+                  <th className="py-2.5 px-4">
+                    <div className="flex items-center gap-2">
+                      <Settings
+                        size={16}
+                        className="text-[var(--accent-color)]"
+                      />
+                      <span className="font-medium">Action</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              {/* TABLE BODY */}
+              <tbody>
+                {/* CHECK IF TASKS EXIST AND DATA HAS LOADED */}
+                {tasks.length === 0 && !loading && hasLoaded ? (
+                  // EMPTY STATE ROW
+                  <tr>
+                    <td colSpan={6} className="py-12">
+                      {/* EMPTY STATE CONTAINER */}
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        {/* CHECK IF SECTION HAS TASKS BUT SEARCH RETURNED NO RESULTS */}
+                        {originalTasks.length > 0 &&
+                        sectionSearchTerm.trim() !== "" ? (
+                          <>
+                            {/* SEARCH NO RESULTS ICON */}
+                            <Search
+                              size={48}
+                              className="text-[var(--light-text)] opacity-50"
+                            />
+                            {/* SEARCH NO RESULTS TEXT */}
+                            <p className="text-sm font-medium text-[var(--light-text)]">
+                              No tasks found
+                            </p>
+                            <p className="text-xs text-[var(--light-text)] text-center">
+                              Your search does not match any tasks in this
+                              section.
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            {/* NO TASKS ICON */}
+                            <ClipboardList
+                              size={48}
+                              className="text-[var(--light-text)] opacity-50"
+                            />
+                            {/* NO TASKS TEXT */}
+                            <p className="text-sm font-medium text-[var(--light-text)]">
+                              No tasks in this section
+                            </p>
+                            <p className="text-xs text-[var(--light-text)] text-center">
+                              Add tasks to this section to get started.
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                ))
-              ) : null}
-            </tbody>
-          </table>
-          {/* FLOATING ACTION BAR */}
-          {selectedItems.length > 0 && (
-            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-[var(--cards-bg)] border border-[var(--border)] shadow-lg px-4 sm:px-6 py-3 rounded-xl flex gap-3 sm:gap-4 items-center animate-fadeIn z-[999] backdrop-blur-sm">
-              {/* SELECTED COUNT */}
-              <p className="text-sm text-[var(--primary-text)]">
-                {selectedItems.length} selected
-              </p>
+                ) : tasks.length > 0 ? (
+                  // MAPPING THROUGH TASKS
+                  tasks.map((task) => (
+                    // TABLE ROW
+                    <tr
+                      key={task._id}
+                      className="text-sm text-[var(--text-primary)] border-b border-[var(--border)] transition-colors duration-150 hover:bg-[var(--hover-bg)]"
+                    >
+                      {/* SELECT CHECKBOX CELL */}
+                      <td className="py-3 px-4">
+                        <input
+                          type="checkbox"
+                          className="accent-[var(--accent-color)] cursor-pointer"
+                          checked={selectedItems.includes(task._id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleSelect(task._id, e.target.checked);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
+                      {/* TASK NAME CELL - ALWAYS VISIBLE */}
+                      <td className="py-3 px-4">
+                        <span className="font-medium text-[var(--accent-color)] text-left">
+                          {task.title}
+                        </span>
+                      </td>
+                      {/* STATUS CELL - ALWAYS VISIBLE */}
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                          <span
+                            className="absolute inset-0 rounded-full"
+                            style={{
+                              backgroundColor: `var(--accent-color)`,
+                              opacity: 0.15,
+                            }}
+                          ></span>
+                          <span
+                            className="relative"
+                            style={{ color: `var(--accent-color)` }}
+                          >
+                            {task.status || "N/A"}
+                          </span>
+                        </span>
+                      </td>
+                      {/* DUE DATE CELL - HIDDEN ON SMALL, VISIBLE FROM LG */}
+                      <td className="py-3 px-4 hidden lg:table-cell">
+                        <span className="text-[var(--light-text)]">
+                          {task.dueDate
+                            ? new Date(task.dueDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )
+                            : "N/A"}
+                        </span>
+                      </td>
+                      {/* PRIORITY CELL - HIDDEN ON SMALL, VISIBLE FROM MD */}
+                      <td className="py-3 px-4 hidden md:table-cell">
+                        <span
+                          className={`font-medium ${
+                            task.priority === "high"
+                              ? "text-red-500"
+                              : task.priority === "medium"
+                              ? "text-yellow-500"
+                              : "text-green-500"
+                          }`}
+                        >
+                          {task.priority
+                            ? task.priority.charAt(0).toUpperCase() +
+                              task.priority.slice(1)
+                            : "N/A"}
+                        </span>
+                      </td>
+                      {/* ACTION CELL - ALWAYS VISIBLE */}
+                      <td
+                        className="py-3 px-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* ACTION BUTTONS */}
+                        <div className="flex items-center gap-2">
+                          {/* EDIT BUTTON */}
+                          <button
+                            className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onTaskEdited?.(task._id);
+                            }}
+                            title="Edit Task"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          {/* DELETE BUTTON */}
+                          <button
+                            className="cursor-pointer text-[var(--light-text)] hover:text-red-500 transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onTaskDeleted?.(task._id);
+                            }}
+                            title="Delete Task"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+          {/* MOBILE VERTICAL LAYOUT */}
+          <div className="md:hidden space-y-3">
+            {/* MAPPING THROUGH TASKS */}
+            {tasks.length === 0 && !loading && hasLoaded ? (
+              // EMPTY STATE
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                {originalTasks.length > 0 && sectionSearchTerm.trim() !== "" ? (
+                  <>
+                    <Search
+                      size={48}
+                      className="text-[var(--light-text)] opacity-50"
+                    />
+                    <p className="text-sm font-medium text-[var(--light-text)]">
+                      No tasks found
+                    </p>
+                    <p className="text-xs text-[var(--light-text)] text-center">
+                      Your search does not match any tasks in this section.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <ClipboardList
+                      size={48}
+                      className="text-[var(--light-text)] opacity-50"
+                    />
+                    <p className="text-sm font-medium text-[var(--light-text)]">
+                      No tasks in this section
+                    </p>
+                    <p className="text-xs text-[var(--light-text)] text-center">
+                      Add tasks to this section to get started.
+                    </p>
+                  </>
+                )}
+              </div>
+            ) : tasks.length > 0 ? (
+              tasks.map((task) => (
+                // MOBILE TASK CARD
+                <div
+                  key={task._id}
+                  className="border border-[var(--border)] rounded-lg p-4 bg-[var(--cards-bg)] shadow-sm"
+                >
+                  {/* TASK TITLE SECTION */}
+                  <div className="flex items-center justify-between mb-3 pb-3 border-b border-[var(--border)]">
+                    {/* TASK TITLE WITH ICON AND CHECKBOX */}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        className="accent-[var(--accent-color)] cursor-pointer flex-shrink-0"
+                        checked={selectedItems.includes(task._id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleSelect(task._id, e.target.checked);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <FileText
+                        size={16}
+                        className="text-[var(--accent-color)] flex-shrink-0"
+                      />
+                      <span className="font-semibold text-[var(--accent-color)] text-left truncate">
+                        {task.title}
+                      </span>
+                    </div>
+                  </div>
+                  {/* TASK DETAILS SECTION */}
+                  <div className="space-y-2.5">
+                    {/* STATUS */}
+                    <div className="flex items-center gap-2">
+                      <CircleDot
+                        size={14}
+                        className="text-[var(--accent-color)] flex-shrink-0"
+                      />
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                          Status
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                          <span
+                            className="absolute inset-0 rounded-full"
+                            style={{
+                              backgroundColor: `var(--accent-color)`,
+                              opacity: 0.15,
+                            }}
+                          ></span>
+                          <span
+                            className="relative"
+                            style={{ color: `var(--accent-color)` }}
+                          >
+                            {task.status || "N/A"}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    {/* DUE DATE */}
+                    {task.dueDate && (
+                      <div className="flex items-center gap-2">
+                        <Calendar
+                          size={14}
+                          className="text-[var(--accent-color)] flex-shrink-0"
+                        />
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                            Due Date
+                          </span>
+                          <span className="text-xs text-[var(--text-primary)]">
+                            {new Date(task.dueDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {/* PRIORITY */}
+                    {task.priority && (
+                      <div className="flex items-center gap-2">
+                        <Flag
+                          size={14}
+                          className="text-[var(--accent-color)] flex-shrink-0"
+                        />
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                            Priority
+                          </span>
+                          <span
+                            className={`text-xs font-medium ${
+                              task.priority === "high"
+                                ? "text-red-500"
+                                : task.priority === "medium"
+                                ? "text-yellow-500"
+                                : "text-green-500"
+                            }`}
+                          >
+                            {task.priority.charAt(0).toUpperCase() +
+                              task.priority.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* ACTION BUTTONS */}
+                  <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                    {/* EDIT BUTTON */}
+                    <button
+                      className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTaskEdited?.(task._id);
+                      }}
+                      title="Edit Task"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    {/* DELETE BUTTON */}
+                    <button
+                      className="cursor-pointer text-[var(--light-text)] hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTaskDeleted?.(task._id);
+                      }}
+                      title="Delete Task"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : null}
+          </div>
+        </main>
+      )}
+      {/* SELECTED TASKS MODAL */}
+      {selectedItems.length > 0 && (
+        <div
+          className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCancelSelection();
+            }
+          }}
+        >
+          {/* MODAL CONTAINER */}
+          <div
+            className="bg-[var(--bg)] rounded-xl w-full max-w-2xl shadow-lg relative overflow-hidden border border-[var(--border)] max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
+              {/* MODAL TITLE */}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Selected Tasks ({selectedItems.length})
+              </h2>
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={handleCancelSelection}
+                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+              >
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            </div>
+            {/* MODAL CONTENT - SELECTED TASKS LIST */}
+            <div className="overflow-y-auto flex-1 min-h-0 p-4 sm:p-6">
+              <div className="flex flex-col gap-3">
+                {selectedItems.map((taskId) => {
+                  const task = tasks.find((t) => t._id === taskId);
+                  if (!task) return null;
+                  return (
+                    <div
+                      key={taskId}
+                      className="bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg p-3 sm:p-4"
+                    >
+                      {/* TASK TITLE */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex-1">
+                          {task.title}
+                        </h3>
+                      </div>
+                      {/* TASK DETAILS */}
+                      <div className="flex flex-col gap-2 text-sm">
+                        {/* STATUS */}
+                        {task.status && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Status:
+                            </span>
+                            <span className="text-xs text-[var(--text-primary)] capitalize">
+                              {task.status}
+                            </span>
+                          </div>
+                        )}
+                        {/* PRIORITY */}
+                        {task.priority && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Priority:
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                              <span
+                                className="absolute inset-0 rounded-full"
+                                style={{
+                                  backgroundColor: `var(--accent-color)`,
+                                  opacity: 0.15,
+                                }}
+                              ></span>
+                              <span
+                                className="relative"
+                                style={{ color: `var(--accent-color)` }}
+                              >
+                                {task.priority.charAt(0).toUpperCase() +
+                                  task.priority.slice(1)}
+                              </span>
+                            </span>
+                          </div>
+                        )}
+                        {/* DUE DATE */}
+                        {task.dueDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar
+                              size={14}
+                              className="text-[var(--light-text)] flex-shrink-0"
+                            />
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Due Date:
+                            </span>
+                            <span className="text-xs text-[var(--text-primary)]">
+                              {new Date(task.dueDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {/* DESCRIPTION */}
+                        {task.description && (
+                          <div className="flex items-start gap-2 mt-1">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Description:
+                            </span>
+                            <p className="text-xs text-[var(--light-text)] flex-1 line-clamp-2">
+                              {task.description}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {/* MODAL FOOTER - ACTIONS */}
+            <div className="flex justify-end gap-2 p-3 sm:p-4 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)]">
               {/* CANCEL BUTTON */}
               <button
-                className="px-3 py-1.5 text-sm bg-[var(--inside-card-bg)] rounded-lg hover:bg-[var(--hover-bg)] text-[var(--primary-text)] cursor-pointer"
+                className="px-4 py-2 text-sm bg-[var(--inside-card-bg)] rounded-lg hover:bg-[var(--hover-bg)] cursor-pointer text-[var(--text-primary)] transition-colors"
                 onClick={handleCancelSelection}
               >
                 Cancel
               </button>
               {/* DELETE BUTTON */}
               <button
-                className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 cursor-pointer"
+                className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                 onClick={() => {
                   // DELETE SELECTED TASKS
-                  selectedItems.forEach(handleDeleteTask);
+                  selectedItems.forEach((taskId) => {
+                    handleDeleteTask(taskId);
+                  });
                   // CLEAR SELECTION
                   setSelectedItems([]);
                 }}
               >
-                Delete
+                Delete Selected ({selectedItems.length})
               </button>
             </div>
-          )}
-          {/* DROPDOWN MENU */}
-          {dropdownTaskId && (
-            <div
-              className="fixed z-[99999] animate-fadeIn"
-              ref={dropdownRef}
-              style={{
-                top: dropdownPosition.top + 4,
-                left: dropdownPosition.left,
-              }}
-            >
-              <ActionDropdown
-                onEditTask={() => onTaskEdited?.(dropdownTaskId)}
-                onDeleteTask={() => {
-                  handleDeleteTask(dropdownTaskId);
-                  closeDropdown();
-                }}
-              />
-            </div>
-          )}
-        </main>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -414,6 +751,8 @@ const ListView = ({
   onTaskDeleted,
   onTaskEdited,
 }: ListViewProps): JSX.Element => {
+  // SELECTED ITEMS STATE (FOR SEARCH RESULTS)
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   // SECTION SEARCH TERMS STATE
   const [sectionSearchTerms, setSectionSearchTerms] = useState<{
     [key: string]: string;
@@ -422,6 +761,16 @@ const ListView = ({
     "in progress": "",
     completed: "",
   });
+  // HANDLE SELECT FUNCTION (FOR SEARCH RESULTS)
+  const handleSelect = (taskId: string, checked: boolean): void => {
+    setSelectedItems((prev) =>
+      checked ? [...prev, taskId] : prev.filter((id) => id !== taskId)
+    );
+  };
+  // HANDLE CANCEL SELECTION FUNCTION (FOR SEARCH RESULTS)
+  const handleCancelSelection = (): void => {
+    setSelectedItems([]);
+  };
   // FILTER TASKS BY SECTION SEARCH TERM
   const filterTasksBySectionSearch = (
     sectionTasks: Task[],
@@ -486,83 +835,328 @@ const ListView = ({
                   </span>
                 )}
               </div>
+              {/* SELECT ALL CHECKBOX - MOBILE ONLY */}
+              {filteredTasks.length > 0 && (
+                <div className="flex items-center gap-2 md:hidden">
+                  <input
+                    type="checkbox"
+                    className="accent-[var(--accent-color)] cursor-pointer"
+                    checked={
+                      filteredTasks.length > 0 &&
+                      filteredTasks.every((task) =>
+                        selectedItems.includes(task._id)
+                      )
+                    }
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      const taskIds = filteredTasks.map((task) => task._id);
+                      setSelectedItems((prev) =>
+                        isChecked
+                          ? Array.from(new Set([...prev, ...taskIds]))
+                          : prev.filter((id) => !taskIds.includes(id))
+                      );
+                    }}
+                  />
+                </div>
+              )}
             </header>
             {/* SEARCH RESULTS CONTENT */}
             {filteredTasks.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="text-left text-sm text-[var(--light-text)] border-b border-[var(--border)]">
-                      <th className="py-2.5 px-4">Select</th>
-                      <th className="py-2.5 px-4">Task Name</th>
-                      <th className="py-2.5 px-4">Due Date</th>
-                      <th className="py-2.5 px-4">Priority</th>
-                      <th className="py-2.5 px-4">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTasks.map((task, i) => (
-                      <tr
-                        key={task._id}
-                        className={`text-center ${
-                          i % 2 === 0
-                            ? "bg-[var(--bg)]"
-                            : "bg-[var(--inside-card-bg)]"
-                        } ${
-                          i !== filteredTasks.length - 1
-                            ? "border-b border-[var(--border)]"
-                            : ""
-                        }`}
-                      >
-                        <td className="p-2">
+              <>
+                {/* DESKTOP TABLE VIEW - HIDDEN ON MOBILE */}
+                <div className="overflow-x-auto hidden md:block">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="text-left text-sm text-[var(--light-text)] border-b border-[var(--border)]">
+                        <th className="py-2.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <FileText
+                              size={16}
+                              className="text-[var(--accent-color)]"
+                            />
+                            <span className="font-medium">Task</span>
+                          </div>
+                        </th>
+                        <th className="py-2.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <CircleDot
+                              size={16}
+                              className="text-[var(--accent-color)]"
+                            />
+                            <span className="font-medium">Status</span>
+                          </div>
+                        </th>
+                        <th className="py-2.5 px-4 hidden lg:table-cell">
+                          <div className="flex items-center gap-2">
+                            <Calendar
+                              size={16}
+                              className="text-[var(--accent-color)]"
+                            />
+                            <span className="font-medium">Due Date</span>
+                          </div>
+                        </th>
+                        <th className="py-2.5 px-4 hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            <Flag
+                              size={16}
+                              className="text-[var(--accent-color)]"
+                            />
+                            <span className="font-medium">Priority</span>
+                          </div>
+                        </th>
+                        <th className="py-2.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <Settings
+                              size={16}
+                              className="text-[var(--accent-color)]"
+                            />
+                            <span className="font-medium">Action</span>
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredTasks.map((task) => (
+                        <tr
+                          key={task._id}
+                          className="text-sm text-[var(--text-primary)] border-b border-[var(--border)] transition-colors duration-150 hover:bg-[var(--hover-bg)]"
+                        >
+                          <td className="py-3 px-4">
+                            <input
+                              type="checkbox"
+                              className="accent-[var(--accent-color)] cursor-pointer"
+                              checked={selectedItems.includes(task._id)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleSelect(task._id, e.target.checked);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-medium text-[var(--accent-color)] text-left">
+                              {task.title}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                              <span
+                                className="absolute inset-0 rounded-full"
+                                style={{
+                                  backgroundColor: `var(--accent-color)`,
+                                  opacity: 0.15,
+                                }}
+                              ></span>
+                              <span
+                                className="relative"
+                                style={{ color: `var(--accent-color)` }}
+                              >
+                                {task.status || "N/A"}
+                              </span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 hidden lg:table-cell">
+                            <span className="text-[var(--light-text)]">
+                              {task.dueDate
+                                ? new Date(task.dueDate).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    }
+                                  )
+                                : "N/A"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 hidden md:table-cell">
+                            <span
+                              className={`font-medium ${
+                                task.priority === "high"
+                                  ? "text-red-500"
+                                  : task.priority === "medium"
+                                  ? "text-yellow-500"
+                                  : "text-green-500"
+                              }`}
+                            >
+                              {task.priority
+                                ? task.priority.charAt(0).toUpperCase() +
+                                  task.priority.slice(1)
+                                : "N/A"}
+                            </span>
+                          </td>
+                          <td
+                            className="py-3 px-4"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {/* ACTION BUTTONS */}
+                            <div className="flex items-center gap-2">
+                              {/* EDIT BUTTON */}
+                              <button
+                                className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTaskEdited?.(task._id);
+                                }}
+                                title="Edit Task"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              {/* DELETE BUTTON */}
+                              <button
+                                className="cursor-pointer text-[var(--light-text)] hover:text-red-500 transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTaskDeleted?.(task._id);
+                                }}
+                                title="Delete Task"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* MOBILE CARD VIEW FOR SEARCH RESULTS - ONLY ON MOBILE */}
+                <div className="md:hidden space-y-3">
+                  {filteredTasks.map((task) => (
+                    <div
+                      key={task._id}
+                      className="border border-[var(--border)] rounded-lg p-4 bg-[var(--cards-bg)] shadow-sm"
+                    >
+                      {/* TASK TITLE SECTION */}
+                      <div className="flex items-center justify-between mb-3 pb-3 border-b border-[var(--border)]">
+                        {/* TASK TITLE WITH ICON AND CHECKBOX */}
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
                           <input
                             type="checkbox"
-                            className="accent-[var(--accent-color)] cursor-pointer"
-                            checked={false}
-                            onChange={() => {}}
+                            className="accent-[var(--accent-color)] cursor-pointer flex-shrink-0"
+                            checked={selectedItems.includes(task._id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleSelect(task._id, e.target.checked);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
                           />
-                        </td>
-                        <td className="p-2">{task.title}</td>
-                        <td className="p-2">
-                          {task.dueDate
-                            ? new Date(task.dueDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                }
-                              )
-                            : "No due date"}
-                        </td>
-                        <td
-                          className={`p-2 font-medium ${
-                            task.priority === "high"
-                              ? "text-red-500"
-                              : task.priority === "medium"
-                              ? "text-yellow-500"
-                              : "text-green-500"
-                          }`}
+                          <FileText
+                            size={16}
+                            className="text-[var(--accent-color)] flex-shrink-0"
+                          />
+                          <span className="font-semibold text-[var(--accent-color)] text-left truncate">
+                            {task.title}
+                          </span>
+                        </div>
+                      </div>
+                      {/* TASK DETAILS */}
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <CircleDot
+                            size={14}
+                            className="text-[var(--accent-color)] flex-shrink-0"
+                          />
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                              Status
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                              <span
+                                className="absolute inset-0 rounded-full"
+                                style={{
+                                  backgroundColor: `var(--accent-color)`,
+                                  opacity: 0.15,
+                                }}
+                              ></span>
+                              <span
+                                className="relative"
+                                style={{ color: `var(--accent-color)` }}
+                              >
+                                {task.status || "N/A"}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar
+                            size={14}
+                            className="text-[var(--accent-color)] flex-shrink-0"
+                          />
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                              Due Date
+                            </span>
+                            <span className="text-xs text-[var(--text-primary)]">
+                              {task.dueDate
+                                ? new Date(task.dueDate).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    }
+                                  )
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Flag
+                            size={14}
+                            className="text-[var(--accent-color)] flex-shrink-0"
+                          />
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                              Priority
+                            </span>
+                            <span
+                              className={`text-xs font-medium ${
+                                task.priority === "high"
+                                  ? "text-red-500"
+                                  : task.priority === "medium"
+                                  ? "text-yellow-500"
+                                  : "text-green-500"
+                              }`}
+                            >
+                              {task.priority
+                                ? task.priority.charAt(0).toUpperCase() +
+                                  task.priority.slice(1)
+                                : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* ACTION BUTTONS */}
+                      <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                        {/* EDIT BUTTON */}
+                        <button
+                          className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTaskEdited?.(task._id);
+                          }}
+                          title="Edit Task"
                         >
-                          {task.priority
-                            ? task.priority.charAt(0).toUpperCase() +
-                              task.priority.slice(1)
-                            : "N/A"}
-                        </td>
-                        <td className="p-2">
-                          <button
-                            onClick={() => {}}
-                            className="text-[var(--light-text)] hover:text-gray-700 cursor-pointer"
-                          >
-                            <MoreHorizontal size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : hasLoaded ? (
+                          <Edit size={18} />
+                        </button>
+                        {/* DELETE BUTTON */}
+                        <button
+                          className="cursor-pointer text-[var(--light-text)] hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTaskDeleted?.(task._id);
+                          }}
+                          title="Delete Task"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : !loading && hasLoaded && filteredTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <Search
                   size={48}
@@ -594,6 +1188,7 @@ const ListView = ({
             onTaskDeleted={onTaskDeleted}
             onTaskEdited={onTaskEdited}
             hasLoaded={hasLoaded}
+            loading={loading}
             sectionSearchTerm={sectionSearchTerms["to do"]}
             onSectionSearchChange={(term) =>
               updateSectionSearchTerm("to do", term)
@@ -612,6 +1207,7 @@ const ListView = ({
             onTaskDeleted={onTaskDeleted}
             onTaskEdited={onTaskEdited}
             hasLoaded={hasLoaded}
+            loading={loading}
             sectionSearchTerm={sectionSearchTerms["in progress"]}
             onSectionSearchChange={(term) =>
               updateSectionSearchTerm("in progress", term)
@@ -630,12 +1226,162 @@ const ListView = ({
             onTaskDeleted={onTaskDeleted}
             onTaskEdited={onTaskEdited}
             hasLoaded={hasLoaded}
+            loading={loading}
             sectionSearchTerm={sectionSearchTerms["completed"]}
             onSectionSearchChange={(term) =>
               updateSectionSearchTerm("completed", term)
             }
           />
         </>
+      )}
+      {/* SELECTED TASKS MODAL (FOR SEARCH RESULTS) */}
+      {isMainSearchActive && selectedItems.length > 0 && (
+        <div
+          className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCancelSelection();
+            }
+          }}
+        >
+          {/* MODAL CONTAINER */}
+          <div
+            className="bg-[var(--bg)] rounded-xl w-full max-w-2xl shadow-lg relative overflow-hidden border border-[var(--border)] max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
+              {/* MODAL TITLE */}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Selected Tasks ({selectedItems.length})
+              </h2>
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={handleCancelSelection}
+                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+              >
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            </div>
+            {/* MODAL CONTENT - SELECTED TASKS LIST */}
+            <div className="overflow-y-auto flex-1 min-h-0 p-4 sm:p-6">
+              <div className="flex flex-col gap-3">
+                {selectedItems.map((taskId) => {
+                  const task = filteredTasks.find((t) => t._id === taskId);
+                  if (!task) return null;
+                  return (
+                    <div
+                      key={taskId}
+                      className="bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg p-3 sm:p-4"
+                    >
+                      {/* TASK TITLE */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex-1">
+                          {task.title}
+                        </h3>
+                      </div>
+                      {/* TASK DETAILS */}
+                      <div className="flex flex-col gap-2 text-sm">
+                        {/* STATUS */}
+                        {task.status && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Status:
+                            </span>
+                            <span className="text-xs text-[var(--text-primary)] capitalize">
+                              {task.status}
+                            </span>
+                          </div>
+                        )}
+                        {/* PRIORITY */}
+                        {task.priority && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Priority:
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                              <span
+                                className="absolute inset-0 rounded-full"
+                                style={{
+                                  backgroundColor: `var(--accent-color)`,
+                                  opacity: 0.15,
+                                }}
+                              ></span>
+                              <span
+                                className="relative"
+                                style={{ color: `var(--accent-color)` }}
+                              >
+                                {task.priority.charAt(0).toUpperCase() +
+                                  task.priority.slice(1)}
+                              </span>
+                            </span>
+                          </div>
+                        )}
+                        {/* DUE DATE */}
+                        {task.dueDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar
+                              size={14}
+                              className="text-[var(--light-text)] flex-shrink-0"
+                            />
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Due Date:
+                            </span>
+                            <span className="text-xs text-[var(--text-primary)]">
+                              {new Date(task.dueDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {/* DESCRIPTION */}
+                        {task.description && (
+                          <div className="flex items-start gap-2 mt-1">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Description:
+                            </span>
+                            <p className="text-xs text-[var(--light-text)] flex-1 line-clamp-2">
+                              {task.description}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {/* MODAL FOOTER - ACTIONS */}
+            <div className="flex justify-end gap-2 p-3 sm:p-4 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)]">
+              {/* CANCEL BUTTON */}
+              <button
+                className="px-4 py-2 text-sm bg-[var(--inside-card-bg)] rounded-lg hover:bg-[var(--hover-bg)] cursor-pointer text-[var(--text-primary)] transition-colors"
+                onClick={handleCancelSelection}
+              >
+                Cancel
+              </button>
+              {/* DELETE BUTTON */}
+              <button
+                className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                onClick={() => {
+                  // DELETE SELECTED TASKS
+                  selectedItems.forEach((taskId) => {
+                    onTaskDeleted?.(taskId);
+                  });
+                  // CLEAR SELECTION
+                  setSelectedItems([]);
+                }}
+              >
+                Delete Selected ({selectedItems.length})
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
