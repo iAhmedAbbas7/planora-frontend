@@ -9,6 +9,7 @@ import {
   MessageSquare,
   CheckSquare,
 } from "lucide-react";
+import AddNewTask from "../tasks/AddNewTask";
 import { useState, useEffect, JSX } from "react";
 import { useProjectById } from "../../hooks/useProjects";
 import { useTasksByProjectId } from "../../hooks/useTasks";
@@ -25,6 +26,8 @@ type TaskLocal = {
   dueDate?: string | number;
   // <== STATUS ==>
   status?: string;
+  // <== PRIORITY ==>
+  priority?: string;
 };
 // <== COMMENT TYPE INTERFACE ==>
 type Comment = {
@@ -62,6 +65,12 @@ const ProjectDetails = ({
   const [comments, setComments] = useState<Comment[]>([]);
   // ACTIVE TAB STATE
   const [activeTab, setActiveTab] = useState<"tasks" | "comments">("tasks");
+  // EDIT TASK MODAL STATE
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] =
+    useState<boolean>(false);
+  // SELECTED TASK FOR EDITING
+  const [selectedTaskForEdit, setSelectedTaskForEdit] =
+    useState<TaskLocal | null>(null);
   // LOADING STATE (COMBINED)
   const loading = isLoadingProject || isLoadingTasks;
   // CONVERT TASKS TO LOCAL FORMAT
@@ -72,6 +81,7 @@ const ProjectDetails = ({
       description: task.description,
       dueDate: task.dueDate,
       status: task.status,
+      priority: task.priority,
     })) || [];
   // LOAD COMMENTS FROM LOCAL STORAGE EFFECT
   useEffect(() => {
@@ -314,7 +324,11 @@ const ProjectDetails = ({
                     // TASK ITEM
                     <li
                       key={task._id}
-                      className="border border-[var(--border)] p-3 rounded-lg hover:bg-[var(--hover-bg)] transition"
+                      onClick={() => {
+                        setSelectedTaskForEdit(task);
+                        setIsEditTaskModalOpen(true);
+                      }}
+                      className="border border-[var(--border)] p-3 rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer"
                     >
                       {/* TASK TITLE */}
                       <p className="font-medium">{task.title}</p>
@@ -400,6 +414,90 @@ const ProjectDetails = ({
           </div>
         </div>
       </div>
+      {/* EDIT TASK MODAL */}
+      {isEditTaskModalOpen && selectedTaskForEdit && (
+        <div className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-2 sm:p-4">
+          {/* MODAL CONTAINER */}
+          <div className="bg-[var(--bg)] rounded-xl w-full max-w-md max-h-[95vh] flex flex-col relative overflow-hidden">
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
+              {/* MODAL TITLE */}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Edit Task
+              </h2>
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={() => {
+                  setIsEditTaskModalOpen(false);
+                  setSelectedTaskForEdit(null);
+                }}
+                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+              >
+                {/* CLOSE ICON */}
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            </div>
+            {/* SCROLLABLE CONTENT AREA - FORM ONLY */}
+            <div className="overflow-y-auto flex-1 min-h-0">
+              {/* ADD NEW TASK FORM */}
+              <AddNewTask
+                initialTask={{
+                  _id: selectedTaskForEdit._id,
+                  title: selectedTaskForEdit.title,
+                  description: selectedTaskForEdit.description,
+                  dueDate:
+                    typeof selectedTaskForEdit.dueDate === "number"
+                      ? selectedTaskForEdit.dueDate
+                      : selectedTaskForEdit.dueDate
+                      ? new Date(selectedTaskForEdit.dueDate).getTime()
+                      : undefined,
+                  status: selectedTaskForEdit.status as
+                    | "to do"
+                    | "in progress"
+                    | "completed"
+                    | undefined,
+                  priority: selectedTaskForEdit.priority,
+                  projectId: projectId || undefined,
+                }}
+                projectId={projectId}
+                onClose={() => {
+                  setIsEditTaskModalOpen(false);
+                  setSelectedTaskForEdit(null);
+                }}
+                onTaskAdded={() => {
+                  // REFETCH TASKS TO UPDATE DATA
+                  // The query will automatically refetch due to invalidation
+                  setIsEditTaskModalOpen(false);
+                  setSelectedTaskForEdit(null);
+                }}
+                showButtons={false}
+              />
+            </div>
+            {/* FIXED FOOTER - BUTTONS */}
+            <div className="flex justify-end gap-2 p-2 sm:p-3 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)] rounded-b-xl">
+              {/* CANCEL BUTTON */}
+              <button
+                type="button"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer"
+                onClick={() => {
+                  setIsEditTaskModalOpen(false);
+                  setSelectedTaskForEdit(null);
+                }}
+              >
+                Cancel
+              </button>
+              {/* SUBMIT BUTTON */}
+              <button
+                type="submit"
+                form="task-form"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer"
+              >
+                Update Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
