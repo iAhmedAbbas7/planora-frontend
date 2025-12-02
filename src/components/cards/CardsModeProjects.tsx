@@ -1,5 +1,20 @@
 // <== IMPORTS ==>
 import {
+  MoreHorizontal,
+  FolderPlus,
+  User,
+  Briefcase,
+  Calendar,
+  CheckSquare,
+  TrendingUp,
+  CircleDot,
+  Eye,
+  Edit,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from "lucide-react";
+import {
   useState,
   useRef,
   useEffect,
@@ -8,7 +23,6 @@ import {
   SetStateAction,
 } from "react";
 import ProjectDetails from "../projects/ProjectDetails";
-import { MoreHorizontal, FolderPlus } from "lucide-react";
 import ActionDropdown from "../projects/dropdown/ActionDropdown";
 
 // <== PROJECT TYPE INTERFACE ==>
@@ -58,6 +72,10 @@ type CardsModeProps = {
   handleProjectAdded: (newProject: Project) => void;
   // <== ON OPEN ADD TASK ==>
   onOpenAddTask: (projectId: string) => void;
+  // <== SEARCH TERM ==>
+  searchTerm: string;
+  // <== HAS PROJECTS ==>
+  hasProjects: boolean;
 };
 
 // <== CARDS MODE PROJECTS COMPONENT ==>
@@ -72,6 +90,8 @@ const CardsModeProjects = ({
   setIsProjectModalOpen,
   selectedProjectId,
   onOpenAddTask,
+  searchTerm,
+  hasProjects,
 }: CardsModeProps): JSX.Element => {
   // DROPDOWN OPEN STATE
   const [isDropdownOpen, setIsDropdownOpen] = useState<string | null>(null);
@@ -115,23 +135,46 @@ const CardsModeProjects = ({
     <div>
       {/* PROJECTS CARDS GRID */}
       <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* CHECK IF NO PROJECTS */}
+        {/* CHECK IF NO PROJECTS OR NO SEARCH RESULTS */}
         {currentProjects.length === 0 && totalPages === 1 ? (
           // EMPTY STATE
           <div className="col-span-full flex flex-col items-center justify-center py-8 gap-3">
-            {/* EMPTY STATE ICON */}
-            <FolderPlus
-              size={48}
-              className="text-[var(--light-text)] opacity-50"
-            />
-            {/* EMPTY STATE TITLE */}
-            <p className="text-lg font-medium text-[var(--light-text)]">
-              No projects yet
-            </p>
-            {/* EMPTY STATE MESSAGE */}
-            <p className="text-sm text-[var(--light-text)] text-center">
-              Start by adding a new project to see it here.
-            </p>
+            {/* CHECK IF NO PROJECTS AT ALL OR SEARCH RETURNED NO RESULTS */}
+            {!hasProjects ? (
+              // NO PROJECTS CREATED STATE
+              <>
+                {/* EMPTY STATE ICON */}
+                <FolderPlus
+                  size={48}
+                  className="text-[var(--light-text)] opacity-50"
+                />
+                {/* EMPTY STATE TITLE */}
+                <p className="text-lg font-medium text-[var(--light-text)]">
+                  No projects yet
+                </p>
+                {/* EMPTY STATE MESSAGE */}
+                <p className="text-sm text-[var(--light-text)] text-center">
+                  Start by adding a new project to see it here.
+                </p>
+              </>
+            ) : searchTerm.trim() !== "" ? (
+              // SEARCH RETURNED NO RESULTS STATE
+              <>
+                {/* SEARCH ICON */}
+                <Search
+                  size={48}
+                  className="text-[var(--accent-color)] opacity-50"
+                />
+                {/* EMPTY STATE TITLE */}
+                <p className="text-lg font-medium text-[var(--text-primary)]">
+                  Your search does not match any projects
+                </p>
+                {/* EMPTY STATE MESSAGE */}
+                <p className="text-sm text-[var(--light-text)] text-center">
+                  Try adjusting your search terms or create a new project.
+                </p>
+              </>
+            ) : null}
           </div>
         ) : (
           // MAPPING THROUGH PROJECTS
@@ -139,119 +182,185 @@ const CardsModeProjects = ({
             // PROJECT CARD
             <div
               key={item._id || index}
-              className={`flex flex-col gap-3 rounded-xl p-4 shadow-sm transition ${
+              className={`flex flex-col gap-3 sm:gap-4 rounded-xl p-3 sm:p-4 shadow-sm transition ${
                 index % 2 === 0
                   ? "bg-[var(--cards-bg)] border border-[var(--border)]"
                   : "bg-[var(--bg)] border border-[var(--border)]"
               }`}
             >
               {/* CARD HEADER */}
-              <header className="flex justify-between items-center">
+              <header className="flex justify-between items-start gap-2">
                 {/* PROJECT TITLE BUTTON */}
                 <button
-                  className="font-medium text-base text-left hover:underline cursor-pointer"
+                  className="font-semibold text-base sm:text-lg text-left cursor-pointer flex-1 text-[var(--accent-color)] hover:opacity-80 transition-opacity"
                   onClick={() => setSelectedProjectId(item._id)}
                 >
                   {item.title}
                 </button>
-                {/* CARD ACTIONS CONTAINER */}
-                <div className="flex gap-2 justify-center items-center">
-                  {/* STATUS BADGE */}
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      item.status === "Completed"
-                        ? "bg-green-100 text-green-600 border border-gray-200"
-                        : item.status === "In Progress"
-                        ? "bg-yellow-100 text-yellow-600 border border-gray-200"
-                        : "bg-gray-300 text-gray-800 border border-gray-200"
-                    }`}
-                  >
-                    {item.status || "N/A"}
-                  </span>
-                  {/* DROPDOWN CONTAINER */}
-                  <div
-                    className="relative"
-                    onClick={() => toggleDropdown(item._id)}
-                  >
-                    {/* DROPDOWN BUTTON */}
-                    <button className="cursor-pointer">
-                      <MoreHorizontal size={18} />
-                    </button>
-                    {/* DROPDOWN MENU */}
-                    {isDropdownOpen == item._id && (
-                      <div
-                        className="absolute top-4 z-50 bg-[var(--bg)] right-0 shadow-lg rounded-md border border-[var(--border)]"
-                        ref={dropdownRef}
-                      >
-                        <ActionDropdown
-                          onViewDetails={() => {
-                            setSelectedProjectId(item._id);
-                            setIsDropdownOpen(null);
-                          }}
-                          onEditProject={() => handleEdit(item)}
-                          onAddTask={() => {
-                            onOpenAddTask(item._id);
-                            setIsDropdownOpen(null);
-                          }}
-                          onDeleteProject={() => {
-                            onDeleteProject(item._id);
-                            setIsDropdownOpen(null);
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
+                {/* DROPDOWN CONTAINER */}
+                <div
+                  className="relative flex-shrink-0"
+                  onClick={() => toggleDropdown(item._id)}
+                >
+                  {/* DROPDOWN BUTTON */}
+                  <button className="cursor-pointer text-[var(--text-primary)] hover:text-[var(--accent-color)] transition-colors">
+                    <MoreHorizontal size={18} />
+                  </button>
+                  {/* DROPDOWN MENU */}
+                  {isDropdownOpen == item._id && (
+                    <div
+                      className="absolute top-4 z-50 bg-[var(--bg)] right-0 shadow-lg rounded-md border border-[var(--border)]"
+                      ref={dropdownRef}
+                    >
+                      <ActionDropdown
+                        onViewDetails={() => {
+                          setSelectedProjectId(item._id);
+                          setIsDropdownOpen(null);
+                        }}
+                        onEditProject={() => handleEdit(item)}
+                        onAddTask={() => {
+                          onOpenAddTask(item._id);
+                          setIsDropdownOpen(null);
+                        }}
+                        onDeleteProject={() => {
+                          onDeleteProject(item._id);
+                          setIsDropdownOpen(null);
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </header>
               {/* CARD INFO SECTION */}
-              <section className="grid grid-cols-2 gap-3 text-sm">
+              <section className="flex flex-col gap-3 text-sm">
+                {/* STATUS INFO */}
+                <div className="flex items-center gap-3">
+                  {/* ICON */}
+                  <CircleDot
+                    size={16}
+                    className="text-[var(--accent-color)] flex-shrink-0"
+                  />
+                  {/* CONTENT */}
+                  <div className="flex items-center gap-3 flex-1 justify-between">
+                    {/* STATUS LABEL */}
+                    <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                      Status
+                    </span>
+                    {/* STATUS BADGE */}
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
+                      <span
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          backgroundColor: `var(--accent-color)`,
+                          opacity: 0.15,
+                        }}
+                      ></span>
+                      <span
+                        className="relative"
+                        style={{ color: `var(--accent-color)` }}
+                      >
+                        {item.status || "N/A"}
+                      </span>
+                    </span>
+                  </div>
+                </div>
                 {/* INCHARGE INFO */}
-                <div>
-                  {/* INCHARGE LABEL */}
-                  <p className="text-[var(--light-text)]">Incharge</p>
-                  {/* INCHARGE VALUE */}
-                  <p className="font-medium">{item.inChargeName || "N/A"}</p>
+                <div className="flex items-center gap-3">
+                  {/* ICON */}
+                  <User
+                    size={16}
+                    className="text-[var(--accent-color)] flex-shrink-0"
+                  />
+                  {/* CONTENT */}
+                  <div className="flex items-center gap-3 flex-1 justify-between">
+                    {/* INCHARGE LABEL */}
+                    <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                      Incharge
+                    </span>
+                    {/* INCHARGE VALUE */}
+                    <p className="font-medium text-[var(--text-primary)] text-xs text-right truncate flex-1">
+                      {item.inChargeName || "N/A"}
+                    </p>
+                  </div>
                 </div>
                 {/* ROLE INFO */}
-                <div>
-                  {/* ROLE LABEL */}
-                  <p className="text-[var(--light-text)]">Role</p>
-                  {/* ROLE VALUE */}
-                  <p className="font-medium">{item.role || "N/A"}</p>
+                <div className="flex items-center gap-3">
+                  {/* ICON */}
+                  <Briefcase
+                    size={16}
+                    className="text-[var(--accent-color)] flex-shrink-0"
+                  />
+                  {/* CONTENT */}
+                  <div className="flex items-center gap-3 flex-1 justify-between">
+                    {/* ROLE LABEL */}
+                    <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                      Role
+                    </span>
+                    {/* ROLE VALUE */}
+                    <p className="font-medium text-[var(--text-primary)] text-xs text-right truncate flex-1">
+                      {item.role || "N/A"}
+                    </p>
+                  </div>
                 </div>
                 {/* TASKS INFO */}
-                <div>
-                  {/* TASKS LABEL */}
-                  <p className="text-[var(--light-text)]">Tasks</p>
-                  {/* TASKS VALUE */}
-                  <p className="font-medium">
-                    {item.completedTasks || 0}/{item.totalTasks || 0}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {/* ICON */}
+                  <CheckSquare
+                    size={16}
+                    className="text-[var(--accent-color)] flex-shrink-0"
+                  />
+                  {/* CONTENT */}
+                  <div className="flex items-center gap-3 flex-1 justify-between">
+                    {/* TASKS LABEL */}
+                    <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                      Tasks
+                    </span>
+                    {/* TASKS VALUE */}
+                    <p className="font-medium text-[var(--text-primary)] text-xs text-right">
+                      {item.completedTasks || 0}/{item.totalTasks || 0}
+                    </p>
+                  </div>
                 </div>
                 {/* DEADLINE INFO */}
-                <div>
-                  {/* DEADLINE LABEL */}
-                  <p className="text-gray-500">Deadline</p>
-                  {/* DEADLINE VALUE */}
-                  <p className="font-medium">
-                    {item.dueDate
-                      ? new Date(item.dueDate).toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })
-                      : "N/A"}
-                  </p>
+                <div className="flex items-center gap-3">
+                  {/* ICON */}
+                  <Calendar
+                    size={16}
+                    className="text-[var(--accent-color)] flex-shrink-0"
+                  />
+                  {/* CONTENT */}
+                  <div className="flex items-center gap-3 flex-1 justify-between">
+                    {/* DEADLINE LABEL */}
+                    <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                      Deadline
+                    </span>
+                    {/* DEADLINE VALUE */}
+                    <p className="font-medium text-[var(--text-primary)] text-xs text-right truncate flex-1">
+                      {item.dueDate
+                        ? new Date(item.dueDate).toLocaleDateString("en-US", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "N/A"}
+                    </p>
+                  </div>
                 </div>
               </section>
               {/* PROGRESS SECTION */}
-              <div>
+              <div className="mt-1">
                 {/* PROGRESS HEADER */}
-                <div className="flex justify-between items-center text-sm mb-1">
-                  {/* PROGRESS LABEL */}
-                  <p className="text-[var(--light-text)]">Progress</p>
+                <div className="flex justify-between items-center text-sm mb-2">
+                  {/* PROGRESS LABEL WITH ICON */}
+                  <div className="flex items-center gap-1.5">
+                    <TrendingUp
+                      size={14}
+                      className="text-[var(--accent-color)]"
+                    />
+                    <p className="text-[var(--light-text)]">Progress</p>
+                  </div>
                   {/* PROGRESS PERCENTAGE */}
-                  <p className="font-medium">
+                  <p className="font-semibold text-[var(--text-primary)]">
                     {item.totalTasks && item.totalTasks > 0
                       ? Math.round(
                           ((item.completedTasks || 0) / item.totalTasks) * 100
@@ -279,20 +388,22 @@ const CardsModeProjects = ({
                 </div>
               </div>
               {/* CARD FOOTER */}
-              <footer className="flex gap-2 mt-2">
+              <footer className="flex flex-col sm:flex-row gap-2 mt-2">
                 {/* VIEW DETAILS BUTTON */}
                 <button
-                  className="flex-1 border border-[var(--border)] rounded-lg py-2 text-sm hover:bg-[var(--hover-bg)] cursor-pointer"
+                  className="flex-1 border border-[var(--border)] rounded-md py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm hover:bg-[var(--accent-btn-hover-color)] cursor-pointer transition-colors text-[var(--accent-color)] font-medium hover:text-white flex items-center justify-center gap-1.5"
                   onClick={() => setSelectedProjectId(item._id)}
                 >
-                  View Details
+                  <Eye size={14} className="sm:w-4 sm:h-4" />
+                  <span>View Details</span>
                 </button>
                 {/* EDIT INFO BUTTON */}
                 <button
                   onClick={() => handleEdit(item)}
-                  className="flex-1 border relative border-[var(--border)] text-[var(--accent-color)] rounded-lg py-2 text-sm hover:bg-[var(--accent-btn-hover-color)] cursor-pointer hover:text-white"
+                  className="flex-1 border border-[var(--border)] rounded-md py-1.5 sm:py-2 px-2 sm:px-3 text-xs sm:text-sm hover:bg-[var(--accent-btn-hover-color)] cursor-pointer transition-colors text-[var(--accent-color)] font-medium hover:text-white flex items-center justify-center gap-1.5"
                 >
-                  Edit Info
+                  <Edit size={14} className="sm:w-4 sm:h-4" />
+                  <span>Edit Info</span>
                 </button>
               </footer>
             </div>
@@ -307,27 +418,27 @@ const CardsModeProjects = ({
         />
       )}
       {/* PAGINATION */}
-      <footer className="flex justify-between items-center mt-6 text-sm text-[var(--light-text)]">
+      <footer className="flex justify-between items-center mt-6 flex-wrap gap-2">
         {/* PREVIOUS BUTTON */}
         <button
           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
-          className="px-3 py-1 border border-[var(--border)] cursor-pointer rounded-lg disabled:opacity-50"
+          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border border-[var(--border)] cursor-pointer rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-primary)]"
         >
-          Prev
+          <ChevronLeft size={14} className="sm:w-4 sm:h-4" />
         </button>
         {/* PAGE NUMBERS */}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-1.5">
           {/* MAPPING THROUGH PAGES */}
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
             // PAGE NUMBER BUTTON
             <button
               key={num}
               onClick={() => setCurrentPage(num)}
-              className={`px-3 py-1 rounded-lg border border-[var(--border)] cursor-pointer ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full border border-[var(--border)] cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
                 num === currentPage
-                  ? "bg-[var(--accent-color)] text-white border-[var(--accent-btn-hover-color)]"
-                  : "hover:bg-[var(--hover-bg)]"
+                  ? "bg-[var(--accent-color)] text-white border-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)]"
+                  : "text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
               }`}
             >
               {num}
@@ -338,9 +449,9 @@ const CardsModeProjects = ({
         <button
           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 border border-[var(--border)] cursor-pointer rounded-lg disabled:opacity-50"
+          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border border-[var(--border)] cursor-pointer rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-primary)]"
         >
-          Next
+          <ChevronRight size={14} className="sm:w-4 sm:h-4" />
         </button>
       </footer>
     </div>
