@@ -24,6 +24,8 @@ export type Project = {
   _id: string;
   // <== PROJECT TITLE ==>
   title: string;
+  // <== PROJECT DESCRIPTION ==>
+  description?: string;
   // <== PROJECT STATUS ==>
   status?: string;
   // <== PROJECT DUE DATE ==>
@@ -155,6 +157,35 @@ const createProjectAPI = async (
 };
 
 /**
+ * FETCH SINGLE PROJECT BY ID
+ * @param projectId - Project ID
+ * @returns Project
+ */
+const fetchProjectById = async (projectId: string): Promise<Project> => {
+  try {
+    // FETCH PROJECT BY ID
+    const response = await apiClient.get<ApiResponse<Project>>(
+      `/projects/${projectId}`
+    );
+    // CHECK IF DATA EXISTS
+    if (!response.data?.data) {
+      throw new Error("Project not found");
+    }
+    // RETURN PROJECT
+    return response.data.data;
+  } catch (error: unknown) {
+    // GET AXIOS ERROR
+    const axiosError = error as AxiosError;
+    // DON'T RETURN IF 404
+    if (axiosError.response?.status === 404) {
+      throw new Error("Project not found");
+    }
+    // FOR OTHER ERRORS, RE-THROW
+    throw error;
+  }
+};
+
+/**
  * USE PROJECTS DATA HOOK
  * @returns Projects Data Query
  */
@@ -243,15 +274,20 @@ export const useProjects = (): {
     refetchOnReconnect: false,
     // <== RETRY ==>
     retry: (failureCount, error: unknown) => {
+      // GET AXIOS ERROR
       const axiosError = error as AxiosError;
+      // DON'T RETRY ON 404
       if (axiosError?.response?.status === 404) {
         return false;
       }
+      // RETRY OTHER ERRORS UP TO 3 TIMES (MAX RETRIES)
       return failureCount < 3;
     },
     // DON'T THROW ON 404
     throwOnError: (error: unknown) => {
+      // GET AXIOS ERROR
       const axiosError = error as AxiosError;
+      // DON'T THROW ON 404
       return axiosError?.response?.status !== 404;
     },
   });
@@ -314,6 +350,53 @@ export const useCreateProject = () => {
         "Failed to create project. Please try again.";
       // SHOW ERROR TOAST
       toast.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * USE PROJECT BY ID HOOK
+ * @param projectId - Project ID
+ * @returns Project Query
+ */
+export const useProjectById = (projectId: string | null) => {
+  // GET AUTH STATE
+  const { isAuthenticated, isLoggingOut } = useAuthStore();
+  // FETCH PROJECT BY ID
+  return useQuery({
+    // <== QUERY KEY ==>
+    queryKey: ["project", projectId],
+    // <== QUERY FUNCTION ==>
+    queryFn: () => fetchProjectById(projectId!),
+    // <== ENABLED ==>
+    enabled: isAuthenticated && !isLoggingOut && !!projectId,
+    // <== STALE TIME ==>
+    staleTime: 2 * 60 * 1000,
+    // <== GC TIME ==>
+    gcTime: 5 * 60 * 1000,
+    // <== REFETCH ON MOUNT ==>
+    refetchOnMount: true,
+    // <== REFETCH ON WINDOW FOCUS ==>
+    refetchOnWindowFocus: false,
+    // <== REFETCH ON RECONNECT ==>
+    refetchOnReconnect: false,
+    // <== RETRY ==>
+    retry: (failureCount, error: unknown) => {
+      // GET AXIOS ERROR
+      const axiosError = error as AxiosError;
+      // DON'T RETRY ON 404
+      if (axiosError?.response?.status === 404) {
+        return false;
+      }
+      // RETRY OTHER ERRORS UP TO 3 TIMES (MAX RETRIES)
+      return failureCount < 3;
+    },
+    // <== THROW ON ERROR ==>
+    throwOnError: (error: unknown) => {
+      // GET AXIOS ERROR
+      const axiosError = error as AxiosError;
+      // DON'T THROW ON 404
+      return axiosError?.response?.status !== 404;
     },
   });
 };
