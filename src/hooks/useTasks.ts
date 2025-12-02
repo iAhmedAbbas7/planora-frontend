@@ -148,6 +148,30 @@ const createTaskAPI = async (taskData: CreateTaskRequest): Promise<Task> => {
 };
 
 /**
+ * UPDATE TASK
+ * @param taskId - Task ID
+ * @param taskData - Task Data to Update
+ * @returns Updated Task
+ */
+const updateTaskAPI = async (
+  taskId: string,
+  taskData: Partial<CreateTaskRequest>
+): Promise<Task> => {
+  // UPDATE TASK
+  const response = await apiClient.put<ApiResponse<Task>>(
+    `/tasks/${taskId}`,
+    taskData
+  );
+  // CHECK IF DATA EXISTS
+  if (!response.data?.data) {
+    // THROW ERROR
+    throw new Error("Failed to update task");
+  }
+  // RETURN UPDATED TASK
+  return response.data.data;
+};
+
+/**
  * USE TASKS DATA HOOK
  * @returns Tasks Data Query
  */
@@ -303,6 +327,8 @@ export const useCreateTask = () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       // INVALIDATE TASK STATS QUERY
       queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+      // INVALIDATE TASKS BY PROJECT QUERY
+      queryClient.invalidateQueries({ queryKey: ["tasksByProject"] });
       // SHOW SUCCESS TOAST
       toast.success("Task created successfully!");
     },
@@ -314,6 +340,48 @@ export const useCreateTask = () => {
       const errorMessage =
         axiosError?.response?.data?.message ||
         "Failed to create task. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * USE UPDATE TASK HOOK
+ * @returns Update Task Mutation
+ */
+export const useUpdateTask = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UPDATE TASK MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: ({
+      taskId,
+      taskData,
+    }: {
+      taskId: string;
+      taskData: Partial<CreateTaskRequest>;
+    }) => updateTaskAPI(taskId, taskData),
+    // <== ON SUCCESS ==>
+    onSuccess: () => {
+      // INVALIDATE TASKS QUERY
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // INVALIDATE TASK STATS QUERY
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+      // INVALIDATE TASKS BY PROJECT QUERY
+      queryClient.invalidateQueries({ queryKey: ["tasksByProject"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Task updated successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to update task. Please try again.";
       // SHOW ERROR TOAST
       toast.error(errorMessage);
     },
