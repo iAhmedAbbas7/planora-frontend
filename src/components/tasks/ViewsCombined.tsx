@@ -33,9 +33,15 @@ const ViewsCombined = (): JSX.Element => {
   // VIEW MODE STATE
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   // TASKS STATE (LOCAL STATE FOR UI UPDATES)
-  const [tasks, setTasks] = useState<Task[]>([]);
+  // Initialize with fetchedTasks if available (from cache), otherwise empty array
+  const [tasks, setTasks] = useState<Task[]>(
+    Array.isArray(fetchedTasks) ? (fetchedTasks as Task[]) : []
+  );
   // HAS LOADED STATE (TO TRACK IF DATA HAS BEEN LOADED AT LEAST ONCE)
-  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
+  // Initialize based on whether data already exists (from cache)
+  const [hasLoaded, setHasLoaded] = useState<boolean>(
+    Array.isArray(fetchedTasks) && fetchedTasks.length >= 0
+  );
   // UPDATE TASKS FROM FETCHED DATA
   useEffect(() => {
     // UPDATE TASKS FROM API
