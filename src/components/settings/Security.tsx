@@ -10,6 +10,7 @@ import {
   X,
   RefreshCw,
   Monitor,
+  AlertTriangle,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import SessionList from "./SessionList";
@@ -917,8 +918,9 @@ const Security = (): JSX.Element => {
           {enableStep === "backup" && (
             <div className="space-y-4">
               <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200 font-semibold mb-2">
-                  ⚠️ Save These Backup Codes
+                <p className="text-sm text-yellow-800 dark:text-yellow-200 font-semibold mb-2 flex items-center gap-2">
+                  <AlertTriangle size={18} className="flex-shrink-0" />
+                  Save These Backup Codes
                 </p>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300">
                   Store these codes in a secure location. You'll need them if
@@ -969,8 +971,9 @@ const Security = (): JSX.Element => {
           {disableStep === "request" && (
             <div className="space-y-4">
               <div className="p-4 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
-                <p className="text-sm text-red-500 dark:text-red-400 font-semibold mb-2">
-                  ⚠️ Security Warning
+                <p className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: `var(--accent-color)` }}>
+                  <AlertTriangle size={18} className="flex-shrink-0" />
+                  Security Warning
                 </p>
                 <p className="text-sm text-[var(--text-primary)]">
                   Disabling 2FA will reduce the security of your account. Your
@@ -978,7 +981,7 @@ const Security = (): JSX.Element => {
                 </p>
               </div>
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-red-500 dark:text-red-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                   1
                 </div>
                 <span>Request Verification Code</span>
@@ -986,7 +989,14 @@ const Security = (): JSX.Element => {
               <button
                 onClick={handleRequestDisableCode}
                 disabled={isRequestingDisableCode}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                style={{ backgroundColor: "var(--accent-color)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "var(--accent-btn-hover-color)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "var(--accent-color)";
+                }}
               >
                 {isRequestingDisableCode ? (
                   <>
@@ -1006,7 +1016,7 @@ const Security = (): JSX.Element => {
           {disableStep === "verify" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-red-500 dark:text-red-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                   2
                 </div>
                 <span>Verify Code</span>
@@ -1049,7 +1059,14 @@ const Security = (): JSX.Element => {
                 <button
                   onClick={handleVerifyDisableCode}
                   disabled={isVerifyingDisableCode}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--accent-btn-hover-color)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--accent-color)";
+                  }}
                 >
                   {isVerifyingDisableCode ? (
                     <>
@@ -1105,7 +1122,7 @@ const Security = (): JSX.Element => {
           {disableStep === "totp" && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
-                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-red-500 dark:text-red-400 font-semibold">
+                <div className="w-8 h-8 rounded-full bg-[var(--inside-card-bg)] border border-[var(--border)] flex items-center justify-center text-[var(--accent-color)] font-semibold">
                   3
                 </div>
                 <span>Verify Authenticator Code</span>
@@ -1149,7 +1166,14 @@ const Security = (): JSX.Element => {
                 <button
                   onClick={handleVerifyDisableTOTP}
                   disabled={isVerifyingDisableTOTP}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 rounded-lg font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--accent-btn-hover-color)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "var(--accent-color)";
+                  }}
                 >
                   {isVerifyingDisableTOTP ? (
                     <>
@@ -1242,7 +1266,7 @@ const Security = (): JSX.Element => {
       />
       {/* BACKUP CODES DISPLAY MODAL (AFTER REGENERATION) */}
       {backupCodes.length > 0 && showRegenerateModal === false && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold">Your New Backup Codes</h3>
@@ -1254,8 +1278,9 @@ const Security = (): JSX.Element => {
               </button>
             </div>
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg mb-4">
-              <p className="text-sm text-yellow-800 dark:text-yellow-200 font-semibold mb-2">
-                ⚠️ Save These Backup Codes
+              <p className="text-sm text-yellow-800 dark:text-yellow-200 font-semibold mb-2 flex items-center gap-2">
+                <AlertTriangle size={18} className="flex-shrink-0" />
+                Save These Backup Codes
               </p>
               <p className="text-sm text-yellow-700 dark:text-yellow-300">
                 Store these codes in a secure location. You'll need them if you
