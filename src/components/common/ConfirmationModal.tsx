@@ -116,7 +116,7 @@ const ConfirmationModal = ({
   return (
     // MODAL BACKDROP
     <div
-      className="fixed inset-0 bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
       onClick={handleBackdropClick}
     >
       {/* MODAL CONTAINER */}
