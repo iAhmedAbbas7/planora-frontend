@@ -1,24 +1,20 @@
 // <== IMPORTS ==>
-import { X } from "lucide-react";
+import {
+  X,
+  Calendar,
+  CircleDot,
+  User,
+  Briefcase,
+  FileText,
+  MessageSquare,
+  CheckSquare,
+} from "lucide-react";
 import { useState, useEffect, JSX } from "react";
+import { useProjectById } from "../../hooks/useProjects";
+import { useTasksByProjectId } from "../../hooks/useTasks";
 
-// <== PROJECT TYPE INTERFACE ==>
-type Project = {
-  // <== ID ==>
-  _id: string;
-  // <== TITLE ==>
-  title: string;
-  // <== STATUS ==>
-  status: string;
-  // <== DUE DATE ==>
-  dueDate: string;
-  // <== PRIORITY ==>
-  priority: string;
-  // <== DESCRIPTION ==>
-  description: string;
-};
-// <== TASK TYPE INTERFACE ==>
-type Task = {
+// <== TASK TYPE INTERFACE (LOCAL) ==>
+type TaskLocal = {
   // <== ID ==>
   _id: string;
   // <== TITLE ==>
@@ -26,7 +22,7 @@ type Task = {
   // <== DESCRIPTION ==>
   description?: string;
   // <== DUE DATE ==>
-  dueDate?: string;
+  dueDate?: string | number;
   // <== STATUS ==>
   status?: string;
 };
@@ -50,41 +46,33 @@ const ProjectDetails = ({
   projectId,
   onClose,
 }: ProjectDrawerProps): JSX.Element => {
-  // PROJECT STATE
-  const [project, setProject] = useState<Project | null>(null);
-  // TASKS STATE
-  const [tasks, setTasks] = useState<Task[]>([]);
+  // FETCH PROJECT BY ID
+  const {
+    data: project,
+    isLoading: isLoadingProject,
+    isError: isErrorProject,
+  } = useProjectById(projectId);
+  // FETCH TASKS BY PROJECT ID
+  const {
+    data: tasksData,
+    isLoading: isLoadingTasks,
+    isError: isErrorTasks,
+  } = useTasksByProjectId(projectId);
   // COMMENTS STATE
   const [comments, setComments] = useState<Comment[]>([]);
-  // LOADING STATE
-  const [loading, setLoading] = useState<boolean>(false);
   // ACTIVE TAB STATE
   const [activeTab, setActiveTab] = useState<"tasks" | "comments">("tasks");
-  // FETCH PROJECT AND TASKS EFFECT (MOCK DATA - NO API)
-  useEffect(() => {
-    // CHECK IF PROJECT ID EXISTS
-    if (!projectId) return;
-    // SET LOADING
-    setLoading(true);
-    // SIMULATE API CALL (UI ONLY)
-    setTimeout(() => {
-      // MOCK PROJECT DATA
-      const mockProject: Project = {
-        _id: projectId,
-        title: "Sample Project",
-        status: "In Progress",
-        dueDate: new Date().toISOString(),
-        priority: "High",
-        description: "This is a sample project description.",
-      };
-      // SET PROJECT
-      setProject(mockProject);
-      // SET EMPTY TASKS
-      setTasks([]);
-      // SET LOADING TO FALSE
-      setLoading(false);
-    }, 500);
-  }, [projectId]);
+  // LOADING STATE (COMBINED)
+  const loading = isLoadingProject || isLoadingTasks;
+  // CONVERT TASKS TO LOCAL FORMAT
+  const tasks: TaskLocal[] =
+    tasksData?.map((task) => ({
+      _id: task._id,
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      status: task.status,
+    })) || [];
   // LOAD COMMENTS FROM LOCAL STORAGE EFFECT
   useEffect(() => {
     // CHECK IF PROJECT ID EXISTS
@@ -157,56 +145,131 @@ const ProjectDetails = ({
         </header>
         {/* DRAWER MAIN CONTENT */}
         <main className="flex flex-col p-4 gap-4">
+          {/* ERROR MESSAGE */}
+          {(isErrorProject || isErrorTasks) && (
+            <div className="bg-[var(--inside-card-bg)] border border-red-500/50 text-red-500 px-4 py-2 rounded-lg text-sm">
+              {isErrorProject
+                ? "Failed to load project details. Please try again."
+                : "Failed to load tasks. Please try again."}
+            </div>
+          )}
           {/* PROJECT TITLE */}
-          <p className="text-left text-xl text-[var(--primary-text)]">
-            {loading ? "Loading..." : project?.title || "Project Details"}
-          </p>
-          {/* DUE DATE */}
-          <div className="flex gap-6">
-            {/* DUE DATE LABEL */}
-            <p className="font-medium text-[var(--light-text)]">Due Date</p>
-            {/* DUE DATE VALUE */}
-            <p>
-              {project?.dueDate
-                ? new Date(project.dueDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })
-                : "N/A"}
+          <div className="flex items-center gap-2 mb-2">
+            <FileText size={20} className="text-[var(--accent-color)]" />
+            <p className="text-left text-xl text-[var(--text-primary)] font-semibold">
+              {loading ? "Loading..." : project?.title || "Project Details"}
             </p>
           </div>
-          {/* STATUS */}
-          <div className="flex gap-10">
-            {/* STATUS LABEL */}
-            <span className="font-medium text-[var(--light-text)]">Status</span>
-            {/* STATUS BADGE */}
-            <span
-              className={`px-2 py-0.5 rounded-full flex justify-center items-center text-xs ${
-                project?.status === "Completed"
-                  ? "bg-green-100 text-green-700"
-                  : project?.status === "In Progress"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-violet-100 text-violet-700"
-              }`}
-            >
-              {project?.status || "Unknown"}
-            </span>
-          </div>
-          {/* PRIORITY */}
-          <div className="flex gap-10">
-            {/* PRIORITY LABEL */}
-            <p className="font-medium text-[var(--light-text)]">Priority</p>
-            {/* PRIORITY VALUE */}
-            <p>{project?.priority || "N/A"}</p>
+          {/* PROJECT INFO GRID */}
+          <div className="grid grid-cols-1 gap-3">
+            {/* STATUS */}
+            <div className="flex items-center gap-3">
+              {/* ICON */}
+              <CircleDot
+                size={18}
+                className="text-[var(--accent-color)] flex-shrink-0"
+              />
+              {/* CONTENT */}
+              <div className="flex items-center gap-3 flex-1">
+                {/* STATUS LABEL */}
+                <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                  Status
+                </span>
+                {/* STATUS BADGE */}
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold relative">
+                  <span
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      backgroundColor: `var(--accent-color)`,
+                      opacity: 0.15,
+                    }}
+                  ></span>
+                  <span
+                    className="relative"
+                    style={{ color: `var(--accent-color)` }}
+                  >
+                    {project?.status || "Unknown"}
+                  </span>
+                </span>
+              </div>
+            </div>
+            {/* DUE DATE */}
+            <div className="flex items-center gap-3">
+              {/* ICON */}
+              <Calendar
+                size={18}
+                className="text-[var(--accent-color)] flex-shrink-0"
+              />
+              {/* CONTENT */}
+              <div className="flex items-center gap-3 flex-1">
+                {/* DUE DATE LABEL */}
+                <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                  Due Date
+                </span>
+                {/* DUE DATE VALUE */}
+                <p className="text-[var(--text-primary)] text-sm">
+                  {project?.dueDate
+                    ? new Date(project.dueDate).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+            {/* IN CHARGE */}
+            {project?.inChargeName && (
+              <div className="flex items-center gap-3">
+                {/* ICON */}
+                <User
+                  size={18}
+                  className="text-[var(--accent-color)] flex-shrink-0"
+                />
+                {/* CONTENT */}
+                <div className="flex items-center gap-3 flex-1">
+                  {/* IN CHARGE LABEL */}
+                  <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                    In Charge
+                  </span>
+                  {/* IN CHARGE VALUE */}
+                  <p className="text-[var(--text-primary)] text-sm">
+                    {project.inChargeName}
+                  </p>
+                </div>
+              </div>
+            )}
+            {/* ROLE */}
+            {project?.role && (
+              <div className="flex items-center gap-3">
+                {/* ICON */}
+                <Briefcase
+                  size={18}
+                  className="text-[var(--accent-color)] flex-shrink-0"
+                />
+                {/* CONTENT */}
+                <div className="flex items-center gap-3 flex-1">
+                  {/* ROLE LABEL */}
+                  <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                    Role
+                  </span>
+                  {/* ROLE VALUE */}
+                  <p className="text-[var(--text-primary)] text-sm">
+                    {project.role}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </main>
         {/* DESCRIPTION SECTION */}
-        <div className="flex flex-col p-4 pt-2 pb-2 gap-2">
+        <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)]">
           {/* DESCRIPTION LABEL */}
-          <p className="text-left text-base">Description:</p>
+          <p className="text-left text-base font-medium text-[var(--text-primary)]">
+            Description
+          </p>
           {/* DESCRIPTION TEXT */}
-          <p className="text-left text-[var(--light-text)]">
+          <p className="text-left text-sm text-[var(--light-text)] leading-relaxed">
             {project?.description || "No description available."}
           </p>
         </div>
@@ -217,24 +280,26 @@ const ProjectDetails = ({
             {/* TASKS TAB */}
             <button
               onClick={() => setActiveTab("tasks")}
-              className={`px-4 py-2 font-medium cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
                 activeTab === "tasks"
                   ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
-                  : "text-[var(--light-text)] hover:text-[var(--primary-text)]"
+                  : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
               }`}
             >
-              Tasks
+              <CheckSquare size={16} />
+              <span>Tasks</span>
             </button>
             {/* COMMENTS TAB */}
             <button
               onClick={() => setActiveTab("comments")}
-              className={`px-4 py-2 font-medium cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
                 activeTab === "comments"
                   ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
-                  : "text-[var(--light-text)] hover:text-[var(--primary-text)]"
+                  : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
               }`}
             >
-              Comments
+              <MessageSquare size={16} />
+              <span>Comments</span>
             </button>
           </div>
           {/* TAB CONTENT */}
@@ -262,7 +327,12 @@ const ProjectDetails = ({
                       {/* TASK DUE DATE */}
                       {task.dueDate && (
                         <p className="text-xs text-[var(--light-text)] mt-1">
-                          Due: {new Date(task.dueDate).toLocaleDateString()}
+                          Due:{" "}
+                          {new Date(
+                            typeof task.dueDate === "string"
+                              ? task.dueDate
+                              : task.dueDate
+                          ).toLocaleDateString()}
                         </p>
                       )}
                     </li>
