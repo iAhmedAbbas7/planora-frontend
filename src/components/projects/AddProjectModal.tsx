@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import {
   useCreateProject,
+  useUpdateProject,
   Project as ProjectType,
 } from "../../hooks/useProjects";
 import { toast } from "@/lib/toast";
@@ -56,6 +57,8 @@ const AddProjectModal = ({
 }: Props): JSX.Element => {
   // CREATE PROJECT MUTATION
   const createProjectMutation = useCreateProject();
+  // UPDATE PROJECT MUTATION
+  const updateProjectMutation = useUpdateProject();
   // STATUS DROPDOWN OPEN STATE
   const [isStatusOpen, setIsStatusOpen] = useState<boolean>(false);
   // PRIORITY STATE
@@ -79,14 +82,39 @@ const AddProjectModal = ({
     role: initialProject.role || "",
     priority: initialProject.priority || "Low",
   });
+  // FORMAT PRIORITY FOR DISPLAY FUNCTION
+  const formatPriorityForDisplay = (
+    priorityValue: string | null | undefined
+  ): string => {
+    // IF NO PRIORITY, RETURN EMPTY STRING
+    if (!priorityValue) return "";
+    // CONVERT TO LOWERCASE FOR COMPARISON
+    const lowerPriority = priorityValue.toLowerCase();
+    // IF LOW, RETURN "Low"
+    if (lowerPriority === "low") return "Low";
+    // IF MEDIUM, RETURN "Medium"
+    if (lowerPriority === "medium") return "Medium";
+    // IF HIGH, RETURN "High"
+    if (lowerPriority === "high") return "High";
+    // RETURN CAPITALIZED VERSION
+    return (
+      priorityValue.charAt(0).toUpperCase() +
+      priorityValue.slice(1).toLowerCase()
+    );
+  };
   // INITIALIZE FROM INITIAL PROJECT EFFECT
   useEffect(() => {
     // CHECK IF INITIAL PROJECT EXISTS
     if (initialProject) {
       // SET STATUS IF EXISTS
       if (initialProject.status) setStatus(initialProject.status);
-      // SET PRIORITY IF EXISTS
-      if (initialProject.priority) setPriority(initialProject.priority);
+      // SET PRIORITY IF EXISTS (FORMAT IT)
+      if (initialProject.priority) {
+        const formattedPriority = formatPriorityForDisplay(
+          initialProject.priority
+        );
+        setPriority(formattedPriority);
+      }
       // SET SELECTED DATE IF EXISTS
       if (initialProject.dueDate) setSelected(new Date(initialProject.dueDate));
     }
@@ -136,11 +164,6 @@ const AddProjectModal = ({
       toast.error("Please select priority.");
       return;
     }
-    // CHECK IF EDITING (FOR FUTURE UPDATE FUNCTIONALITY)
-    if (project._id) {
-      console.log("Update project:", project);
-      return;
-    }
     // PREPARE PROJECT DATA FOR API
     const projectData = {
       title: project.title,
@@ -151,32 +174,70 @@ const AddProjectModal = ({
       status: status || "To Do",
       dueDate: selected ? selected.toISOString() : null,
     };
-    // CALL CREATE PROJECT MUTATION
-    createProjectMutation.mutate(projectData, {
-      onSuccess: (createdProject: ProjectType) => {
-        // CALL ON PROJECT ADDED CALLBACK
-        onProjectAdded?.(createdProject as Project);
-        // RESET FORM
-        setProject({
-          _id: "",
-          title: "",
-          description: "",
-          dueDate: "",
-          status: "To Do",
-          inChargeName: "",
-          role: "",
-          priority: "Low",
-        });
-        // SET STATUS TO NULL
-        setStatus(null);
-        // SET PRIORITY TO NULL
-        setPriority(null);
-        // SET SELECTED TO NULL
-        setSelected(null);
-        // CLOSE MODAL
-        onClose?.();
-      },
-    });
+    // CHECK IF EDITING
+    if (project._id) {
+      // UPDATE PROJECT
+      updateProjectMutation.mutate(
+        {
+          projectId: project._id,
+          projectData,
+        },
+        {
+          // <== ON SUCCESS ==>
+          onSuccess: (updatedProject: ProjectType) => {
+            // CALL ON PROJECT ADDED CALLBACK
+            onProjectAdded?.(updatedProject as Project);
+            // RESET FORM
+            setProject({
+              _id: "",
+              title: "",
+              description: "",
+              dueDate: "",
+              status: "To Do",
+              inChargeName: "",
+              role: "",
+              priority: "Low",
+            });
+            // SET STATUS TO NULL
+            setStatus(null);
+            // SET PRIORITY TO NULL
+            setPriority(null);
+            // SET SELECTED TO NULL
+            setSelected(null);
+            // CLOSE MODAL
+            onClose?.();
+          },
+        }
+      );
+    } else {
+      // CREATE PROJECT
+      createProjectMutation.mutate(projectData, {
+        // <== ON SUCCESS ==>
+        onSuccess: (createdProject: ProjectType) => {
+          // CALL ON PROJECT ADDED CALLBACK
+          onProjectAdded?.(createdProject as Project);
+          // RESET FORM
+          setProject({
+            _id: "",
+            title: "",
+            description: "",
+            dueDate: "",
+            status: "To Do",
+            inChargeName: "",
+            role: "",
+            priority: "Low",
+          });
+          // SET STATUS TO NULL
+          setStatus(null);
+          // SET PRIORITY TO NULL
+          setPriority(null);
+          // SET SELECTED TO NULL
+          setSelected(null);
+          // CLOSE MODAL
+          onClose?.();
+        },
+      });
+    }
   };
   // RETURNING THE ADD PROJECT MODAL COMPONENT
   return (
