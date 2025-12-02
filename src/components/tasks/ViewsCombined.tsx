@@ -29,17 +29,21 @@ const ViewsCombined = (): JSX.Element => {
     }
   }, [isOpen]);
   // GET TASKS DATA FROM HOOK
-  const { tasks: fetchedTasks, refetchTasks } = useTasks();
+  const { tasks: fetchedTasks, refetchTasks, isLoading } = useTasks();
   // VIEW MODE STATE
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   // TASKS STATE (LOCAL STATE FOR UI UPDATES)
   const [tasks, setTasks] = useState<Task[]>([]);
+  // HAS LOADED STATE (TO TRACK IF DATA HAS BEEN LOADED AT LEAST ONCE)
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
   // UPDATE TASKS FROM FETCHED DATA
   useEffect(() => {
     // UPDATE TASKS FROM API
     if (fetchedTasks) {
       // SET TASKS FROM FETCHED DATA
       setTasks(fetchedTasks as Task[]);
+      // MARK AS LOADED
+      setHasLoaded(true);
     }
   }, [fetchedTasks]);
   // GET VIEW MODE FROM URL PARAMS EFFECT
@@ -103,70 +107,61 @@ const ViewsCombined = (): JSX.Element => {
         {/* SEARCH CONTAINER */}
         <div className="relative w-full sm:w-64">
           {/* SEARCH ICON */}
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--light-text)]" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--accent-color)]" />
           {/* SEARCH INPUT */}
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search task..."
-            className="border border-[var(--border-color)] pl-10 pr-3 py-2 rounded-xl w-full focus:ring-1 focus:ring-[var(--accent-color)] outline-none text-sm"
+            className="border border-[var(--border)] pl-10 pr-3 py-2 rounded-xl w-full focus:ring-1 focus:ring-[var(--accent-color)] outline-none text-sm bg-transparent text-[var(--text-primary)]"
           />
         </div>
         {/* ACTIONS CONTAINER */}
-        <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-3">
-          {/* TOGGLE VIEW BUTTONS */}
-          <div className="flex gap-2">
-            {/* LIST VIEW BUTTON */}
+        <div className="flex items-center space-x-3 w-full sm:w-auto">
+          {/* ACTIONS */}
+          <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-3">
+            {/* TOGGLE VIEW BUTTONS */}
+            <div className="flex gap-2">
+              {/* LIST VIEW BUTTON */}
+              <button
+                onClick={() => handleViewChange("list")}
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors ${
+                  viewMode === "list"
+                    ? "border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)] hover:text-white"
+                    : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
+                }`}
+              >
+                <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">List</span>
+              </button>
+              {/* BOARD VIEW BUTTON */}
+              <button
+                onClick={() => handleViewChange("board")}
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors ${
+                  viewMode === "board"
+                    ? "border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)] hover:text-white"
+                    : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
+                }`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Board</span>
+              </button>
+            </div>
+            {/* ADD TASK BUTTON */}
             <button
-              onClick={() => handleViewChange("list")}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-xl cursor-pointer ${
-                viewMode === "list"
-                  ? "bg-[var(--inside-card-bg)] border-[var(--accent-color)] text-[var(--accent-color)]"
-                  : "border-[var(--border-color)] hover:bg-[var(--hover-bg)]"
-              }`}
+              onClick={() => {
+                setTaskToEdit(null);
+                setIsOpen(true);
+              }}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 flex items-center justify-center gap-1.5 sm:gap-2 rounded-md text-xs sm:text-sm border border-[var(--border)] text-[var(--accent-color)] font-medium hover:bg-[var(--accent-btn-hover-color)] hover:text-white cursor-pointer transition-colors"
             >
-              {/* LIST ICON */}
-              <List className="h-4 w-4" />
+              {/* PLUS ICON */}
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {/* BUTTON TEXT */}
-              <span className="hidden sm:inline">List</span>
-            </button>
-            {/* BOARD VIEW BUTTON */}
-            <button
-              onClick={() => handleViewChange("board")}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-xl cursor-pointer ${
-                viewMode === "board"
-                  ? "bg-[var(--inside-card-bg)] border-[var(--accent-color)] text-[var(--accent-color)]"
-                  : "border-[var(--border)] hover:bg-[var(--hover-bg)]"
-              }`}
-            >
-              {/* LAYOUT GRID ICON */}
-              <LayoutGrid className="h-4 w-4" />
-              {/* BUTTON TEXT */}
-              <span className="hidden sm:inline">Board</span>
+              <span className="hidden sm:inline">Add Task</span>
             </button>
           </div>
-          {/* ADD TASK BUTTON */}
-          <button
-            onClick={() => {
-              setTaskToEdit(null);
-              setIsOpen(true);
-            }}
-            style={{ backgroundColor: "var(--accent-color)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor =
-                "var(--accent-btn-hover-color)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--accent-color)")
-            }
-            className="px-4 sm:px-5 py-2 flex items-center justify-center gap-1 rounded-full text-white text-sm shadow cursor-pointer"
-          >
-            {/* PLUS ICON */}
-            <Plus className="h-4 w-4" />
-            {/* BUTTON TEXT */}
-            <span className="hidden sm:inline">Add Task</span>
-          </button>
         </div>
       </header>
       {/* MAIN CONTENT */}
@@ -176,7 +171,8 @@ const ViewsCombined = (): JSX.Element => {
           // BOARD VIEW
           <BoardView
             tasks={filteredTasks}
-            loading={false}
+            loading={isLoading}
+            hasLoaded={hasLoaded}
             setTasks={setTasks}
             onTaskDeleted={handleDeleteTask}
             onTaskEdited={handleEditTask}
@@ -186,7 +182,8 @@ const ViewsCombined = (): JSX.Element => {
           // LIST VIEW
           <ListView
             tasks={filteredTasks}
-            loading={false}
+            loading={isLoading}
+            hasLoaded={hasLoaded}
             setTasks={setTasks}
             onTaskDeleted={handleDeleteTask}
             onTaskEdited={handleEditTask}
