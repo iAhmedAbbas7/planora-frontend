@@ -8,6 +8,16 @@ import {
   SetStateAction,
 } from "react";
 import {
+  MoreHorizontal,
+  Plus,
+  X,
+  ClipboardList,
+  Flag,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import {
   DragDropContext,
   Droppable,
   Draggable,
@@ -16,7 +26,6 @@ import {
 import AddNewTask from "./AddNewTask";
 import type { Task } from "../../types/task";
 import ActionDropdown from "./dropdown/ActionDropdown";
-import { MoreHorizontal, Plus, X, ClipboardList } from "lucide-react";
 
 // <== BOARD VIEW PROPS TYPE INTERFACE ==>
 type Props = {
@@ -24,6 +33,8 @@ type Props = {
   tasks: Task[];
   // <== LOADING ==>
   loading: boolean;
+  // <== HAS LOADED ==>
+  hasLoaded: boolean;
   setTasks: Dispatch<SetStateAction<Task[]>>;
   // <== ON TASK DELETED FUNCTION ==>
   onTaskDeleted?: (taskId: string) => void;
@@ -37,6 +48,7 @@ type Props = {
 const BoardView = ({
   tasks,
   loading,
+  hasLoaded,
   setTasks,
   onTaskDeleted,
   onTaskEdited,
@@ -44,6 +56,8 @@ const BoardView = ({
 }: Props): JSX.Element => {
   // SELECTED ITEMS STATE
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  // EXPANDED TASKS STATE
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   // DROPDOWN OPEN STATE
   const [isDropdownOpen, setDropdownIsOpen] = useState<boolean>(false);
   // MODAL OPEN STATE
@@ -66,6 +80,22 @@ const BoardView = ({
   });
   // DROPDOWN REF
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  // PREVENT BACKGROUND SCROLLING WHEN TASKS ARE SELECTED
+  useEffect(() => {
+    // CHECK IF SELECTED ITEMS ARE GREATER THAN 0
+    if (selectedItems.length > 0) {
+      // DISABLE BODY SCROLLING
+      document.body.style.overflow = "hidden";
+    } else {
+      // ENABLE BODY SCROLLING
+      document.body.style.overflow = "unset";
+    }
+    // RETURN FROM THE EFFECT
+    return () => {
+      // ENABLE BODY SCROLLING
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedItems.length]);
   // HANDLE DELETE TASK FUNCTION
   const handleDeleteTask = (taskId: string): void => {
     // REMOVE TASK FROM STATE (UI ONLY - NO API)
@@ -79,6 +109,27 @@ const BoardView = ({
   const handleCancel = (): void => {
     // CLEAR SELECTED ITEMS
     setSelectedItems([]);
+  };
+  // TOGGLE TASK EXPAND FUNCTION
+  const toggleTaskExpand = (taskId: string, e?: React.MouseEvent): void => {
+    // STOP PROPAGATION IF EVENT EXISTS
+    if (e) {
+      e.stopPropagation();
+    }
+    // SET EXPANDED TASKS
+    setExpandedTasks((prev) => {
+      // CREATE NEW SET
+      const newSet = new Set(prev);
+      // CHECK IF TASK IS EXPANDED
+      if (newSet.has(taskId)) {
+        // DELETE TASK FROM SET
+        newSet.delete(taskId);
+      } else {
+        // ADD TASK TO SET
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
   };
   // OPEN DROPDOWN FUNCTION
   const openDropdown = (e: React.MouseEvent, taskId: string): void => {
@@ -228,7 +279,7 @@ const BoardView = ({
     // DRAG DROP CONTEXT
     <DragDropContext onDragEnd={onDragEnd}>
       {/* COLUMNS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-start relative">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-stretch relative">
         {/* MAPPING THROUGH COLUMNS */}
         {columns.map((col) => {
           // FILTER TASKS BY STATUS
@@ -237,43 +288,65 @@ const BoardView = ({
             // COLUMN CONTAINER
             <div
               key={col.id}
-              className="bg-[var(--cards-bg)] backdrop-blur-[var(--blur)] rounded-xl shadow-sm p-4 flex flex-col"
+              className="bg-[var(--cards-bg)] backdrop-blur-[var(--blur)] rounded-xl shadow-sm p-4 sm:p-5 flex flex-col border border-[var(--border)] h-full"
             >
               {/* COLUMN HEADER */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 {/* COLUMN TITLE CONTAINER */}
                 <div className="flex items-center gap-2">
                   {/* STATUS DOT */}
                   <span className={`w-3 h-3 rounded-full ${col.dot}`}></span>
                   {/* COLUMN TITLE */}
-                  <h2 className="font-semibold">{col.title}</h2>
+                  <h2 className="font-semibold text-[var(--text-primary)]">
+                    {col.title}
+                  </h2>
+                  {/* TASK COUNT BADGE */}
+                  {filteredTasks.length > 0 && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                      <span
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          backgroundColor: `var(--accent-color)`,
+                          opacity: 0.15,
+                        }}
+                      ></span>
+                      <span
+                        className="relative"
+                        style={{ color: `var(--accent-color)` }}
+                      >
+                        {filteredTasks.length}
+                      </span>
+                    </span>
+                  )}
                 </div>
                 {/* SELECT ALL CHECKBOX */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="accent-[var(--accent-color)] cursor-pointer"
-                    checked={
-                      filteredTasks.length > 0 &&
-                      filteredTasks.every((task) =>
-                        selectedItems.includes(task._id)
-                      )
-                    }
-                    onClick={() => setDropdownIsOpen(!isDropdownOpen)}
-                    onChange={(e) => {
-                      // GET CHECKED STATE
-                      const isChecked = e.target.checked;
-                      // GET TASK IDS FROM COLUMN
-                      const taskIds = filteredTasks.map((task) => task._id);
-                      // UPDATE SELECTED ITEMS
-                      setSelectedItems((prev) =>
-                        isChecked
-                          ? Array.from(new Set([...prev, ...taskIds]))
-                          : prev.filter((id) => !taskIds.includes(id))
-                      );
-                    }}
-                  />
-                </div>
+                {filteredTasks.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="accent-[var(--accent-color)] cursor-pointer"
+                      checked={
+                        filteredTasks.length > 0 &&
+                        filteredTasks.every((task) =>
+                          selectedItems.includes(task._id)
+                        )
+                      }
+                      onClick={() => setDropdownIsOpen(!isDropdownOpen)}
+                      onChange={(e) => {
+                        // GET CHECKED STATE
+                        const isChecked = e.target.checked;
+                        // GET TASK IDS FROM COLUMN
+                        const taskIds = filteredTasks.map((task) => task._id);
+                        // UPDATE SELECTED ITEMS
+                        setSelectedItems((prev) =>
+                          isChecked
+                            ? Array.from(new Set([...prev, ...taskIds]))
+                            : prev.filter((id) => !taskIds.includes(id))
+                        );
+                      }}
+                    />
+                  </div>
+                )}
               </div>
               {/* DROPPABLE AREA */}
               <Droppable droppableId={col.id}>
@@ -281,9 +354,9 @@ const BoardView = ({
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="flex flex-col gap-3 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0"
+                    className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0"
                   >
-                    {/* CHECK IF TASKS EXIST */}
+                    {/* CHECK IF TASKS EXIST AND DATA HAS LOADED */}
                     {filteredTasks.length > 0 ? (
                       // MAPPING THROUGH TASKS
                       filteredTasks.map((task, index) => (
@@ -298,7 +371,6 @@ const BoardView = ({
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              {...provided.dragHandleProps}
                               style={{
                                 ...provided.draggableProps.style,
                                 transform: snapshot.isDragging
@@ -312,93 +384,199 @@ const BoardView = ({
                                   ? "relative"
                                   : "static",
                               }}
-                              className={`bg-[var(--inside-card-bg)] rounded-lg shadow-sm border border-[var(--border)] p-3 border-l-4 ${
-                                col.color
-                              } ${
+                              className={`bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all ${
                                 snapshot.isDragging
-                                  ? "shadow-xl scale-[1.03] border-l-8"
-                                  : ""
+                                  ? "shadow-xl scale-[1.02]"
+                                  : "hover:bg-[var(--hover-bg)]"
                               }`}
                             >
-                              {/* TASK HEADER */}
-                              <div className="flex justify-between items-center mb-2">
-                                {/* TASK TITLE */}
-                                <p className="text-sm font-medium">
-                                  {task.title}
-                                </p>
-                                {/* TASK ACTIONS */}
-                                <div className="flex items-center gap-2">
-                                  {/* SELECT CHECKBOX */}
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedItems.includes(task._id)}
-                                    onChange={() => {
-                                      // TOGGLE SELECTION
-                                      setSelectedItems((prev) =>
-                                        prev.includes(task._id)
-                                          ? prev.filter((id) => id !== task._id)
-                                          : [...prev, task._id]
-                                      );
-                                    }}
-                                    className="accent-[var(--accent-color)] cursor-pointer"
-                                  />
-                                  {/* DROPDOWN BUTTON */}
-                                  <button
-                                    className="text-[var(--light-text)] hover:text-[var(--primary-text)] cursor-pointer"
-                                    onClick={(e) => openDropdown(e, task._id)}
-                                  >
-                                    <MoreHorizontal size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                              {/* TASK DESCRIPTION */}
-                              <p className="text-xs mb-2">
-                                {task.description || "No description"}
-                              </p>
-                              {/* TASK FOOTER */}
-                              <div className="flex justify-between text-xs text-[var(--light-text)]">
-                                {/* DUE DATE */}
-                                <p>
-                                  {task.dueDate
-                                    ? new Date(task.dueDate).toLocaleDateString(
-                                        "en-US",
-                                        {
-                                          month: "long",
-                                          day: "numeric",
-                                          year: "numeric",
+                              {/* CHECK IF TASK IS EXPANDED */}
+                              {expandedTasks.has(task._id) ? (
+                                // EXPANDED STATE
+                                <div className="p-3 sm:p-4">
+                                  {/* EXPANDED HEADER */}
+                                  <div className="flex items-center justify-between gap-3 mb-3">
+                                    {/* LEFT SIDE: TITLE */}
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
+                                        {task.title}
+                                      </p>
+                                      {/* COLLAPSE BUTTON */}
+                                      <button
+                                        onClick={(e) =>
+                                          toggleTaskExpand(task._id, e)
                                         }
-                                      )
-                                    : "No due date"}
-                                </p>
-                                {/* PRIORITY */}
-                                <p
-                                  className={`font-medium ${
-                                    task.priority === "high"
-                                      ? "text-[var(--high-priority-color)]"
-                                      : "text-[var(--light-text)]"
-                                  }`}
-                                >
-                                  {task.priority?.toUpperCase() || "—"}
-                                </p>
-                              </div>
+                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
+                                        title="Collapse"
+                                      >
+                                        <ChevronUp size={18} />
+                                      </button>
+                                    </div>
+                                    {/* RIGHT SIDE: ACTIONS */}
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      {/* DROPDOWN BUTTON */}
+                                      <button
+                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openDropdown(e, task._id);
+                                        }}
+                                      >
+                                        <MoreHorizontal size={18} />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* EXPANDED CONTENT */}
+                                  <section className="flex flex-col gap-3 text-sm">
+                                    {/* DESCRIPTION */}
+                                    {task.description && (
+                                      <div className="flex items-start gap-3">
+                                        <div className="flex-1">
+                                          <p className="text-sm text-[var(--light-text)] leading-relaxed">
+                                            {task.description}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* PRIORITY */}
+                                    {task.priority && (
+                                      <div className="flex items-center gap-3">
+                                        <Flag
+                                          size={16}
+                                          className="text-[var(--accent-color)] flex-shrink-0"
+                                        />
+                                        <div className="flex items-center gap-3 flex-1 justify-between">
+                                          <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                            Priority
+                                          </span>
+                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
+                                            <span
+                                              className="absolute inset-0 rounded-full"
+                                              style={{
+                                                backgroundColor: `var(--accent-color)`,
+                                                opacity: 0.15,
+                                              }}
+                                            ></span>
+                                            <span
+                                              className="relative"
+                                              style={{
+                                                color: `var(--accent-color)`,
+                                              }}
+                                            >
+                                              {task.priority
+                                                .charAt(0)
+                                                .toUpperCase() +
+                                                task.priority.slice(1)}
+                                            </span>
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* DUE DATE */}
+                                    {task.dueDate && (
+                                      <div className="flex items-center gap-3">
+                                        <Calendar
+                                          size={16}
+                                          className="text-[var(--accent-color)] flex-shrink-0"
+                                        />
+                                        <div className="flex items-center gap-3 flex-1 justify-between">
+                                          <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                            Due Date
+                                          </span>
+                                          <span className="text-sm text-[var(--text-primary)]">
+                                            {new Date(
+                                              task.dueDate
+                                            ).toLocaleDateString("en-US", {
+                                              month: "short",
+                                              day: "numeric",
+                                              year: "numeric",
+                                            })}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </section>
+                                </div>
+                              ) : (
+                                // COLLAPSED STATE
+                                <div className="p-3 sm:p-4">
+                                  <div className="flex items-center justify-between gap-3">
+                                    {/* LEFT SIDE: CHECKBOX AND TITLE */}
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                      {/* CHECKBOX */}
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedItems.includes(
+                                          task._id
+                                        )}
+                                        onChange={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedItems((prev) =>
+                                            prev.includes(task._id)
+                                              ? prev.filter(
+                                                  (id) => id !== task._id
+                                                )
+                                              : [...prev, task._id]
+                                          );
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
+                                      />
+                                      {/* TITLE */}
+                                      <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                        {task.title}
+                                      </p>
+                                    </div>
+                                    {/* ACTIONS */}
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      {/* EXPAND BUTTON */}
+                                      <button
+                                        onClick={(e) =>
+                                          toggleTaskExpand(task._id, e)
+                                        }
+                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                        title="Expand"
+                                      >
+                                        <ChevronDown size={18} />
+                                      </button>
+                                      {/* DROPDOWN BUTTON */}
+                                      <button
+                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openDropdown(e, task._id);
+                                        }}
+                                      >
+                                        <MoreHorizontal size={18} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </Draggable>
                       ))
-                    ) : (
-                      // EMPTY STATE
-                      <div className="flex flex-col items-center justify-center py-8 gap-3">
+                    ) : hasLoaded ? (
+                      // EMPTY STATE (ONLY SHOW IF DATA HAS LOADED)
+                      <div className="flex flex-col items-center justify-center py-12 gap-3">
                         {/* EMPTY STATE ICON */}
                         <ClipboardList
                           size={48}
                           className="text-[var(--light-text)] opacity-50"
                         />
                         {/* EMPTY STATE TEXT */}
-                        <p className="text-sm text-[var(--light-text)] text-center">
+                        <p className="text-sm font-medium text-[var(--light-text)]">
                           No tasks yet
                         </p>
+                        <p className="text-xs text-[var(--light-text)] text-center">
+                          Add tasks to this section to get started.
+                        </p>
                       </div>
-                    )}
+                    ) : null}
                     {/* PLACEHOLDER */}
                     {provided.placeholder}
                   </div>
@@ -432,34 +610,153 @@ const BoardView = ({
           );
         })}
       </div>
-      {/* FLOATING ACTION BAR */}
+      {/* SELECTED TASKS MODAL */}
       {selectedItems.length > 0 && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-[var(--cards-bg)] border border-[var(--border)] shadow-lg px-4 sm:px-6 py-3 rounded-xl flex gap-3 sm:gap-4 items-center animate-fadeIn z-50">
-          {/* SELECTED COUNT */}
-          <p className="text-sm text-[var(--primary-text)]">
-            {selectedItems.length} selected
-          </p>
-          {/* CANCEL BUTTON */}
-          <button
-            className="px-3 py-1.5 text-sm bg-[var(--inside-card-bg)] rounded-lg hover:bg-[var(--hover-bg)] cursor-pointer text-[var(--primary-text)]"
-            onClick={handleCancel}
+        <div
+          className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCancel();
+            }
+          }}
+        >
+          {/* MODAL CONTAINER */}
+          <div
+            className="bg-[var(--bg)] rounded-xl w-full max-w-2xl shadow-lg relative overflow-hidden border border-[var(--border)] max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
           >
-            Cancel
-          </button>
-          {/* DELETE BUTTON */}
-          <button
-            className="px-3 py-1.5 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600"
-            onClick={() => {
-              // DELETE SELECTED TASKS
-              selectedItems.forEach((taskId) => {
-                handleDeleteTask(taskId);
-              });
-              // CLEAR SELECTION
-              setSelectedItems([]);
-            }}
-          >
-            Delete
-          </button>
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
+              {/* MODAL TITLE */}
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Selected Tasks ({selectedItems.length})
+              </h2>
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={handleCancel}
+                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+              >
+                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            </div>
+            {/* MODAL CONTENT - SELECTED TASKS LIST */}
+            <div className="overflow-y-auto flex-1 min-h-0 p-4 sm:p-6">
+              <div className="flex flex-col gap-3">
+                {selectedItems.map((taskId) => {
+                  const task = tasks.find((t) => t._id === taskId);
+                  if (!task) return null;
+                  return (
+                    <div
+                      key={taskId}
+                      className="bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg p-3 sm:p-4"
+                    >
+                      {/* TASK TITLE */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="text-sm font-semibold text-[var(--text-primary)] flex-1">
+                          {task.title}
+                        </h3>
+                      </div>
+                      {/* TASK DETAILS */}
+                      <div className="flex flex-col gap-2 text-sm">
+                        {/* STATUS */}
+                        {task.status && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Status:
+                            </span>
+                            <span className="text-xs text-[var(--text-primary)] capitalize">
+                              {task.status}
+                            </span>
+                          </div>
+                        )}
+                        {/* PRIORITY */}
+                        {task.priority && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Priority:
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                              <span
+                                className="absolute inset-0 rounded-full"
+                                style={{
+                                  backgroundColor: `var(--accent-color)`,
+                                  opacity: 0.15,
+                                }}
+                              ></span>
+                              <span
+                                className="relative"
+                                style={{ color: `var(--accent-color)` }}
+                              >
+                                {task.priority.charAt(0).toUpperCase() +
+                                  task.priority.slice(1)}
+                              </span>
+                            </span>
+                          </div>
+                        )}
+                        {/* DUE DATE */}
+                        {task.dueDate && (
+                          <div className="flex items-center gap-2">
+                            <Calendar
+                              size={14}
+                              className="text-[var(--light-text)] flex-shrink-0"
+                            />
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Due Date:
+                            </span>
+                            <span className="text-xs text-[var(--text-primary)]">
+                              {new Date(task.dueDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {/* DESCRIPTION */}
+                        {task.description && (
+                          <div className="flex items-start gap-2 mt-1">
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Description:
+                            </span>
+                            <p className="text-xs text-[var(--light-text)] flex-1 line-clamp-2">
+                              {task.description}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {/* MODAL FOOTER - ACTIONS */}
+            <div className="flex justify-end gap-2 p-3 sm:p-4 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)]">
+              {/* CANCEL BUTTON */}
+              <button
+                className="px-4 py-2 text-sm bg-[var(--inside-card-bg)] rounded-lg hover:bg-[var(--hover-bg)] cursor-pointer text-[var(--text-primary)] transition-colors"
+                onClick={handleCancel}
+              >
+                Cancel
+              </button>
+              {/* DELETE BUTTON */}
+              <button
+                className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                onClick={() => {
+                  // DELETE SELECTED TASKS
+                  selectedItems.forEach((taskId) => {
+                    handleDeleteTask(taskId);
+                  });
+                  // CLEAR SELECTION
+                  setSelectedItems([]);
+                }}
+              >
+                Delete Selected ({selectedItems.length})
+              </button>
+            </div>
+          </div>
         </div>
       )}
       {/* DROPDOWN MENU */}
