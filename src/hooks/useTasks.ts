@@ -258,6 +258,35 @@ export const useTasks = () => {
 };
 
 /**
+ * FETCH TASKS BY PROJECT ID
+ * @param projectId - Project ID
+ * @returns Tasks Array
+ */
+const fetchTasksByProjectId = async (projectId: string): Promise<Task[]> => {
+  try {
+    // FETCH TASKS BY PROJECT ID
+    const response = await apiClient.get<ApiResponse<Task[]>>(
+      `/tasks/project/${projectId}`
+    );
+    // CHECK IF DATA EXISTS
+    if (!response.data?.data || !Array.isArray(response.data.data)) {
+      return [];
+    }
+    // RETURN ALL TASKS (FILTER OUT TRASHED)
+    return response.data.data.filter((task) => !task.isTrashed);
+  } catch (error: unknown) {
+    // GET AXIOS ERROR
+    const axiosError = error as AxiosError;
+    // DON'T RETURN IF 404
+    if (axiosError.response?.status === 404) {
+      return [];
+    }
+    // FOR OTHER ERRORS, RE-THROW
+    throw error;
+  }
+};
+
+/**
  * USE CREATE TASK HOOK
  * @returns Create Task Mutation
  */
@@ -287,6 +316,53 @@ export const useCreateTask = () => {
         "Failed to create task. Please try again.";
       // SHOW ERROR TOAST
       toast.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * USE TASKS BY PROJECT ID HOOK
+ * @param projectId - Project ID
+ * @returns Tasks Query
+ */
+export const useTasksByProjectId = (projectId: string | null) => {
+  // GET AUTH STATE
+  const { isAuthenticated, isLoggingOut } = useAuthStore();
+  // FETCH TASKS BY PROJECT ID
+  return useQuery({
+    // <== QUERY KEY ==>
+    queryKey: ["tasks", "project", projectId],
+    // <== QUERY FUNCTION ==>
+    queryFn: () => fetchTasksByProjectId(projectId!),
+    // <== ENABLED ==>
+    enabled: isAuthenticated && !isLoggingOut && !!projectId,
+    // <== STALE TIME ==>
+    staleTime: 2 * 60 * 1000,
+    // <== GC TIME ==>
+    gcTime: 5 * 60 * 1000,
+    // <== REFETCH ON MOUNT ==>
+    refetchOnMount: true,
+    // <== REFETCH ON WINDOW FOCUS ==>
+    refetchOnWindowFocus: false,
+    // <== REFETCH ON RECONNECT ==>
+    refetchOnReconnect: false,
+    // <== RETRY ==>
+    retry: (failureCount, error: unknown) => {
+      // GET AXIOS ERROR
+      const axiosError = error as AxiosError;
+      // DON'T RETRY ON 404
+      if (axiosError?.response?.status === 404) {
+        return false;
+      }
+      // RETRY OTHER ERRORS UP TO 3 TIMES (MAX RETRIES)
+      return failureCount < 3;
+    },
+    // <== THROW ON ERROR ==>
+    throwOnError: (error: unknown) => {
+      // GET AXIOS ERROR
+      const axiosError = error as AxiosError;
+      // DON'T THROW ON 404
+      return axiosError?.response?.status !== 404;
     },
   });
 };
