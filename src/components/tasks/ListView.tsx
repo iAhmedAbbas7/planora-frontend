@@ -17,6 +17,8 @@ type ListViewProps = {
   tasks: Task[];
   // <== LOADING ==>
   loading: boolean;
+  // <== HAS LOADED ==>
+  hasLoaded: boolean;
   // <== SET TASKS FUNCTION ==>
   setTasks: Dispatch<SetStateAction<Task[]>>;
   // <== PARENT MODAL OPEN ==>
@@ -40,6 +42,8 @@ type ColumnProps = {
   onTaskEdited?: (taskId: string) => void;
   // <== ON TASK DELETED FUNCTION ==>
   onTaskDeleted?: (taskId: string) => void;
+  // <== HAS LOADED ==>
+  hasLoaded: boolean;
 };
 // <== TASK COLUMN COMPONENT ==>
 function TaskColumn({
@@ -49,6 +53,7 @@ function TaskColumn({
   parentModalOpen,
   onTaskEdited,
   onTaskDeleted,
+  hasLoaded,
 }: ColumnProps): JSX.Element {
   // DROPDOWN TASK ID STATE
   const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
@@ -200,11 +205,11 @@ function TaskColumn({
             </thead>
             {/* TABLE BODY */}
             <tbody>
-              {/* CHECK IF TASKS EXIST */}
-              {tasks.length === 0 ? (
+              {/* CHECK IF TASKS EXIST AND DATA HAS LOADED */}
+              {tasks.length === 0 && hasLoaded ? (
                 // EMPTY STATE ROW
                 <tr>
-                  <td colSpan={5} className="py-8">
+                  <td colSpan={5} className="py-12">
                     {/* EMPTY STATE CONTAINER */}
                     <div className="flex flex-col items-center justify-center gap-3">
                       {/* EMPTY STATE ICON */}
@@ -213,13 +218,16 @@ function TaskColumn({
                         className="text-[var(--light-text)] opacity-50"
                       />
                       {/* EMPTY STATE TEXT */}
-                      <p className="text-sm text-[var(--light-text)] text-center">
+                      <p className="text-sm font-medium text-[var(--light-text)]">
                         No tasks in this section
+                      </p>
+                      <p className="text-xs text-[var(--light-text)] text-center">
+                        Add tasks to this section to get started.
                       </p>
                     </div>
                   </td>
                 </tr>
-              ) : (
+              ) : tasks.length > 0 ? (
                 // MAPPING THROUGH TASKS
                 tasks.map((task, i) => (
                   // TABLE ROW
@@ -285,7 +293,7 @@ function TaskColumn({
                     </td>
                   </tr>
                 ))
-              )}
+              ) : null}
             </tbody>
           </table>
           {/* FLOATING ACTION BAR */}
@@ -345,6 +353,7 @@ function TaskColumn({
 const ListView = ({
   tasks,
   loading,
+  hasLoaded,
   setTasks,
   parentModalOpen,
   onTaskDeleted,
@@ -364,6 +373,7 @@ const ListView = ({
         parentModalOpen={parentModalOpen}
         onTaskDeleted={onTaskDeleted}
         onTaskEdited={onTaskEdited}
+        hasLoaded={hasLoaded}
       />
       {/* IN PROGRESS COLUMN */}
       <TaskColumn
@@ -373,6 +383,7 @@ const ListView = ({
         parentModalOpen={parentModalOpen}
         onTaskDeleted={onTaskDeleted}
         onTaskEdited={onTaskEdited}
+        hasLoaded={hasLoaded}
       />
       {/* COMPLETED COLUMN */}
       <TaskColumn
@@ -382,6 +393,7 @@ const ListView = ({
         parentModalOpen={parentModalOpen}
         onTaskDeleted={onTaskDeleted}
         onTaskEdited={onTaskEdited}
+        hasLoaded={hasLoaded}
       />
     </div>
   );
