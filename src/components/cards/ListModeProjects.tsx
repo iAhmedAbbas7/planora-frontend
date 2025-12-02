@@ -5,6 +5,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  FileText,
+  CircleDot,
+  Calendar,
+  User,
+  Settings,
 } from "lucide-react";
 import {
   useState,
@@ -226,61 +231,121 @@ const ListModeProjects = ({
             <table className="w-full border-collapse">
               {/* TABLE HEADER */}
               <thead>
-                <tr className="bg-[var(--inside-card-bg)] text-[var(--light-text)] text-left text-sm font-medium">
-                  {/* PROJECT COLUMN HEADER */}
-                  <th className="px-4 py-2">Project</th>
-                  {/* STATUS COLUMN HEADER */}
-                  <th className="px-4 py-2">Status</th>
-                  {/* DUE DATE COLUMN HEADER */}
-                  <th className="px-4 py-2">Due Date</th>
-                  {/* IN CHARGE COLUMN HEADER */}
-                  <th className="px-4 py-2">In Charge</th>
-                  {/* ACTION COLUMN HEADER */}
-                  <th className="px-4 py-2">Action</th>
+                <tr className="text-left text-sm text-[var(--light-text)] border-b border-[var(--border)]">
+                  {/* PROJECT COLUMN HEADER - ALWAYS VISIBLE */}
+                  <th className="py-2.5 px-4">
+                    <div className="flex items-center gap-2">
+                      {/* FILE TEXT ICON */}
+                      <FileText
+                        size={16}
+                        className="text-[var(--accent-color)]"
+                      />
+                      <span className="font-medium">Project</span>
+                    </div>
+                  </th>
+                  {/* STATUS COLUMN HEADER - ALWAYS VISIBLE */}
+                  <th className="py-2.5 px-4">
+                    <div className="flex items-center gap-2">
+                      {/* CIRCLE DOT ICON */}
+                      <CircleDot
+                        size={16}
+                        className="text-[var(--accent-color)]"
+                      />
+                      <span className="font-medium">Status</span>
+                    </div>
+                  </th>
+                  {/* DUE DATE COLUMN HEADER - HIDDEN ON SMALL, VISIBLE FROM LG */}
+                  <th className="py-2.5 px-4 hidden lg:table-cell">
+                    <div className="flex items-center gap-2">
+                      {/* CALENDAR ICON */}
+                      <Calendar
+                        size={16}
+                        className="text-[var(--accent-color)]"
+                      />
+                      <span className="font-medium">Due Date</span>
+                    </div>
+                  </th>
+                  {/* IN CHARGE COLUMN HEADER - HIDDEN ON SMALL, VISIBLE FROM LG */}
+                  <th className="py-2.5 px-4 hidden lg:table-cell">
+                    <div className="flex items-center gap-2">
+                      {/* USER ICON */}
+                      <User size={16} className="text-[var(--accent-color)]" />
+                      <span className="font-medium">In Charge</span>
+                    </div>
+                  </th>
+                  {/* ACTION COLUMN HEADER - ALWAYS VISIBLE */}
+                  <th className="py-2.5 px-4">
+                    <div className="flex items-center gap-2">
+                      {/* SETTINGS ICON */}
+                      <Settings
+                        size={16}
+                        className="text-[var(--accent-color)]"
+                      />
+                      <span className="font-medium">Action</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               {/* TABLE BODY */}
               <tbody>
                 {/* MAPPING THROUGH PROJECTS */}
-                {currentProjects.map((project, idx) => (
+                {currentProjects.map((project) => (
                   // TABLE ROW
                   <tr
                     key={project._id}
-                    className={`border-b border-[var(--border)] ${
-                      idx % 2 === 1 ? "bg-[var(--inside-card-bg)]" : ""
-                    }`}
+                    onClick={() => setSelectedProjectId(project._id)}
+                    className="text-sm text-[var(--text-primary)] border-b border-[var(--border)] transition-colors duration-150 hover:bg-[var(--hover-bg)] cursor-pointer"
                   >
-                    {/* PROJECT NAME CELL */}
-                    <td className="py-2 px-4 font-medium text-left">
-                      {/* PROJECT TITLE BUTTON */}
-                      <button
-                        onClick={() => setSelectedProjectId(project._id)}
-                        className="hover:underline cursor-pointer text-[var(--accent-color)]"
-                      >
+                    {/* PROJECT NAME CELL - ALWAYS VISIBLE */}
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-[var(--accent-color)] text-left">
                         {project.title}
-                      </button>
+                      </span>
                     </td>
-                    {/* STATUS CELL */}
-                    <td className="px-4 py-2">{project.status || "N/A"}</td>
-                    {/* DUE DATE CELL */}
-                    <td className="px-4 py-2">
-                      {project.dueDate
-                        ? new Date(project.dueDate).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "long",
-                              day: "numeric",
-                              year: "numeric",
-                            }
-                          )
-                        : "N/A"}
+                    {/* STATUS CELL - ALWAYS VISIBLE */}
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
+                        <span
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            backgroundColor: `var(--accent-color)`,
+                            opacity: 0.15,
+                          }}
+                        ></span>
+                        <span
+                          className="relative"
+                          style={{ color: `var(--accent-color)` }}
+                        >
+                          {project.status || "N/A"}
+                        </span>
+                      </span>
                     </td>
-                    {/* IN CHARGE CELL */}
-                    <td className="px-4 py-2">
-                      {project.inChargeName || "N/A"}
+                    {/* DUE DATE CELL - HIDDEN ON SMALL, VISIBLE FROM LG */}
+                    <td className="py-3 px-4 hidden lg:table-cell">
+                      <span className="text-[var(--light-text)]">
+                        {project.dueDate
+                          ? new Date(project.dueDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )
+                          : "N/A"}
+                      </span>
                     </td>
-                    {/* ACTION CELL */}
-                    <td className="px-4 py-2 text-left">
+                    {/* IN CHARGE CELL - HIDDEN ON SMALL, VISIBLE FROM LG */}
+                    <td className="py-3 px-4 hidden lg:table-cell">
+                      <span className="text-[var(--light-text)]">
+                        {project.inChargeName || "N/A"}
+                      </span>
+                    </td>
+                    {/* ACTION CELL - ALWAYS VISIBLE */}
+                    <td
+                      className="py-3 px-4"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {/* ACTION DROPDOWN CONTAINER */}
                       <div className="relative">
                         {/* DROPDOWN BUTTON */}
@@ -289,8 +354,8 @@ const ListModeProjects = ({
                           onClick={(e) => toggleDropdown(project._id, e)}
                         >
                           <MoreHorizontal
-                            size={18}
-                            className="text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                            size={24}
+                            className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors"
                           />
                         </button>
                       </div>
@@ -332,61 +397,43 @@ const ListModeProjects = ({
               </div>
             )}
           </div>
-          {/* MOBILE 2-COLUMN LAYOUT */}
-          <div className="md:hidden mt-4">
+          {/* MOBILE VERTICAL LAYOUT */}
+          <div className="md:hidden mt-4 space-y-3">
             {/* MAPPING THROUGH PROJECTS */}
             {currentProjects.map((project) => (
               // MOBILE PROJECT CARD
               <div
                 key={project._id}
-                className="grid grid-cols-2 gap-4 border border-b-0 border-[var(--border)] p-4 bg-[var(--bg)] shadow-sm"
+                className="border border-[var(--border)] rounded-lg p-4 bg-[var(--cards-bg)] shadow-sm"
               >
-                {/* LEFT COLUMN - PROJECT NAME */}
-                <div className="flex items-center border-r border-[var(--border)]">
-                  {/* PROJECT TITLE BUTTON */}
-                  <button
-                    onClick={() => setSelectedProjectId(project._id)}
-                    className="font-medium text-[var(--accent-color)] cursor-pointer hover:underline"
-                  >
-                    {project.title}
-                  </button>
-                </div>
-                {/* RIGHT COLUMN - OTHER INFO */}
-                <div className="space-y-1 text-sm text-[var(--light-text)]">
-                  {/* STATUS */}
-                  <p>
-                    <span className="font-semibold">Status: </span>
-                    {project.status || "N/A"}
-                  </p>
-                  {/* DUE DATE */}
-                  <p>
-                    <span className="font-semibold">Due: </span>
-                    {project.dueDate
-                      ? new Date(project.dueDate).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "N/A"}
-                  </p>
-                  {/* IN CHARGE */}
-                  <p>
-                    <span className="font-semibold">In Charge: </span>
-                    {project.inChargeName || "N/A"}
-                  </p>
+                {/* PROJECT TITLE SECTION */}
+                <div className="flex items-center justify-between mb-3 pb-3 border-b border-[var(--border)]">
+                  {/* PROJECT TITLE WITH ICON */}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <FileText
+                      size={16}
+                      className="text-[var(--accent-color)] flex-shrink-0"
+                    />
+                    <button
+                      onClick={() => setSelectedProjectId(project._id)}
+                      className="font-semibold text-[var(--accent-color)] hover:opacity-80 transition-opacity text-left truncate"
+                    >
+                      {project.title}
+                    </button>
+                  </div>
                   {/* ACTION DROPDOWN */}
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     {/* DROPDOWN BUTTON */}
                     <button onClick={() => toggleSmDropdown(project._id)}>
                       <MoreHorizontal
                         size={18}
-                        className="text-[var(--light-text)] cursor-pointer mt-1"
+                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] cursor-pointer transition-colors"
                       />
                     </button>
                     {/* MOBILE DROPDOWN MENU */}
                     {isSmScreenDropdownOpen == project._id && (
                       <div
-                        className="absolute top-6 z-50 bg-[var(--bg)] left-0 shadow-lg rounded-md border border-[var(--border)]"
+                        className="absolute top-6 right-0 z-50 bg-[var(--bg)] shadow-lg rounded-md border border-[var(--border)]"
                         ref={smDropdownRef}
                       >
                         <ActionDropdown
@@ -406,6 +453,75 @@ const ListModeProjects = ({
                         />
                       </div>
                     )}
+                  </div>
+                </div>
+                {/* PROJECT DETAILS SECTION */}
+                <div className="space-y-2.5">
+                  {/* STATUS */}
+                  <div className="flex items-center gap-2">
+                    <CircleDot
+                      size={14}
+                      className="text-[var(--accent-color)] flex-shrink-0"
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                        Status
+                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                        <span
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            backgroundColor: `var(--accent-color)`,
+                            opacity: 0.15,
+                          }}
+                        ></span>
+                        <span
+                          className="relative"
+                          style={{ color: `var(--accent-color)` }}
+                        >
+                          {project.status || "N/A"}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  {/* DUE DATE */}
+                  <div className="flex items-center gap-2">
+                    <Calendar
+                      size={14}
+                      className="text-[var(--accent-color)] flex-shrink-0"
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                        Due Date
+                      </span>
+                      <span className="text-xs text-[var(--text-primary)]">
+                        {project.dueDate
+                          ? new Date(project.dueDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )
+                          : "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                  {/* IN CHARGE */}
+                  <div className="flex items-center gap-2">
+                    <User
+                      size={14}
+                      className="text-[var(--accent-color)] flex-shrink-0"
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="text-xs font-medium text-[var(--light-text)] min-w-[60px]">
+                        In Charge
+                      </span>
+                      <span className="text-xs text-[var(--text-primary)] truncate">
+                        {project.inChargeName || "N/A"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
