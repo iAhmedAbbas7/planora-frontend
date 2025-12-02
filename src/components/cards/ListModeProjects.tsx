@@ -1,5 +1,12 @@
 // <== IMPORTS ==>
 import {
+  FolderPlus,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from "lucide-react";
+import {
   useState,
   useRef,
   useEffect,
@@ -8,7 +15,6 @@ import {
   SetStateAction,
 } from "react";
 import ProjectDetails from "../projects/ProjectDetails";
-import { FolderPlus, MoreHorizontal } from "lucide-react";
 import ActionDropdown from "../projects/dropdown/ActionDropdown";
 
 // <== PROJECT TYPE INTERFACE ==>
@@ -49,6 +55,10 @@ type ListModeProps = {
   editProject: Project | null;
   // <== HANDLE PROJECT ADDED ==>
   handleProjectAdded: (newProject: Project) => void;
+  // <== SEARCH TERM ==>
+  searchTerm: string;
+  // <== HAS PROJECTS ==>
+  hasProjects: boolean;
 };
 
 // <== LIST MODE PROJECTS COMPONENT ==>
@@ -62,6 +72,8 @@ const ListModeProjects = ({
   setEditProject,
   setIsProjectModalOpen,
   selectedProjectId,
+  searchTerm,
+  hasProjects,
 }: ListModeProps): JSX.Element => {
   // DROPDOWN OPEN STATE
   const [isDropdownOpen, setIsDropdownOpen] = useState<string | null>(null);
@@ -168,19 +180,42 @@ const ListModeProjects = ({
       {currentProjects.length === 0 && totalPages === 1 ? (
         // EMPTY STATE
         <div className="flex flex-col items-center justify-center py-8 gap-3">
-          {/* EMPTY STATE ICON */}
-          <FolderPlus
-            size={48}
-            className="text-[var(--light-text)] opacity-50"
-          />
-          {/* EMPTY STATE TITLE */}
-          <p className="text-lg font-medium text-[var(--light-text)]">
-            No projects yet
-          </p>
-          {/* EMPTY STATE MESSAGE */}
-          <p className="text-sm text-[var(--light-text)] text-center">
-            Start by adding a new project to see it here.
-          </p>
+          {/* CHECK IF NO PROJECTS AT ALL OR SEARCH RETURNED NO RESULTS */}
+          {!hasProjects ? (
+            // NO PROJECTS CREATED STATE
+            <>
+              {/* EMPTY STATE ICON */}
+              <FolderPlus
+                size={48}
+                className="text-[var(--light-text)] opacity-50"
+              />
+              {/* EMPTY STATE TITLE */}
+              <p className="text-lg font-medium text-[var(--light-text)]">
+                No projects yet
+              </p>
+              {/* EMPTY STATE MESSAGE */}
+              <p className="text-sm text-[var(--light-text)] text-center">
+                Start by adding a new project to see it here.
+              </p>
+            </>
+          ) : searchTerm.trim() !== "" ? (
+            // SEARCH RETURNED NO RESULTS STATE
+            <>
+              {/* SEARCH ICON */}
+              <Search
+                size={48}
+                className="text-[var(--accent-color)] opacity-50"
+              />
+              {/* EMPTY STATE TITLE */}
+              <p className="text-lg font-medium text-[var(--text-primary)]">
+                Your search does not match any projects
+              </p>
+              {/* EMPTY STATE MESSAGE */}
+              <p className="text-sm text-[var(--light-text)] text-center">
+                Try adjusting your search terms or create a new project.
+              </p>
+            </>
+          ) : null}
         </div>
       ) : (
         // PROJECTS LIST
@@ -384,28 +419,28 @@ const ListModeProjects = ({
         onClose={() => setSelectedProjectId(null)}
       />
       {/* PAGINATION */}
-      <footer className="flex justify-between items-center mt-6 text-sm text-[var(--light-text)]">
+      <footer className="flex justify-between items-center mt-6 flex-wrap gap-2">
         {/* PREVIOUS BUTTON */}
         <button
           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
-          className="px-3 py-1 border border-[var(--border)] cursor-pointer rounded-lg disabled:opacity-50"
+          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border border-[var(--border)] cursor-pointer rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-primary)]"
         >
-          Prev
+          <ChevronLeft size={14} className="sm:w-4 sm:h-4" />
         </button>
         {/* PAGE NUMBERS */}
         {currentProjects.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-1.5">
             {/* MAPPING THROUGH PAGES */}
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
               // PAGE NUMBER BUTTON
               <button
                 key={num}
                 onClick={() => setCurrentPage(num)}
-                className={`px-3 py-1 rounded-lg border border-[var(--border)] cursor-pointer ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full border border-[var(--border)] cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
                   num === currentPage
-                    ? "bg-[var(--accent-color)] text-white border-[var(--accent-color)]"
-                    : "hover:bg-[var(--hover-bg)]"
+                    ? "bg-[var(--accent-color)] text-white border-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)]"
+                    : "text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
                 }`}
               >
                 {num}
@@ -417,9 +452,9 @@ const ListModeProjects = ({
         <button
           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 border border-[var(--border)] cursor-pointer rounded-lg disabled:opacity-50"
+          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border border-[var(--border)] cursor-pointer rounded-full disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-primary)]"
         >
-          Next
+          <ChevronRight size={14} className="sm:w-4 sm:h-4" />
         </button>
       </footer>
     </div>
