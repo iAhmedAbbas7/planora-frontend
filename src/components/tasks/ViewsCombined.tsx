@@ -113,7 +113,7 @@ const ViewsCombined = (): JSX.Element => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search task..."
+            placeholder="Search all tasks"
             className="border border-[var(--border)] pl-10 pr-3 py-2 rounded-xl w-full focus:ring-1 focus:ring-[var(--accent-color)] outline-none text-sm bg-transparent text-[var(--text-primary)]"
           />
         </div>
@@ -170,7 +170,9 @@ const ViewsCombined = (): JSX.Element => {
         {viewMode === "board" ? (
           // BOARD VIEW
           <BoardView
-            tasks={filteredTasks}
+            tasks={tasks}
+            filteredTasks={filteredTasks}
+            searchTerm={searchTerm}
             loading={isLoading}
             hasLoaded={hasLoaded}
             setTasks={setTasks}
@@ -181,7 +183,9 @@ const ViewsCombined = (): JSX.Element => {
         ) : (
           // LIST VIEW
           <ListView
-            tasks={filteredTasks}
+            tasks={tasks}
+            filteredTasks={filteredTasks}
+            searchTerm={searchTerm}
             loading={isLoading}
             hasLoaded={hasLoaded}
             setTasks={setTasks}
