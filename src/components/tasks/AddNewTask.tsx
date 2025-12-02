@@ -7,17 +7,17 @@ import {
   Calendar,
   Flag,
 } from "lucide-react";
+import {
+  useCreateTask,
+  useUpdateTask,
+  Task as TaskType,
+} from "../../hooks/useTasks";
 import { toast } from "../../lib/toast";
 import "react-day-picker/dist/style.css";
 import { DayPicker } from "react-day-picker";
 import type { Task } from "../../types/task";
 import { useProjects } from "../../hooks/useProjects";
 import { useEffect, useState, JSX, ChangeEvent, FormEvent } from "react";
-import {
-  useCreateTask,
-  useUpdateTask,
-  Task as TaskType,
-} from "../../hooks/useTasks";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -99,6 +99,26 @@ const AddNewTask = ({
     // RETURN ORIGINAL IF NO MATCH
     return statusValue;
   };
+  // FORMAT PRIORITY FOR DISPLAY FUNCTION
+  const formatPriorityForDisplay = (
+    priorityValue: string | null | undefined
+  ): string => {
+    // IF NO PRIORITY, RETURN EMPTY STRING
+    if (!priorityValue) return "";
+    // CONVERT TO LOWERCASE FOR COMPARISON
+    const lowerPriority = priorityValue.toLowerCase();
+    // IF LOW, RETURN "Low"
+    if (lowerPriority === "low") return "Low";
+    // IF MEDIUM, RETURN "Medium"
+    if (lowerPriority === "medium") return "Medium";
+    // IF HIGH, RETURN "High"
+    if (lowerPriority === "high") return "High";
+    // RETURN CAPITALIZED VERSION
+    return (
+      priorityValue.charAt(0).toUpperCase() +
+      priorityValue.slice(1).toLowerCase()
+    );
+  };
   // INITIALIZE FROM INITIAL TASK EFFECT
   useEffect(() => {
     // CHECK IF INITIAL TASK EXISTS
@@ -110,8 +130,15 @@ const AddNewTask = ({
         // SET STATUS
         setStatus(formattedStatus);
       }
-      // SET PRIORITY IF EXISTS
-      if (initialTask.priority) setPriority(initialTask.priority);
+      // SET PRIORITY IF EXISTS (FORMAT IT)
+      if (initialTask.priority) {
+        // FORMAT PRIORITY FOR DISPLAY
+        const formattedPriority = formatPriorityForDisplay(
+          initialTask.priority
+        );
+        // SET PRIORITY
+        setPriority(formattedPriority);
+      }
       // SET SELECTED DATE IF EXISTS
       if (initialTask.dueDate) setSelected(new Date(initialTask.dueDate));
     }
@@ -581,7 +608,7 @@ const AddNewTask = ({
               size={18}
               className="absolute left-3 text-[var(--light-text)]"
             />
-            {priority || "Select priority"}
+            {formatPriorityForDisplay(priority) || "Select priority"}
             {/* CHEVRON DOWN ICON */}
             <ChevronDown size={16} className="text-[var(--light-text)]" />
           </button>
