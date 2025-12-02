@@ -16,6 +16,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  Search,
 } from "lucide-react";
 import {
   DragDropContext,
@@ -31,6 +32,10 @@ import ActionDropdown from "./dropdown/ActionDropdown";
 type Props = {
   // <== TASKS ==>
   tasks: Task[];
+  // <== FILTERED TASKS (FROM MAIN SEARCH) ==>
+  filteredTasks: Task[];
+  // <== SEARCH TERM (FROM MAIN SEARCH) ==>
+  searchTerm: string;
   // <== LOADING ==>
   loading: boolean;
   // <== HAS LOADED ==>
@@ -47,6 +52,8 @@ type Props = {
 // <== BOARD VIEW COMPONENT ==>
 const BoardView = ({
   tasks,
+  filteredTasks,
+  searchTerm,
   loading,
   hasLoaded,
   setTasks,
@@ -58,6 +65,14 @@ const BoardView = ({
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   // EXPANDED TASKS STATE
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  // SECTION SEARCH TERMS STATE
+  const [sectionSearchTerms, setSectionSearchTerms] = useState<{
+    [key: string]: string;
+  }>({
+    "to do": "",
+    "in progress": "",
+    completed: "",
+  });
   // DROPDOWN OPEN STATE
   const [isDropdownOpen, setDropdownIsOpen] = useState<boolean>(false);
   // MODAL OPEN STATE
@@ -266,6 +281,29 @@ const BoardView = ({
       return updatedTasks;
     });
   };
+  // FILTER TASKS BY SECTION SEARCH TERM
+  const filterTasksBySectionSearch = (
+    sectionTasks: Task[],
+    searchTerm: string
+  ): Task[] => {
+    // CHECK IF SEARCH TERM IS EMPTY
+    if (!searchTerm.trim()) return sectionTasks;
+    // FILTER TASKS BY SEARCH TERM
+    return sectionTasks.filter((task) =>
+      [task.title, task.description]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  };
+  // UPDATE SECTION SEARCH TERM FUNCTION
+  const updateSectionSearchTerm = (sectionId: string, term: string): void => {
+    // UPDATE SECTION SEARCH TERMS
+    setSectionSearchTerms((prev) => ({
+      ...prev,
+      [sectionId]: term,
+    }));
+  };
   // SHOW LOADING STATE IF LOADING
   if (loading) {
     return (
@@ -274,342 +312,633 @@ const BoardView = ({
       </div>
     );
   }
+  // CHECK IF MAIN SEARCH IS ACTIVE
+  const isMainSearchActive = searchTerm.trim() !== "";
   // RETURNING THE BOARD VIEW COMPONENT
   return (
     // DRAG DROP CONTEXT
     <DragDropContext onDragEnd={onDragEnd}>
-      {/* COLUMNS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-stretch relative">
-        {/* MAPPING THROUGH COLUMNS */}
-        {columns.map((col) => {
-          // FILTER TASKS BY STATUS
-          const filteredTasks = tasks.filter((task) => task.status === col.id);
-          return (
-            // COLUMN CONTAINER
-            <div
-              key={col.id}
-              className="bg-[var(--cards-bg)] backdrop-blur-[var(--blur)] rounded-xl shadow-sm p-4 sm:p-5 flex flex-col border border-[var(--border)] h-full"
-            >
-              {/* COLUMN HEADER */}
-              <div className="flex items-center justify-between mb-4">
-                {/* COLUMN TITLE CONTAINER */}
-                <div className="flex items-center gap-2">
-                  {/* STATUS DOT */}
-                  <span className={`w-3 h-3 rounded-full ${col.dot}`}></span>
-                  {/* COLUMN TITLE */}
-                  <h2 className="font-semibold text-[var(--text-primary)]">
-                    {col.title}
-                  </h2>
-                  {/* TASK COUNT BADGE */}
-                  {filteredTasks.length > 0 && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
-                      <span
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                          backgroundColor: `var(--accent-color)`,
-                          opacity: 0.15,
-                        }}
-                      ></span>
-                      <span
-                        className="relative"
-                        style={{ color: `var(--accent-color)` }}
-                      >
-                        {filteredTasks.length}
-                      </span>
+      {/* CHECK IF MAIN SEARCH IS ACTIVE */}
+      {isMainSearchActive ? (
+        // SEARCH RESULTS SECTION
+        <div className="w-full">
+          <div className="bg-[var(--cards-bg)] backdrop-blur-[var(--blur)] rounded-xl shadow-sm p-4 sm:p-5 flex flex-col border border-[var(--border)] h-full">
+            {/* SEARCH RESULTS HEADER */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Search
+                  size={16}
+                  className="text-[var(--accent-color)] flex-shrink-0"
+                />
+                <h2 className="font-semibold text-[var(--text-primary)]">
+                  Search Results
+                </h2>
+                {filteredTasks.length > 0 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                    <span
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        backgroundColor: `var(--accent-color)`,
+                        opacity: 0.15,
+                      }}
+                    ></span>
+                    <span
+                      className="relative"
+                      style={{ color: `var(--accent-color)` }}
+                    >
+                      {filteredTasks.length}
                     </span>
+                  </span>
+                )}
+              </div>
+            </div>
+            {/* SEARCH RESULTS CONTENT */}
+            <Droppable droppableId="search-results">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0"
+                >
+                  {filteredTasks.length > 0 ? (
+                    filteredTasks.map((task, index) => (
+                      <Draggable
+                        key={task._id}
+                        draggableId={task._id.toString()}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            style={{
+                              ...provided.draggableProps.style,
+                              transform: snapshot.isDragging
+                                ? provided.draggableProps.style?.transform
+                                : "none",
+                              transition: snapshot.isDragging
+                                ? "transform 0.1s ease"
+                                : undefined,
+                              zIndex: snapshot.isDragging ? 9999 : "auto",
+                              position: snapshot.isDragging
+                                ? "relative"
+                                : "static",
+                            }}
+                            className={`bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all ${
+                              snapshot.isDragging
+                                ? "shadow-xl scale-[1.02]"
+                                : "hover:bg-[var(--hover-bg)]"
+                            }`}
+                          >
+                            {/* Render task card - same as in columns */}
+                            {expandedTasks.has(task._id) ? (
+                              // EXPANDED STATE - same structure as before
+                              <div className="p-3 sm:p-4">
+                                <div className="flex items-center justify-between gap-3 mb-3">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
+                                      {task.title}
+                                    </p>
+                                    <button
+                                      onClick={(e) =>
+                                        toggleTaskExpand(task._id, e)
+                                      }
+                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
+                                      title="Collapse"
+                                    >
+                                      <ChevronUp size={18} />
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <button
+                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openDropdown(e, task._id);
+                                      }}
+                                    >
+                                      <MoreHorizontal size={18} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <section className="flex flex-col gap-3 text-sm">
+                                  {task.description && (
+                                    <div className="flex items-start gap-3">
+                                      <div className="flex-1">
+                                        <p className="text-sm text-[var(--light-text)] leading-relaxed">
+                                          {task.description}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {task.priority && (
+                                    <div className="flex items-center gap-3">
+                                      <Flag
+                                        size={16}
+                                        className="text-[var(--accent-color)] flex-shrink-0"
+                                      />
+                                      <div className="flex items-center gap-3 flex-1 justify-between">
+                                        <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                          Priority
+                                        </span>
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
+                                          <span
+                                            className="absolute inset-0 rounded-full"
+                                            style={{
+                                              backgroundColor: `var(--accent-color)`,
+                                              opacity: 0.15,
+                                            }}
+                                          ></span>
+                                          <span
+                                            className="relative"
+                                            style={{
+                                              color: `var(--accent-color)`,
+                                            }}
+                                          >
+                                            {task.priority
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                              task.priority.slice(1)}
+                                          </span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {task.dueDate && (
+                                    <div className="flex items-center gap-3">
+                                      <Calendar
+                                        size={16}
+                                        className="text-[var(--accent-color)] flex-shrink-0"
+                                      />
+                                      <div className="flex items-center gap-3 flex-1 justify-between">
+                                        <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                          Due Date
+                                        </span>
+                                        <span className="text-sm text-[var(--text-primary)]">
+                                          {new Date(
+                                            task.dueDate
+                                          ).toLocaleDateString("en-US", {
+                                            month: "short",
+                                            day: "numeric",
+                                            year: "numeric",
+                                          })}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </section>
+                              </div>
+                            ) : (
+                              // COLLAPSED STATE
+                              <div className="p-3 sm:p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedItems.includes(task._id)}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedItems((prev) =>
+                                          prev.includes(task._id)
+                                            ? prev.filter(
+                                                (id) => id !== task._id
+                                              )
+                                            : [...prev, task._id]
+                                        );
+                                      }}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
+                                    />
+                                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                      {task.title}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <button
+                                      onClick={(e) =>
+                                        toggleTaskExpand(task._id, e)
+                                      }
+                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                      title="Expand"
+                                    >
+                                      <ChevronDown size={18} />
+                                    </button>
+                                    <button
+                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openDropdown(e, task._id);
+                                      }}
+                                    >
+                                      <MoreHorizontal size={18} />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))
+                  ) : hasLoaded ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <Search
+                        size={48}
+                        className="text-[var(--light-text)] opacity-50"
+                      />
+                      <p className="text-sm font-medium text-[var(--light-text)]">
+                        No tasks found
+                      </p>
+                      <p className="text-xs text-[var(--light-text)] text-center">
+                        Your search does not match any tasks.
+                      </p>
+                    </div>
+                  ) : null}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
+        </div>
+      ) : (
+        // NORMAL THREE SECTIONS
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-stretch relative w-full">
+          {/* MAPPING THROUGH COLUMNS */}
+          {columns.map((col) => {
+            // FILTER TASKS BY STATUS
+            const sectionTasks = tasks.filter((task) => task.status === col.id);
+            // FILTER BY SECTION SEARCH TERM
+            const sectionSearchTerm = sectionSearchTerms[col.id] || "";
+            const filteredSectionTasks = filterTasksBySectionSearch(
+              sectionTasks,
+              sectionSearchTerm
+            );
+            return (
+              // COLUMN CONTAINER
+              <div
+                key={col.id}
+                className="bg-[var(--cards-bg)] backdrop-blur-[var(--blur)] rounded-xl shadow-sm p-4 sm:p-5 flex flex-col border border-[var(--border)] h-full"
+              >
+                {/* COLUMN HEADER */}
+                <div className="flex items-center justify-between mb-4">
+                  {/* COLUMN TITLE CONTAINER */}
+                  <div className="flex items-center gap-2">
+                    {/* STATUS DOT */}
+                    <span className={`w-3 h-3 rounded-full ${col.dot}`}></span>
+                    {/* COLUMN TITLE */}
+                    <h2 className="font-semibold text-[var(--text-primary)]">
+                      {col.title}
+                    </h2>
+                    {/* TASK COUNT BADGE */}
+                    {sectionTasks.length > 0 && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                        <span
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            backgroundColor: `var(--accent-color)`,
+                            opacity: 0.15,
+                          }}
+                        ></span>
+                        <span
+                          className="relative"
+                          style={{ color: `var(--accent-color)` }}
+                        >
+                          {sectionTasks.length}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                  {/* SELECT ALL CHECKBOX */}
+                  {filteredSectionTasks.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="accent-[var(--accent-color)] cursor-pointer"
+                        checked={
+                          filteredSectionTasks.length > 0 &&
+                          filteredSectionTasks.every((task) =>
+                            selectedItems.includes(task._id)
+                          )
+                        }
+                        onClick={() => setDropdownIsOpen(!isDropdownOpen)}
+                        onChange={(e) => {
+                          // GET CHECKED STATE
+                          const isChecked = e.target.checked;
+                          // GET TASK IDS FROM COLUMN
+                          const taskIds = filteredSectionTasks.map(
+                            (task) => task._id
+                          );
+                          // UPDATE SELECTED ITEMS
+                          setSelectedItems((prev) =>
+                            isChecked
+                              ? Array.from(new Set([...prev, ...taskIds]))
+                              : prev.filter((id) => !taskIds.includes(id))
+                          );
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
-                {/* SELECT ALL CHECKBOX */}
-                {filteredTasks.length > 0 && (
-                  <div className="flex items-center gap-2">
+                {/* SECTION SEARCH BAR - ONLY SHOW IF SECTION HAS TASKS */}
+                {sectionTasks.length > 0 && (
+                  <div className="relative mb-3">
+                    <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-[var(--accent-color)]" />
                     <input
-                      type="checkbox"
-                      className="accent-[var(--accent-color)] cursor-pointer"
-                      checked={
-                        filteredTasks.length > 0 &&
-                        filteredTasks.every((task) =>
-                          selectedItems.includes(task._id)
-                        )
+                      type="text"
+                      value={sectionSearchTerm}
+                      onChange={(e) =>
+                        updateSectionSearchTerm(col.id, e.target.value)
                       }
-                      onClick={() => setDropdownIsOpen(!isDropdownOpen)}
-                      onChange={(e) => {
-                        // GET CHECKED STATE
-                        const isChecked = e.target.checked;
-                        // GET TASK IDS FROM COLUMN
-                        const taskIds = filteredTasks.map((task) => task._id);
-                        // UPDATE SELECTED ITEMS
-                        setSelectedItems((prev) =>
-                          isChecked
-                            ? Array.from(new Set([...prev, ...taskIds]))
-                            : prev.filter((id) => !taskIds.includes(id))
-                        );
-                      }}
+                      placeholder={`Search in ${col.title}...`}
+                      className="border border-[var(--border)] pl-8 pr-2.5 py-1.5 rounded-lg w-full focus:ring-1 focus:ring-[var(--accent-color)] outline-none text-xs bg-[var(--bg)] text-[var(--text-primary)]"
                     />
                   </div>
                 )}
-              </div>
-              {/* DROPPABLE AREA */}
-              <Droppable droppableId={col.id}>
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0"
-                  >
-                    {/* CHECK IF TASKS EXIST AND DATA HAS LOADED */}
-                    {filteredTasks.length > 0 ? (
-                      // MAPPING THROUGH TASKS
-                      filteredTasks.map((task, index) => (
-                        // DRAGGABLE TASK
-                        <Draggable
-                          key={task._id}
-                          draggableId={task._id.toString()}
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            // TASK CARD
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              style={{
-                                ...provided.draggableProps.style,
-                                transform: snapshot.isDragging
-                                  ? provided.draggableProps.style?.transform
-                                  : "none",
-                                transition: snapshot.isDragging
-                                  ? "transform 0.1s ease"
-                                  : undefined,
-                                zIndex: snapshot.isDragging ? 9999 : "auto",
-                                position: snapshot.isDragging
-                                  ? "relative"
-                                  : "static",
-                              }}
-                              className={`bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all ${
-                                snapshot.isDragging
-                                  ? "shadow-xl scale-[1.02]"
-                                  : "hover:bg-[var(--hover-bg)]"
-                              }`}
-                            >
-                              {/* CHECK IF TASK IS EXPANDED */}
-                              {expandedTasks.has(task._id) ? (
-                                // EXPANDED STATE
-                                <div className="p-3 sm:p-4">
-                                  {/* EXPANDED HEADER */}
-                                  <div className="flex items-center justify-between gap-3 mb-3">
-                                    {/* LEFT SIDE: TITLE */}
-                                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
-                                        {task.title}
-                                      </p>
-                                      {/* COLLAPSE BUTTON */}
-                                      <button
-                                        onClick={(e) =>
-                                          toggleTaskExpand(task._id, e)
-                                        }
-                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
-                                        title="Collapse"
-                                      >
-                                        <ChevronUp size={18} />
-                                      </button>
-                                    </div>
-                                    {/* RIGHT SIDE: ACTIONS */}
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                      {/* DROPDOWN BUTTON */}
-                                      <button
-                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          openDropdown(e, task._id);
-                                        }}
-                                      >
-                                        <MoreHorizontal size={18} />
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  {/* EXPANDED CONTENT */}
-                                  <section className="flex flex-col gap-3 text-sm">
-                                    {/* DESCRIPTION */}
-                                    {task.description && (
-                                      <div className="flex items-start gap-3">
-                                        <div className="flex-1">
-                                          <p className="text-sm text-[var(--light-text)] leading-relaxed">
-                                            {task.description}
-                                          </p>
-                                        </div>
+                {/* DROPPABLE AREA */}
+                <Droppable droppableId={col.id}>
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0"
+                    >
+                      {/* CHECK IF TASKS EXIST AND DATA HAS LOADED */}
+                      {filteredSectionTasks.length > 0 ? (
+                        // MAPPING THROUGH TASKS
+                        filteredSectionTasks.map((task, index) => (
+                          // DRAGGABLE TASK
+                          <Draggable
+                            key={task._id}
+                            draggableId={task._id.toString()}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              // TASK CARD
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                style={{
+                                  ...provided.draggableProps.style,
+                                  transform: snapshot.isDragging
+                                    ? provided.draggableProps.style?.transform
+                                    : "none",
+                                  transition: snapshot.isDragging
+                                    ? "transform 0.1s ease"
+                                    : undefined,
+                                  zIndex: snapshot.isDragging ? 9999 : "auto",
+                                  position: snapshot.isDragging
+                                    ? "relative"
+                                    : "static",
+                                }}
+                                className={`bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all ${
+                                  snapshot.isDragging
+                                    ? "shadow-xl scale-[1.02]"
+                                    : "hover:bg-[var(--hover-bg)]"
+                                }`}
+                              >
+                                {/* CHECK IF TASK IS EXPANDED */}
+                                {expandedTasks.has(task._id) ? (
+                                  // EXPANDED STATE
+                                  <div className="p-3 sm:p-4">
+                                    {/* EXPANDED HEADER */}
+                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                      {/* LEFT SIDE: TITLE */}
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
+                                          {task.title}
+                                        </p>
+                                        {/* COLLAPSE BUTTON */}
+                                        <button
+                                          onClick={(e) =>
+                                            toggleTaskExpand(task._id, e)
+                                          }
+                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
+                                          title="Collapse"
+                                        >
+                                          <ChevronUp size={18} />
+                                        </button>
                                       </div>
-                                    )}
+                                      {/* RIGHT SIDE: ACTIONS */}
+                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                        {/* DROPDOWN BUTTON */}
+                                        <button
+                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            openDropdown(e, task._id);
+                                          }}
+                                        >
+                                          <MoreHorizontal size={18} />
+                                        </button>
+                                      </div>
+                                    </div>
 
-                                    {/* PRIORITY */}
-                                    {task.priority && (
-                                      <div className="flex items-center gap-3">
-                                        <Flag
-                                          size={16}
-                                          className="text-[var(--accent-color)] flex-shrink-0"
-                                        />
-                                        <div className="flex items-center gap-3 flex-1 justify-between">
-                                          <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
-                                            Priority
-                                          </span>
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
-                                            <span
-                                              className="absolute inset-0 rounded-full"
-                                              style={{
-                                                backgroundColor: `var(--accent-color)`,
-                                                opacity: 0.15,
-                                              }}
-                                            ></span>
-                                            <span
-                                              className="relative"
-                                              style={{
-                                                color: `var(--accent-color)`,
-                                              }}
-                                            >
-                                              {task.priority
-                                                .charAt(0)
-                                                .toUpperCase() +
-                                                task.priority.slice(1)}
+                                    {/* EXPANDED CONTENT */}
+                                    <section className="flex flex-col gap-3 text-sm">
+                                      {/* DESCRIPTION */}
+                                      {task.description && (
+                                        <div className="flex items-start gap-3">
+                                          <div className="flex-1">
+                                            <p className="text-sm text-[var(--light-text)] leading-relaxed">
+                                              {task.description}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* PRIORITY */}
+                                      {task.priority && (
+                                        <div className="flex items-center gap-3">
+                                          <Flag
+                                            size={16}
+                                            className="text-[var(--accent-color)] flex-shrink-0"
+                                          />
+                                          <div className="flex items-center gap-3 flex-1 justify-between">
+                                            <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                              Priority
                                             </span>
-                                          </span>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
+                                              <span
+                                                className="absolute inset-0 rounded-full"
+                                                style={{
+                                                  backgroundColor: `var(--accent-color)`,
+                                                  opacity: 0.15,
+                                                }}
+                                              ></span>
+                                              <span
+                                                className="relative"
+                                                style={{
+                                                  color: `var(--accent-color)`,
+                                                }}
+                                              >
+                                                {task.priority
+                                                  .charAt(0)
+                                                  .toUpperCase() +
+                                                  task.priority.slice(1)}
+                                              </span>
+                                            </span>
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
+                                      )}
 
-                                    {/* DUE DATE */}
-                                    {task.dueDate && (
-                                      <div className="flex items-center gap-3">
-                                        <Calendar
-                                          size={16}
-                                          className="text-[var(--accent-color)] flex-shrink-0"
-                                        />
-                                        <div className="flex items-center gap-3 flex-1 justify-between">
-                                          <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
-                                            Due Date
-                                          </span>
-                                          <span className="text-sm text-[var(--text-primary)]">
-                                            {new Date(
-                                              task.dueDate
-                                            ).toLocaleDateString("en-US", {
-                                              month: "short",
-                                              day: "numeric",
-                                              year: "numeric",
-                                            })}
-                                          </span>
+                                      {/* DUE DATE */}
+                                      {task.dueDate && (
+                                        <div className="flex items-center gap-3">
+                                          <Calendar
+                                            size={16}
+                                            className="text-[var(--accent-color)] flex-shrink-0"
+                                          />
+                                          <div className="flex items-center gap-3 flex-1 justify-between">
+                                            <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                              Due Date
+                                            </span>
+                                            <span className="text-sm text-[var(--text-primary)]">
+                                              {new Date(
+                                                task.dueDate
+                                              ).toLocaleDateString("en-US", {
+                                                month: "short",
+                                                day: "numeric",
+                                                year: "numeric",
+                                              })}
+                                            </span>
+                                          </div>
                                         </div>
+                                      )}
+                                    </section>
+                                  </div>
+                                ) : (
+                                  // COLLAPSED STATE
+                                  <div className="p-3 sm:p-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                      {/* LEFT SIDE: CHECKBOX AND TITLE */}
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        {/* CHECKBOX */}
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedItems.includes(
+                                            task._id
+                                          )}
+                                          onChange={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedItems((prev) =>
+                                              prev.includes(task._id)
+                                                ? prev.filter(
+                                                    (id) => id !== task._id
+                                                  )
+                                                : [...prev, task._id]
+                                            );
+                                          }}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
+                                        />
+                                        {/* TITLE */}
+                                        <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                          {task.title}
+                                        </p>
                                       </div>
-                                    )}
-                                  </section>
-                                </div>
-                              ) : (
-                                // COLLAPSED STATE
-                                <div className="p-3 sm:p-4">
-                                  <div className="flex items-center justify-between gap-3">
-                                    {/* LEFT SIDE: CHECKBOX AND TITLE */}
-                                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                                      {/* CHECKBOX */}
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedItems.includes(
-                                          task._id
-                                        )}
-                                        onChange={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedItems((prev) =>
-                                            prev.includes(task._id)
-                                              ? prev.filter(
-                                                  (id) => id !== task._id
-                                                )
-                                              : [...prev, task._id]
-                                          );
-                                        }}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
-                                      />
-                                      {/* TITLE */}
-                                      <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                                        {task.title}
-                                      </p>
-                                    </div>
-                                    {/* ACTIONS */}
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                      {/* EXPAND BUTTON */}
-                                      <button
-                                        onClick={(e) =>
-                                          toggleTaskExpand(task._id, e)
-                                        }
-                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
-                                        title="Expand"
-                                      >
-                                        <ChevronDown size={18} />
-                                      </button>
-                                      {/* DROPDOWN BUTTON */}
-                                      <button
-                                        className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          openDropdown(e, task._id);
-                                        }}
-                                      >
-                                        <MoreHorizontal size={18} />
-                                      </button>
+                                      {/* ACTIONS */}
+                                      <div className="flex items-center gap-2 flex-shrink-0">
+                                        {/* EXPAND BUTTON */}
+                                        <button
+                                          onClick={(e) =>
+                                            toggleTaskExpand(task._id, e)
+                                          }
+                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                          title="Expand"
+                                        >
+                                          <ChevronDown size={18} />
+                                        </button>
+                                        {/* DROPDOWN BUTTON */}
+                                        <button
+                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            openDropdown(e, task._id);
+                                          }}
+                                        >
+                                          <MoreHorizontal size={18} />
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              )}
-                            </div>
+                                )}
+                              </div>
+                            )}
+                          </Draggable>
+                        ))
+                      ) : hasLoaded ? (
+                        // EMPTY STATE (ONLY SHOW IF DATA HAS LOADED)
+                        <div className="flex flex-col items-center justify-center py-12 gap-3">
+                          {/* CHECK IF SECTION HAS TASKS BUT SEARCH RETURNED NO RESULTS */}
+                          {sectionTasks.length > 0 &&
+                          sectionSearchTerm.trim() !== "" ? (
+                            <>
+                              {/* SEARCH NO RESULTS ICON */}
+                              <Search
+                                size={48}
+                                className="text-[var(--light-text)] opacity-50"
+                              />
+                              {/* SEARCH NO RESULTS TEXT */}
+                              <p className="text-sm font-medium text-[var(--light-text)]">
+                                No tasks found
+                              </p>
+                              <p className="text-xs text-[var(--light-text)] text-center">
+                                Your search does not match any tasks in this
+                                section.
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              {/* NO TASKS ICON */}
+                              <ClipboardList
+                                size={48}
+                                className="text-[var(--light-text)] opacity-50"
+                              />
+                              {/* NO TASKS TEXT */}
+                              <p className="text-sm font-medium text-[var(--light-text)]">
+                                No tasks yet
+                              </p>
+                              <p className="text-xs text-[var(--light-text)] text-center">
+                                Add tasks to this section to get started.
+                              </p>
+                            </>
                           )}
-                        </Draggable>
-                      ))
-                    ) : hasLoaded ? (
-                      // EMPTY STATE (ONLY SHOW IF DATA HAS LOADED)
-                      <div className="flex flex-col items-center justify-center py-12 gap-3">
-                        {/* EMPTY STATE ICON */}
-                        <ClipboardList
-                          size={48}
-                          className="text-[var(--light-text)] opacity-50"
-                        />
-                        {/* EMPTY STATE TEXT */}
-                        <p className="text-sm font-medium text-[var(--light-text)]">
-                          No tasks yet
-                        </p>
-                        <p className="text-xs text-[var(--light-text)] text-center">
-                          Add tasks to this section to get started.
-                        </p>
-                      </div>
-                    ) : null}
-                    {/* PLACEHOLDER */}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-              {/* ADD TASK BUTTON */}
-              <button
-                className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-[var(--accent-color)] cursor-pointer text-[var(--primary-text)] rounded-lg transition"
-                onClick={() => {
-                  setDropdownTaskId(null);
-                  setTaskToEdit(null);
-                  setNewTaskStatus(col.id as Task["status"]);
-                  setTimeout(() => setIsOpen(true), 0);
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor =
-                    "var(--accent-btn-hover-color)";
-                  e.currentTarget.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "var(--primary-text)";
-                }}
-              >
-                {/* PLUS ICON */}
-                <Plus size={16} />
-                {/* BUTTON TEXT */}
-                <span className="text-sm font-medium">Add Task</span>
-              </button>
-            </div>
-          );
-        })}
-      </div>
+                        </div>
+                      ) : null}
+                      {/* PLACEHOLDER */}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+                {/* ADD TASK BUTTON */}
+                <button
+                  className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-[var(--accent-color)] cursor-pointer text-[var(--primary-text)] rounded-lg transition"
+                  onClick={() => {
+                    setDropdownTaskId(null);
+                    setTaskToEdit(null);
+                    setNewTaskStatus(col.id as Task["status"]);
+                    setTimeout(() => setIsOpen(true), 0);
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "var(--accent-btn-hover-color)";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "var(--primary-text)";
+                  }}
+                >
+                  {/* PLUS ICON */}
+                  <Plus size={16} />
+                  {/* BUTTON TEXT */}
+                  <span className="text-sm font-medium">Add Task</span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
       {/* SELECTED TASKS MODAL */}
       {selectedItems.length > 0 && (
         <div
