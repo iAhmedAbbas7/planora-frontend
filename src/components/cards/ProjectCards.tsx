@@ -2,9 +2,9 @@
 import { useState, useEffect, JSX } from "react";
 import ListModeProjects from "./ListModeProjects";
 import CardsModeProjects from "./CardsModeProjects";
+import { useProjects } from "../../hooks/useProjects";
 import AddProjectModal from "../projects/AddProjectModal";
 import { Search, List, LayoutGrid, X, Plus } from "lucide-react";
-import { useProjects } from "../../hooks/useProjects";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -69,6 +69,7 @@ const ProjectCards = (): JSX.Element => {
   useEffect(() => {
     // UPDATE PROJECTS FROM API
     if (fetchedProjects) {
+      // UPDATE PROJECTS FROM API
       setProjects(fetchedProjects);
     }
   }, [fetchedProjects]);
@@ -77,6 +78,11 @@ const ProjectCards = (): JSX.Element => {
     // RESET TO FIRST PAGE
     setCurrentPage(1);
   }, [viewMode]);
+  // RESET PAGE WHEN SEARCH TERM CHANGES EFFECT
+  useEffect(() => {
+    // RESET TO FIRST PAGE WHEN SEARCH CHANGES
+    setCurrentPage(1);
+  }, [searchTerm]);
   // FILTER PROJECTS
   const filteredProjects = projects.filter((p) =>
     p.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -137,6 +143,8 @@ const ProjectCards = (): JSX.Element => {
     editProject,
     handleProjectAdded,
     onOpenAddTask,
+    searchTerm,
+    hasProjects: projects.length > 0,
   };
   // RETURNING THE PROJECT CARDS COMPONENT
   return (
@@ -147,14 +155,14 @@ const ProjectCards = (): JSX.Element => {
         {/* SEARCH CONTAINER */}
         <div className="relative w-full sm:w-64">
           {/* SEARCH ICON */}
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--light-text)]" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--accent-color)]" />
           {/* SEARCH INPUT */}
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search project..."
-            className="border border-[var(--border)] pl-10 pr-3 py-2 rounded-xl w-full focus:ring-1 focus:ring-[var(--accent-color)] outline-none text-sm"
+            className="border border-[var(--border)] pl-10 pr-3 py-2 rounded-xl w-full focus:ring-1 focus:ring-[var(--accent-color)] outline-none text-sm bg-transparent text-[var(--text-primary)]"
           />
         </div>
         {/* ACTIONS CONTAINER */}
@@ -166,43 +174,35 @@ const ProjectCards = (): JSX.Element => {
               {/* LIST VIEW BUTTON */}
               <button
                 onClick={() => setViewMode("list")}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-xl cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors ${
                   viewMode === "list"
-                    ? "bg-[var(--inside-card-bg)] border-[var(--accent-color)] text-[var(--accent-color)]"
-                    : "border-[var(--border-color)] hover:bg-[var(--hover-bg)]"
+                    ? "border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)] hover:text-white"
+                    : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
                 }`}
               >
-                <List className="h-4 w-4" />
+                <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">List</span>
               </button>
               {/* CARD VIEW BUTTON */}
               <button
                 onClick={() => setViewMode("card")}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm border rounded-xl cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors ${
                   viewMode === "card"
-                    ? "bg-[var(--inside-card-bg)] border-[var(--accent-color)] text-[var(--accent-color)]"
-                    : "border-[var(--border)] hover:bg-[var(--hover-bg)]"
+                    ? "border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)] hover:text-white"
+                    : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
                 }`}
               >
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Board</span>
               </button>
             </div>
             {/* ADD PROJECT BUTTON */}
             <button
               onClick={() => setIsProjectModalOpen(true)}
-              style={{ backgroundColor: "var(--accent-color)" }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  "var(--accent-btn-hover-color)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--accent-color)")
-              }
-              className="px-4 sm:px-5 py-2 flex items-center justify-center gap-1 rounded-full text-white text-sm shadow cursor-pointer"
+              className="px-2 sm:px-3 py-1.5 sm:py-2 flex items-center justify-center gap-1.5 sm:gap-2 rounded-md text-xs sm:text-sm border border-[var(--border)] text-[var(--accent-color)] font-medium hover:bg-[var(--accent-btn-hover-color)] hover:text-white cursor-pointer transition-colors"
             >
               {/* PLUS ICON */}
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {/* BUTTON TEXT */}
               <span className="hidden sm:inline">Add Project</span>
             </button>
