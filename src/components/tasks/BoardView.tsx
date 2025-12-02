@@ -1,14 +1,5 @@
 // <== IMPORTS ==>
 import {
-  useEffect,
-  useRef,
-  useState,
-  JSX,
-  Dispatch,
-  SetStateAction,
-} from "react";
-import {
-  MoreHorizontal,
   Plus,
   X,
   ClipboardList,
@@ -17,16 +8,12 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  Edit,
+  Trash2,
 } from "lucide-react";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  type DropResult,
-} from "@hello-pangea/dnd";
 import AddNewTask from "./AddNewTask";
 import type { Task } from "../../types/task";
-import ActionDropdown from "./dropdown/ActionDropdown";
+import { useEffect, useState, JSX, Dispatch, SetStateAction } from "react";
 
 // <== BOARD VIEW PROPS TYPE INTERFACE ==>
 type Props = {
@@ -40,6 +27,7 @@ type Props = {
   loading: boolean;
   // <== HAS LOADED ==>
   hasLoaded: boolean;
+  // <== SET TASKS FUNCTION ==>
   setTasks: Dispatch<SetStateAction<Task[]>>;
   // <== ON TASK DELETED FUNCTION ==>
   onTaskDeleted?: (taskId: string) => void;
@@ -59,7 +47,6 @@ const BoardView = ({
   setTasks,
   onTaskDeleted,
   onTaskEdited,
-  parentModalOpen,
 }: Props): JSX.Element => {
   // SELECTED ITEMS STATE
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -73,8 +60,6 @@ const BoardView = ({
     "in progress": "",
     completed: "",
   });
-  // DROPDOWN OPEN STATE
-  const [isDropdownOpen, setDropdownIsOpen] = useState<boolean>(false);
   // MODAL OPEN STATE
   const [isOpen, setIsOpen] = useState<boolean>(false);
   // TASK TO EDIT STATE
@@ -83,18 +68,6 @@ const BoardView = ({
   const [newTaskStatus, setNewTaskStatus] = useState<Task["status"] | null>(
     null
   );
-  // DROPDOWN TASK ID STATE
-  const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
-  // DROPDOWN POSITION STATE
-  const [dropdownPosition, setDropdownPosition] = useState<{
-    top: number;
-    left: number;
-  }>({
-    top: 0,
-    left: 0,
-  });
-  // DROPDOWN REF
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
   // PREVENT BACKGROUND SCROLLING WHEN TASKS ARE SELECTED
   useEffect(() => {
     // CHECK IF SELECTED ITEMS ARE GREATER THAN 0
@@ -146,57 +119,6 @@ const BoardView = ({
       return newSet;
     });
   };
-  // OPEN DROPDOWN FUNCTION
-  const openDropdown = (e: React.MouseEvent, taskId: string): void => {
-    // GET BUTTON POSITION
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    // GET DROPDOWN WIDTH
-    const dropdownWidth = 150;
-    // CALCULATE SPACE ON RIGHT
-    const spaceRight = window.innerWidth - rect.right;
-    // CALCULATE LEFT POSITION
-    const left =
-      spaceRight > dropdownWidth
-        ? rect.right + window.scrollX
-        : rect.left - dropdownWidth + window.scrollX;
-    // SET DROPDOWN TASK ID
-    setDropdownTaskId(taskId);
-    // SET DROPDOWN POSITION
-    setDropdownPosition({
-      top: rect.bottom + window.scrollY,
-      left: left,
-    });
-  };
-  // CLOSE DROPDOWN FUNCTION
-  const closeDropdown = (): void => {
-    // CLOSE DROPDOWN
-    setDropdownTaskId(null);
-  };
-  // HANDLE CLICK OUTSIDE EFFECT
-  useEffect(() => {
-    // HANDLE CLICK OUTSIDE FUNCTION
-    const handleClickOutside = (event: MouseEvent): void => {
-      // CHECK IF CLICK IS OUTSIDE DROPDOWN
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        // CLOSE DROPDOWN
-        closeDropdown();
-      }
-    };
-    // ADD EVENT LISTENER
-    document.addEventListener("mousedown", handleClickOutside);
-    // REMOVE EVENT LISTENER ON CLEANUP
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
-  // CLOSE DROPDOWN WHEN MODAL OPENS EFFECT
-  useEffect(() => {
-    // CLOSE DROPDOWN IF MODAL IS OPEN
-    if (isOpen || parentModalOpen) setDropdownTaskId(null);
-  }, [isOpen, parentModalOpen]);
   // PREVENT BACKGROUND SCROLLING WHEN MODAL IS OPEN
   useEffect(() => {
     if (isOpen) {
@@ -231,56 +153,6 @@ const BoardView = ({
       dot: "bg-green-500",
     },
   ];
-  // REORDER FUNCTION
-  const reorder = (
-    list: Task[],
-    startIndex: number,
-    endIndex: number
-  ): Task[] => {
-    // CREATE RESULT ARRAY
-    const result = Array.from(list);
-    // REMOVE ITEM FROM START INDEX
-    const [removed] = result.splice(startIndex, 1);
-    // INSERT ITEM AT END INDEX
-    result.splice(endIndex, 0, removed);
-    // RETURN RESULT
-    return result;
-  };
-  // ON DRAG END FUNCTION
-  const onDragEnd = (result: DropResult): void => {
-    // CHECK IF NO DESTINATION
-    if (!result.destination) return;
-    // GET SOURCE AND DESTINATION
-    const { source, destination, draggableId } = result;
-    // UPDATE TASKS STATE
-    setTasks((prev) => {
-      // GET SOURCE TASKS
-      const sourceTasks = prev.filter(
-        (task) => task.status === source.droppableId
-      );
-      // CHECK IF MOVING WITHIN SAME COLUMN
-      if (source.droppableId === destination.droppableId) {
-        // REORDER TASKS
-        const reordered = reorder(sourceTasks, source.index, destination.index);
-        // RETURN UPDATED TASKS
-        return prev.map((task) =>
-          task.status !== source.droppableId
-            ? task
-            : reordered.find((t) => t._id === task._id) || task
-        );
-      }
-      // MOVING ACROSS COLUMNS
-      const newStatus = destination.droppableId as Task["status"];
-      // UPDATE TASK STATUS (UI ONLY - NO API)
-      const updatedTasks = prev.map((task) =>
-        task._id === draggableId ? { ...task, status: newStatus } : task
-      );
-      // LOG STATUS UPDATE (UI ONLY)
-      console.log("Task status updated:", draggableId, newStatus);
-      // RETURN UPDATED TASKS
-      return updatedTasks;
-    });
-  };
   // FILTER TASKS BY SECTION SEARCH TERM
   const filterTasksBySectionSearch = (
     sectionTasks: Task[],
@@ -316,8 +188,7 @@ const BoardView = ({
   const isMainSearchActive = searchTerm.trim() !== "";
   // RETURNING THE BOARD VIEW COMPONENT
   return (
-    // DRAG DROP CONTEXT
-    <DragDropContext onDragEnd={onDragEnd}>
+    <>
       {/* CHECK IF MAIN SEARCH IS ACTIVE */}
       {isMainSearchActive ? (
         // SEARCH RESULTS SECTION
@@ -351,213 +222,218 @@ const BoardView = ({
                   </span>
                 )}
               </div>
-            </div>
-            {/* SEARCH RESULTS CONTENT */}
-            <Droppable droppableId="search-results">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0"
-                >
-                  {filteredTasks.length > 0 ? (
-                    filteredTasks.map((task, index) => (
-                      <Draggable
-                        key={task._id}
-                        draggableId={task._id.toString()}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            style={{
-                              ...provided.draggableProps.style,
-                              transform: snapshot.isDragging
-                                ? provided.draggableProps.style?.transform
-                                : "none",
-                              transition: snapshot.isDragging
-                                ? "transform 0.1s ease"
-                                : undefined,
-                              zIndex: snapshot.isDragging ? 9999 : "auto",
-                              position: snapshot.isDragging
-                                ? "relative"
-                                : "static",
-                            }}
-                            className={`bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all ${
-                              snapshot.isDragging
-                                ? "shadow-xl scale-[1.02]"
-                                : "hover:bg-[var(--hover-bg)]"
-                            }`}
-                          >
-                            {/* Render task card - same as in columns */}
-                            {expandedTasks.has(task._id) ? (
-                              // EXPANDED STATE - same structure as before
-                              <div className="p-3 sm:p-4">
-                                <div className="flex items-center justify-between gap-3 mb-3">
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
-                                      {task.title}
-                                    </p>
-                                    <button
-                                      onClick={(e) =>
-                                        toggleTaskExpand(task._id, e)
-                                      }
-                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
-                                      title="Collapse"
-                                    >
-                                      <ChevronUp size={18} />
-                                    </button>
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <button
-                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        openDropdown(e, task._id);
-                                      }}
-                                    >
-                                      <MoreHorizontal size={18} />
-                                    </button>
-                                  </div>
-                                </div>
-                                <section className="flex flex-col gap-3 text-sm">
-                                  {task.description && (
-                                    <div className="flex items-start gap-3">
-                                      <div className="flex-1">
-                                        <p className="text-sm text-[var(--light-text)] leading-relaxed">
-                                          {task.description}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {task.priority && (
-                                    <div className="flex items-center gap-3">
-                                      <Flag
-                                        size={16}
-                                        className="text-[var(--accent-color)] flex-shrink-0"
-                                      />
-                                      <div className="flex items-center gap-3 flex-1 justify-between">
-                                        <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
-                                          Priority
-                                        </span>
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
-                                          <span
-                                            className="absolute inset-0 rounded-full"
-                                            style={{
-                                              backgroundColor: `var(--accent-color)`,
-                                              opacity: 0.15,
-                                            }}
-                                          ></span>
-                                          <span
-                                            className="relative"
-                                            style={{
-                                              color: `var(--accent-color)`,
-                                            }}
-                                          >
-                                            {task.priority
-                                              .charAt(0)
-                                              .toUpperCase() +
-                                              task.priority.slice(1)}
-                                          </span>
-                                        </span>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {task.dueDate && (
-                                    <div className="flex items-center gap-3">
-                                      <Calendar
-                                        size={16}
-                                        className="text-[var(--accent-color)] flex-shrink-0"
-                                      />
-                                      <div className="flex items-center gap-3 flex-1 justify-between">
-                                        <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
-                                          Due Date
-                                        </span>
-                                        <span className="text-sm text-[var(--text-primary)]">
-                                          {new Date(
-                                            task.dueDate
-                                          ).toLocaleDateString("en-US", {
-                                            month: "short",
-                                            day: "numeric",
-                                            year: "numeric",
-                                          })}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  )}
-                                </section>
-                              </div>
-                            ) : (
-                              // COLLAPSED STATE
-                              <div className="p-3 sm:p-4">
-                                <div className="flex items-center justify-between gap-3">
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedItems.includes(task._id)}
-                                      onChange={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedItems((prev) =>
-                                          prev.includes(task._id)
-                                            ? prev.filter(
-                                                (id) => id !== task._id
-                                              )
-                                            : [...prev, task._id]
-                                        );
-                                      }}
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
-                                    />
-                                    <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                                      {task.title}
-                                    </p>
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <button
-                                      onClick={(e) =>
-                                        toggleTaskExpand(task._id, e)
-                                      }
-                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
-                                      title="Expand"
-                                    >
-                                      <ChevronDown size={18} />
-                                    </button>
-                                    <button
-                                      className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        openDropdown(e, task._id);
-                                      }}
-                                    >
-                                      <MoreHorizontal size={18} />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </Draggable>
-                    ))
-                  ) : hasLoaded ? (
-                    <div className="flex flex-col items-center justify-center py-12 gap-3">
-                      <Search
-                        size={48}
-                        className="text-[var(--light-text)] opacity-50"
-                      />
-                      <p className="text-sm font-medium text-[var(--light-text)]">
-                        No tasks found
-                      </p>
-                      <p className="text-xs text-[var(--light-text)] text-center">
-                        Your search does not match any tasks.
-                      </p>
-                    </div>
-                  ) : null}
-                  {provided.placeholder}
+              {/* SELECT ALL CHECKBOX */}
+              {filteredTasks.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="accent-[var(--accent-color)] cursor-pointer"
+                    checked={
+                      filteredTasks.length > 0 &&
+                      filteredTasks.every((task) =>
+                        selectedItems.includes(task._id)
+                      )
+                    }
+                    onChange={(e) => {
+                      // GET CHECKED STATE
+                      const isChecked = e.target.checked;
+                      // GET TASK IDS FROM SEARCH RESULTS
+                      const taskIds = filteredTasks.map((task) => task._id);
+                      // UPDATE SELECTED ITEMS
+                      setSelectedItems((prev) =>
+                        isChecked
+                          ? Array.from(new Set([...prev, ...taskIds]))
+                          : prev.filter((id) => !taskIds.includes(id))
+                      );
+                    }}
+                  />
                 </div>
               )}
-            </Droppable>
+            </div>
+            {/* SEARCH RESULTS CONTENT */}
+            <div className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0">
+              {filteredTasks.length > 0 ? (
+                filteredTasks.map((task) => (
+                  <div
+                    key={task._id}
+                    className="bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all hover:bg-[var(--hover-bg)]"
+                  >
+                    {/* Render task card - same as in columns */}
+                    {expandedTasks.has(task._id) ? (
+                      // EXPANDED STATE - same structure as before
+                      <div className="p-3 sm:p-4">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.includes(task._id)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                setSelectedItems((prev) =>
+                                  prev.includes(task._id)
+                                    ? prev.filter((id) => id !== task._id)
+                                    : [...prev, task._id]
+                                );
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
+                            />
+                            <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
+                              {task.title}
+                            </p>
+                            <button
+                              onClick={(e) => toggleTaskExpand(task._id, e)}
+                              className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
+                              title="Collapse"
+                            >
+                              <ChevronUp size={18} />
+                            </button>
+                          </div>
+                        </div>
+                        <section className="flex flex-col gap-3 text-sm">
+                          {task.description && (
+                            <div className="flex items-start gap-3">
+                              <div className="flex-1">
+                                <p className="text-sm text-[var(--light-text)] leading-relaxed">
+                                  {task.description}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {task.priority && (
+                            <div className="flex items-center gap-3">
+                              <Flag
+                                size={16}
+                                className="text-[var(--accent-color)] flex-shrink-0"
+                              />
+                              <div className="flex items-center gap-3 flex-1 justify-between">
+                                <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                  Priority
+                                </span>
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
+                                  <span
+                                    className="absolute inset-0 rounded-full"
+                                    style={{
+                                      backgroundColor: `var(--accent-color)`,
+                                      opacity: 0.15,
+                                    }}
+                                  ></span>
+                                  <span
+                                    className="relative"
+                                    style={{
+                                      color: `var(--accent-color)`,
+                                    }}
+                                  >
+                                    {task.priority.charAt(0).toUpperCase() +
+                                      task.priority.slice(1)}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {task.dueDate && (
+                            <div className="flex items-center gap-3">
+                              <Calendar
+                                size={16}
+                                className="text-[var(--accent-color)] flex-shrink-0"
+                              />
+                              <div className="flex items-center gap-3 flex-1 justify-between">
+                                <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                  Due Date
+                                </span>
+                                <span className="text-sm text-[var(--text-primary)]">
+                                  {new Date(task.dueDate).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    }
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </section>
+                        {/* ACTION BUTTONS */}
+                        <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                          {/* EDIT BUTTON */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTaskToEdit(task);
+                              setIsOpen(true);
+                            }}
+                            className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                            title="Edit Task"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          {/* DELETE BUTTON */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onTaskDeleted?.(task._id);
+                            }}
+                            className="text-[var(--light-text)] hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                            title="Delete Task"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      // COLLAPSED STATE
+                      <div className="p-3 sm:p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.includes(task._id)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                setSelectedItems((prev) =>
+                                  prev.includes(task._id)
+                                    ? prev.filter((id) => id !== task._id)
+                                    : [...prev, task._id]
+                                );
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
+                            />
+                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                              {task.title}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={(e) => toggleTaskExpand(task._id, e)}
+                              className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                              title="Expand"
+                            >
+                              <ChevronDown size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : !loading && hasLoaded && filteredTasks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <Search
+                    size={48}
+                    className="text-[var(--light-text)] opacity-50"
+                  />
+                  <p className="text-sm font-medium text-[var(--light-text)]">
+                    No tasks found
+                  </p>
+                  <p className="text-xs text-[var(--light-text)] text-center">
+                    Your search does not match any tasks.
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : (
@@ -620,7 +496,6 @@ const BoardView = ({
                             selectedItems.includes(task._id)
                           )
                         }
-                        onClick={() => setDropdownIsOpen(!isDropdownOpen)}
                         onChange={(e) => {
                           // GET CHECKED STATE
                           const isChecked = e.target.checked;
@@ -654,267 +529,232 @@ const BoardView = ({
                     />
                   </div>
                 )}
-                {/* DROPPABLE AREA */}
-                <Droppable droppableId={col.id}>
-                  {(provided) => (
-                    <div
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0"
-                    >
-                      {/* CHECK IF TASKS EXIST AND DATA HAS LOADED */}
-                      {filteredSectionTasks.length > 0 ? (
-                        // MAPPING THROUGH TASKS
-                        filteredSectionTasks.map((task, index) => (
-                          // DRAGGABLE TASK
-                          <Draggable
-                            key={task._id}
-                            draggableId={task._id.toString()}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              // TASK CARD
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                style={{
-                                  ...provided.draggableProps.style,
-                                  transform: snapshot.isDragging
-                                    ? provided.draggableProps.style?.transform
-                                    : "none",
-                                  transition: snapshot.isDragging
-                                    ? "transform 0.1s ease"
-                                    : undefined,
-                                  zIndex: snapshot.isDragging ? 9999 : "auto",
-                                  position: snapshot.isDragging
-                                    ? "relative"
-                                    : "static",
-                                }}
-                                className={`bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all ${
-                                  snapshot.isDragging
-                                    ? "shadow-xl scale-[1.02]"
-                                    : "hover:bg-[var(--hover-bg)]"
-                                }`}
-                              >
-                                {/* CHECK IF TASK IS EXPANDED */}
-                                {expandedTasks.has(task._id) ? (
-                                  // EXPANDED STATE
-                                  <div className="p-3 sm:p-4">
-                                    {/* EXPANDED HEADER */}
-                                    <div className="flex items-center justify-between gap-3 mb-3">
-                                      {/* LEFT SIDE: TITLE */}
-                                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
-                                          {task.title}
-                                        </p>
-                                        {/* COLLAPSE BUTTON */}
-                                        <button
-                                          onClick={(e) =>
-                                            toggleTaskExpand(task._id, e)
-                                          }
-                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
-                                          title="Collapse"
-                                        >
-                                          <ChevronUp size={18} />
-                                        </button>
-                                      </div>
-                                      {/* RIGHT SIDE: ACTIONS */}
-                                      <div className="flex items-center gap-2 flex-shrink-0">
-                                        {/* DROPDOWN BUTTON */}
-                                        <button
-                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            openDropdown(e, task._id);
-                                          }}
-                                        >
-                                          <MoreHorizontal size={18} />
-                                        </button>
-                                      </div>
-                                    </div>
-
-                                    {/* EXPANDED CONTENT */}
-                                    <section className="flex flex-col gap-3 text-sm">
-                                      {/* DESCRIPTION */}
-                                      {task.description && (
-                                        <div className="flex items-start gap-3">
-                                          <div className="flex-1">
-                                            <p className="text-sm text-[var(--light-text)] leading-relaxed">
-                                              {task.description}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {/* PRIORITY */}
-                                      {task.priority && (
-                                        <div className="flex items-center gap-3">
-                                          <Flag
-                                            size={16}
-                                            className="text-[var(--accent-color)] flex-shrink-0"
-                                          />
-                                          <div className="flex items-center gap-3 flex-1 justify-between">
-                                            <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
-                                              Priority
-                                            </span>
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
-                                              <span
-                                                className="absolute inset-0 rounded-full"
-                                                style={{
-                                                  backgroundColor: `var(--accent-color)`,
-                                                  opacity: 0.15,
-                                                }}
-                                              ></span>
-                                              <span
-                                                className="relative"
-                                                style={{
-                                                  color: `var(--accent-color)`,
-                                                }}
-                                              >
-                                                {task.priority
-                                                  .charAt(0)
-                                                  .toUpperCase() +
-                                                  task.priority.slice(1)}
-                                              </span>
-                                            </span>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      {/* DUE DATE */}
-                                      {task.dueDate && (
-                                        <div className="flex items-center gap-3">
-                                          <Calendar
-                                            size={16}
-                                            className="text-[var(--accent-color)] flex-shrink-0"
-                                          />
-                                          <div className="flex items-center gap-3 flex-1 justify-between">
-                                            <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
-                                              Due Date
-                                            </span>
-                                            <span className="text-sm text-[var(--text-primary)]">
-                                              {new Date(
-                                                task.dueDate
-                                              ).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                              })}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </section>
-                                  </div>
-                                ) : (
-                                  // COLLAPSED STATE
-                                  <div className="p-3 sm:p-4">
-                                    <div className="flex items-center justify-between gap-3">
-                                      {/* LEFT SIDE: CHECKBOX AND TITLE */}
-                                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                                        {/* CHECKBOX */}
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedItems.includes(
-                                            task._id
-                                          )}
-                                          onChange={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedItems((prev) =>
-                                              prev.includes(task._id)
-                                                ? prev.filter(
-                                                    (id) => id !== task._id
-                                                  )
-                                                : [...prev, task._id]
-                                            );
-                                          }}
-                                          onClick={(e) => e.stopPropagation()}
-                                          className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
-                                        />
-                                        {/* TITLE */}
-                                        <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                                          {task.title}
-                                        </p>
-                                      </div>
-                                      {/* ACTIONS */}
-                                      <div className="flex items-center gap-2 flex-shrink-0">
-                                        {/* EXPAND BUTTON */}
-                                        <button
-                                          onClick={(e) =>
-                                            toggleTaskExpand(task._id, e)
-                                          }
-                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
-                                          title="Expand"
-                                        >
-                                          <ChevronDown size={18} />
-                                        </button>
-                                        {/* DROPDOWN BUTTON */}
-                                        <button
-                                          className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            openDropdown(e, task._id);
-                                          }}
-                                        >
-                                          <MoreHorizontal size={18} />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
+                {/* TASKS AREA */}
+                <div className="flex flex-col gap-3 sm:gap-4 flex-1 min-h-[100px] max-h-[600px] overflow-y-auto relative z-0">
+                  {/* CHECK IF TASKS EXIST */}
+                  {filteredSectionTasks.length > 0 ? (
+                    // MAPPING THROUGH TASKS
+                    filteredSectionTasks.map((task) => (
+                      // TASK CARD
+                      <div
+                        key={task._id}
+                        className="bg-[var(--inside-card-bg)] rounded-xl shadow-sm border border-[var(--border)] hover:shadow-md transition-all hover:bg-[var(--hover-bg)]"
+                      >
+                        {/* CHECK IF TASK IS EXPANDED */}
+                        {expandedTasks.has(task._id) ? (
+                          // EXPANDED STATE
+                          <div className="p-3 sm:p-4">
+                            {/* EXPANDED HEADER */}
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                              {/* LEFT SIDE: CHECKBOX AND TITLE */}
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.includes(task._id)}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedItems((prev) =>
+                                      prev.includes(task._id)
+                                        ? prev.filter((id) => id !== task._id)
+                                        : [...prev, task._id]
+                                    );
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
+                                />
+                                <p className="text-sm font-medium text-[var(--text-primary)] flex-1">
+                                  {task.title}
+                                </p>
+                                {/* COLLAPSE BUTTON */}
+                                <button
+                                  onClick={(e) => toggleTaskExpand(task._id, e)}
+                                  className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] flex-shrink-0 cursor-pointer"
+                                  title="Collapse"
+                                >
+                                  <ChevronUp size={18} />
+                                </button>
                               </div>
-                            )}
-                          </Draggable>
-                        ))
-                      ) : hasLoaded ? (
-                        // EMPTY STATE (ONLY SHOW IF DATA HAS LOADED)
-                        <div className="flex flex-col items-center justify-center py-12 gap-3">
-                          {/* CHECK IF SECTION HAS TASKS BUT SEARCH RETURNED NO RESULTS */}
-                          {sectionTasks.length > 0 &&
-                          sectionSearchTerm.trim() !== "" ? (
-                            <>
-                              {/* SEARCH NO RESULTS ICON */}
-                              <Search
-                                size={48}
-                                className="text-[var(--light-text)] opacity-50"
-                              />
-                              {/* SEARCH NO RESULTS TEXT */}
-                              <p className="text-sm font-medium text-[var(--light-text)]">
-                                No tasks found
-                              </p>
-                              <p className="text-xs text-[var(--light-text)] text-center">
-                                Your search does not match any tasks in this
-                                section.
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              {/* NO TASKS ICON */}
-                              <ClipboardList
-                                size={48}
-                                className="text-[var(--light-text)] opacity-50"
-                              />
-                              {/* NO TASKS TEXT */}
-                              <p className="text-sm font-medium text-[var(--light-text)]">
-                                No tasks yet
-                              </p>
-                              <p className="text-xs text-[var(--light-text)] text-center">
-                                Add tasks to this section to get started.
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      ) : null}
-                      {/* PLACEHOLDER */}
-                      {provided.placeholder}
+                            </div>
+
+                            {/* EXPANDED CONTENT */}
+                            <section className="flex flex-col gap-3 text-sm">
+                              {/* DESCRIPTION */}
+                              {task.description && (
+                                <div className="flex items-start gap-3">
+                                  <div className="flex-1">
+                                    <p className="text-sm text-[var(--light-text)] leading-relaxed">
+                                      {task.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* PRIORITY */}
+                              {task.priority && (
+                                <div className="flex items-center gap-3">
+                                  <Flag
+                                    size={16}
+                                    className="text-[var(--accent-color)] flex-shrink-0"
+                                  />
+                                  <div className="flex items-center gap-3 flex-1 justify-between">
+                                    <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                      Priority
+                                    </span>
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative">
+                                      <span
+                                        className="absolute inset-0 rounded-full"
+                                        style={{
+                                          backgroundColor: `var(--accent-color)`,
+                                          opacity: 0.15,
+                                        }}
+                                      ></span>
+                                      <span
+                                        className="relative"
+                                        style={{
+                                          color: `var(--accent-color)`,
+                                        }}
+                                      >
+                                        {task.priority.charAt(0).toUpperCase() +
+                                          task.priority.slice(1)}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* DUE DATE */}
+                              {task.dueDate && (
+                                <div className="flex items-center gap-3">
+                                  <Calendar
+                                    size={16}
+                                    className="text-[var(--accent-color)] flex-shrink-0"
+                                  />
+                                  <div className="flex items-center gap-3 flex-1 justify-between">
+                                    <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                      Due Date
+                                    </span>
+                                    <span className="text-sm text-[var(--text-primary)]">
+                                      {new Date(
+                                        task.dueDate
+                                      ).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                      })}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </section>
+                            {/* ACTION BUTTONS */}
+                            <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                              {/* EDIT BUTTON */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToEdit(task);
+                                  setIsOpen(true);
+                                }}
+                                className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                title="Edit Task"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              {/* DELETE BUTTON */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTaskDeleted?.(task._id);
+                                }}
+                                className="text-[var(--light-text)] hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                title="Delete Task"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          // COLLAPSED STATE
+                          <div className="p-3 sm:p-4">
+                            <div className="flex items-center justify-between gap-3">
+                              {/* LEFT SIDE: CHECKBOX AND TITLE */}
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {/* CHECKBOX */}
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.includes(task._id)}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedItems((prev) =>
+                                      prev.includes(task._id)
+                                        ? prev.filter((id) => id !== task._id)
+                                        : [...prev, task._id]
+                                    );
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="accent-[var(--accent-color)] flex-shrink-0 cursor-pointer"
+                                />
+                                {/* TITLE */}
+                                <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                  {task.title}
+                                </p>
+                              </div>
+                              {/* ACTIONS */}
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {/* EXPAND BUTTON */}
+                                <button
+                                  onClick={(e) => toggleTaskExpand(task._id, e)}
+                                  className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                  title="Expand"
+                                >
+                                  <ChevronDown size={18} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : !loading && hasLoaded && sectionTasks.length === 0 ? (
+                    // EMPTY STATE (ONLY SHOW IF DATA HAS LOADED AND SECTION IS EMPTY)
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      {/* NO TASKS ICON */}
+                      <ClipboardList
+                        size={48}
+                        className="text-[var(--light-text)] opacity-50"
+                      />
+                      {/* NO TASKS TEXT */}
+                      <p className="text-sm font-medium text-[var(--light-text)]">
+                        No tasks yet
+                      </p>
+                      <p className="text-xs text-[var(--light-text)] text-center">
+                        Add tasks to this section to get started.
+                      </p>
                     </div>
-                  )}
-                </Droppable>
+                  ) : !loading &&
+                    hasLoaded &&
+                    sectionTasks.length > 0 &&
+                    filteredSectionTasks.length === 0 &&
+                    sectionSearchTerm.trim() !== "" ? (
+                    // SEARCH NO RESULTS
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <Search
+                        size={48}
+                        className="text-[var(--light-text)] opacity-50"
+                      />
+                      <p className="text-sm font-medium text-[var(--light-text)]">
+                        No tasks found
+                      </p>
+                      <p className="text-xs text-[var(--light-text)] text-center">
+                        Your search does not match any tasks in this section.
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
                 {/* ADD TASK BUTTON */}
                 <button
                   className="mt-4 w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-[var(--accent-color)] cursor-pointer text-[var(--primary-text)] rounded-lg transition"
                   onClick={() => {
-                    setDropdownTaskId(null);
                     setTaskToEdit(null);
                     setNewTaskStatus(col.id as Task["status"]);
                     setTimeout(() => setIsOpen(true), 0);
@@ -1088,36 +928,6 @@ const BoardView = ({
           </div>
         </div>
       )}
-      {/* DROPDOWN MENU */}
-      {dropdownTaskId && (
-        <div
-          className="fixed z-[99999]"
-          ref={dropdownRef}
-          style={{
-            top: dropdownPosition.top + 2,
-            left: dropdownPosition.left,
-          }}
-        >
-          <ActionDropdown
-            onEditTask={() => {
-              // FIND TASK TO EDIT
-              const task = tasks.find((t) => t._id === dropdownTaskId);
-              if (task) {
-                // SET TASK TO EDIT
-                setTaskToEdit(task);
-                // CLOSE DROPDOWN
-                closeDropdown();
-                // OPEN MODAL
-                setIsOpen(true);
-              }
-            }}
-            onDeleteTask={() => {
-              onTaskDeleted?.(dropdownTaskId!);
-              closeDropdown();
-            }}
-          />
-        </div>
-      )}
       {/* ADD TASK MODAL */}
       {isOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-2 sm:p-4">
@@ -1207,7 +1017,7 @@ const BoardView = ({
           </div>
         </div>
       )}
-    </DragDropContext>
+    </>
   );
 };
 
