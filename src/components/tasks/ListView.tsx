@@ -9,12 +9,21 @@ import {
 } from "react";
 import type { Task } from "../../types/task";
 import ActionDropdown from "./dropdown/ActionDropdown";
-import { ChevronDown, MoreHorizontal, ClipboardList } from "lucide-react";
+import {
+  ChevronDown,
+  MoreHorizontal,
+  ClipboardList,
+  Search,
+} from "lucide-react";
 
 // <== LIST VIEW PROPS TYPE INTERFACE ==>
 type ListViewProps = {
   // <== TASKS ==>
   tasks: Task[];
+  // <== FILTERED TASKS (FROM MAIN SEARCH) ==>
+  filteredTasks: Task[];
+  // <== SEARCH TERM (FROM MAIN SEARCH) ==>
+  searchTerm: string;
   // <== LOADING ==>
   loading: boolean;
   // <== HAS LOADED ==>
@@ -32,8 +41,10 @@ type ListViewProps = {
 type ColumnProps = {
   // <== TITLE ==>
   title: "To Do" | "In Progress" | "Completed";
-  // <== TASKS ==>
+  // <== TASKS (FILTERED) ==>
   tasks: Task[];
+  // <== ORIGINAL TASKS (UNFILTERED) ==>
+  originalTasks: Task[];
   // <== SET TASKS FUNCTION ==>
   setTasks: Dispatch<SetStateAction<Task[]>>;
   // <== PARENT MODAL OPEN ==>
@@ -44,16 +55,23 @@ type ColumnProps = {
   onTaskDeleted?: (taskId: string) => void;
   // <== HAS LOADED ==>
   hasLoaded: boolean;
+  // <== SECTION SEARCH TERM ==>
+  sectionSearchTerm?: string;
+  // <== ON SECTION SEARCH CHANGE ==>
+  onSectionSearchChange?: (term: string) => void;
 };
 // <== TASK COLUMN COMPONENT ==>
 function TaskColumn({
   title,
   tasks,
+  originalTasks,
   setTasks,
   parentModalOpen,
   onTaskEdited,
   onTaskDeleted,
   hasLoaded,
+  sectionSearchTerm = "",
+  onSectionSearchChange,
 }: ColumnProps): JSX.Element {
   // DROPDOWN TASK ID STATE
   const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
@@ -176,6 +194,19 @@ function TaskColumn({
           </button>
         </div>
       </header>
+      {/* SECTION SEARCH BAR - ONLY SHOW IF SECTION HAS TASKS */}
+      {originalTasks.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-[var(--accent-color)]" />
+          <input
+            type="text"
+            value={sectionSearchTerm}
+            onChange={(e) => onSectionSearchChange?.(e.target.value)}
+            placeholder={`Search in ${title}...`}
+            className="border border-[var(--border)] pl-8 pr-2.5 py-1.5 rounded-lg w-full focus:ring-1 focus:ring-[var(--accent-color)] outline-none text-xs bg-[var(--bg)] text-[var(--text-primary)]"
+          />
+        </div>
+      )}
       {/* TABLE */}
       {isOpen && (
         <main className="overflow-x-auto animate-fadeIn relative">
@@ -212,18 +243,40 @@ function TaskColumn({
                   <td colSpan={5} className="py-12">
                     {/* EMPTY STATE CONTAINER */}
                     <div className="flex flex-col items-center justify-center gap-3">
-                      {/* EMPTY STATE ICON */}
-                      <ClipboardList
-                        size={48}
-                        className="text-[var(--light-text)] opacity-50"
-                      />
-                      {/* EMPTY STATE TEXT */}
-                      <p className="text-sm font-medium text-[var(--light-text)]">
-                        No tasks in this section
-                      </p>
-                      <p className="text-xs text-[var(--light-text)] text-center">
-                        Add tasks to this section to get started.
-                      </p>
+                      {/* CHECK IF SECTION HAS TASKS BUT SEARCH RETURNED NO RESULTS */}
+                      {originalTasks.length > 0 &&
+                      sectionSearchTerm.trim() !== "" ? (
+                        <>
+                          {/* SEARCH NO RESULTS ICON */}
+                          <Search
+                            size={48}
+                            className="text-[var(--light-text)] opacity-50"
+                          />
+                          {/* SEARCH NO RESULTS TEXT */}
+                          <p className="text-sm font-medium text-[var(--light-text)]">
+                            No tasks found
+                          </p>
+                          <p className="text-xs text-[var(--light-text)] text-center">
+                            Your search does not match any tasks in this
+                            section.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          {/* NO TASKS ICON */}
+                          <ClipboardList
+                            size={48}
+                            className="text-[var(--light-text)] opacity-50"
+                          />
+                          {/* NO TASKS TEXT */}
+                          <p className="text-sm font-medium text-[var(--light-text)]">
+                            No tasks in this section
+                          </p>
+                          <p className="text-xs text-[var(--light-text)] text-center">
+                            Add tasks to this section to get started.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -352,6 +405,8 @@ function TaskColumn({
 // <== LIST VIEW COMPONENT ==>
 const ListView = ({
   tasks,
+  filteredTasks,
+  searchTerm,
   loading,
   hasLoaded,
   setTasks,
@@ -359,42 +414,229 @@ const ListView = ({
   onTaskDeleted,
   onTaskEdited,
 }: ListViewProps): JSX.Element => {
+  // SECTION SEARCH TERMS STATE
+  const [sectionSearchTerms, setSectionSearchTerms] = useState<{
+    [key: string]: string;
+  }>({
+    "to do": "",
+    "in progress": "",
+    completed: "",
+  });
+  // FILTER TASKS BY SECTION SEARCH TERM
+  const filterTasksBySectionSearch = (
+    sectionTasks: Task[],
+    searchTerm: string
+  ): Task[] => {
+    // CHECK IF SEARCH TERM IS EMPTY
+    if (!searchTerm.trim()) return sectionTasks;
+    // FILTER TASKS BY SEARCH TERM
+    return sectionTasks.filter((task) =>
+      [task.title, task.description]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  };
+  // UPDATE SECTION SEARCH TERM FUNCTION
+  const updateSectionSearchTerm = (sectionId: string, term: string): void => {
+    // UPDATE SECTION SEARCH TERMS
+    setSectionSearchTerms((prev) => ({
+      ...prev,
+      [sectionId]: term,
+    }));
+  };
   // CHECK IF LOADING
   if (loading) return <p className="text-center">Loading tasks...</p>;
+  // CHECK IF MAIN SEARCH IS ACTIVE
+  const isMainSearchActive = searchTerm.trim() !== "";
   // RETURNING THE LIST VIEW COMPONENT
   return (
     // LIST VIEW MAIN CONTAINER
     <div className="flex flex-col gap-4 sm:gap-6">
-      {/* TO DO COLUMN */}
-      <TaskColumn
-        title="To Do"
-        tasks={tasks.filter((t) => t.status === "to do")}
-        setTasks={setTasks}
-        parentModalOpen={parentModalOpen}
-        onTaskDeleted={onTaskDeleted}
-        onTaskEdited={onTaskEdited}
-        hasLoaded={hasLoaded}
-      />
-      {/* IN PROGRESS COLUMN */}
-      <TaskColumn
-        title="In Progress"
-        tasks={tasks.filter((t) => t.status === "in progress")}
-        setTasks={setTasks}
-        parentModalOpen={parentModalOpen}
-        onTaskDeleted={onTaskDeleted}
-        onTaskEdited={onTaskEdited}
-        hasLoaded={hasLoaded}
-      />
-      {/* COMPLETED COLUMN */}
-      <TaskColumn
-        title="Completed"
-        tasks={tasks.filter((t) => t.status === "completed")}
-        setTasks={setTasks}
-        parentModalOpen={parentModalOpen}
-        onTaskDeleted={onTaskDeleted}
-        onTaskEdited={onTaskEdited}
-        hasLoaded={hasLoaded}
-      />
+      {/* CHECK IF MAIN SEARCH IS ACTIVE */}
+      {isMainSearchActive ? (
+        // SEARCH RESULTS SECTION
+        <div className="w-full">
+          <div className="w-full flex flex-col gap-3 p-4 border border-[var(--border)] rounded-2xl">
+            {/* SEARCH RESULTS HEADER */}
+            <header className="flex justify-between items-center">
+              <div className="flex gap-2 items-center">
+                <Search
+                  size={16}
+                  className="text-[var(--accent-color)] flex-shrink-0"
+                />
+                <button className="font-semibold text-[var(--text-primary)]">
+                  Search Results
+                </button>
+                {filteredTasks.length > 0 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative">
+                    <span
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        backgroundColor: `var(--accent-color)`,
+                        opacity: 0.15,
+                      }}
+                    ></span>
+                    <span
+                      className="relative"
+                      style={{ color: `var(--accent-color)` }}
+                    >
+                      {filteredTasks.length}
+                    </span>
+                  </span>
+                )}
+              </div>
+            </header>
+            {/* SEARCH RESULTS CONTENT */}
+            {filteredTasks.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="text-left text-sm text-[var(--light-text)] border-b border-[var(--border)]">
+                      <th className="py-2.5 px-4">Select</th>
+                      <th className="py-2.5 px-4">Task Name</th>
+                      <th className="py-2.5 px-4">Due Date</th>
+                      <th className="py-2.5 px-4">Priority</th>
+                      <th className="py-2.5 px-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTasks.map((task, i) => (
+                      <tr
+                        key={task._id}
+                        className={`text-center ${
+                          i % 2 === 0
+                            ? "bg-[var(--bg)]"
+                            : "bg-[var(--inside-card-bg)]"
+                        } ${
+                          i !== filteredTasks.length - 1
+                            ? "border-b border-[var(--border)]"
+                            : ""
+                        }`}
+                      >
+                        <td className="p-2">
+                          <input
+                            type="checkbox"
+                            className="accent-[var(--accent-color)] cursor-pointer"
+                            checked={false}
+                            onChange={() => {}}
+                          />
+                        </td>
+                        <td className="p-2">{task.title}</td>
+                        <td className="p-2">
+                          {task.dueDate
+                            ? new Date(task.dueDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )
+                            : "No due date"}
+                        </td>
+                        <td
+                          className={`p-2 font-medium ${
+                            task.priority === "high"
+                              ? "text-red-500"
+                              : task.priority === "medium"
+                              ? "text-yellow-500"
+                              : "text-green-500"
+                          }`}
+                        >
+                          {task.priority
+                            ? task.priority.charAt(0).toUpperCase() +
+                              task.priority.slice(1)
+                            : "N/A"}
+                        </td>
+                        <td className="p-2">
+                          <button
+                            onClick={() => {}}
+                            className="text-[var(--light-text)] hover:text-gray-700 cursor-pointer"
+                          >
+                            <MoreHorizontal size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : hasLoaded ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Search
+                  size={48}
+                  className="text-[var(--light-text)] opacity-50"
+                />
+                <p className="text-sm font-medium text-[var(--light-text)]">
+                  No tasks found
+                </p>
+                <p className="text-xs text-[var(--light-text)] text-center">
+                  Your search does not match any tasks.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        // NORMAL THREE SECTIONS
+        <>
+          {/* TO DO COLUMN */}
+          <TaskColumn
+            title="To Do"
+            tasks={filterTasksBySectionSearch(
+              tasks.filter((t) => t.status === "to do"),
+              sectionSearchTerms["to do"]
+            )}
+            originalTasks={tasks.filter((t) => t.status === "to do")}
+            setTasks={setTasks}
+            parentModalOpen={parentModalOpen}
+            onTaskDeleted={onTaskDeleted}
+            onTaskEdited={onTaskEdited}
+            hasLoaded={hasLoaded}
+            sectionSearchTerm={sectionSearchTerms["to do"]}
+            onSectionSearchChange={(term) =>
+              updateSectionSearchTerm("to do", term)
+            }
+          />
+          {/* IN PROGRESS COLUMN */}
+          <TaskColumn
+            title="In Progress"
+            tasks={filterTasksBySectionSearch(
+              tasks.filter((t) => t.status === "in progress"),
+              sectionSearchTerms["in progress"]
+            )}
+            originalTasks={tasks.filter((t) => t.status === "in progress")}
+            setTasks={setTasks}
+            parentModalOpen={parentModalOpen}
+            onTaskDeleted={onTaskDeleted}
+            onTaskEdited={onTaskEdited}
+            hasLoaded={hasLoaded}
+            sectionSearchTerm={sectionSearchTerms["in progress"]}
+            onSectionSearchChange={(term) =>
+              updateSectionSearchTerm("in progress", term)
+            }
+          />
+          {/* COMPLETED COLUMN */}
+          <TaskColumn
+            title="Completed"
+            tasks={filterTasksBySectionSearch(
+              tasks.filter((t) => t.status === "completed"),
+              sectionSearchTerms["completed"]
+            )}
+            originalTasks={tasks.filter((t) => t.status === "completed")}
+            setTasks={setTasks}
+            parentModalOpen={parentModalOpen}
+            onTaskDeleted={onTaskDeleted}
+            onTaskEdited={onTaskEdited}
+            hasLoaded={hasLoaded}
+            sectionSearchTerm={sectionSearchTerms["completed"]}
+            onSectionSearchChange={(term) =>
+              updateSectionSearchTerm("completed", term)
+            }
+          />
+        </>
+      )}
     </div>
   );
 };
