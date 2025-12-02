@@ -12,8 +12,12 @@ import "react-day-picker/dist/style.css";
 import { DayPicker } from "react-day-picker";
 import type { Task } from "../../types/task";
 import { useProjects } from "../../hooks/useProjects";
-import { useCreateTask, Task as TaskType } from "../../hooks/useTasks";
 import { useEffect, useState, JSX, ChangeEvent, FormEvent } from "react";
+import {
+  useCreateTask,
+  useUpdateTask,
+  Task as TaskType,
+} from "../../hooks/useTasks";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -46,6 +50,8 @@ const AddNewTask = ({
 }: Props): JSX.Element => {
   // CREATE TASK MUTATION
   const createTaskMutation = useCreateTask();
+  // UPDATE TASK MUTATION
+  const updateTaskMutation = useUpdateTask();
   // GET PROJECTS FROM HOOK
   const { projects: fetchedProjects } = useProjects();
   // STATUS DROPDOWN OPEN STATE
@@ -211,11 +217,6 @@ const AddNewTask = ({
       toast.error("Please select a project.");
       return;
     }
-    // CHECK IF EDITING (FOR FUTURE UPDATE FUNCTIONALITY)
-    if (task._id) {
-      console.log("Update task:", task);
-      return;
-    }
     // PREPARE TASK DATA FOR API
     const taskData = {
       title: task.title,
@@ -228,34 +229,74 @@ const AddNewTask = ({
       dueDate: selected ? selected.toISOString() : null,
       projectId: finalProjectId,
     };
-    // CALL CREATE TASK MUTATION
-    createTaskMutation.mutate(taskData, {
-      onSuccess: (createdTask: TaskType) => {
-        // CALL ON TASK ADDED CALLBACK
-        onTaskAdded?.(createdTask as Task);
-        // RESET FORM
-        setTask({
-          _id: "",
-          title: "",
-          description: "",
-          projectId: "",
-          dueDate: 0,
-          status: "to do",
-          priority: "",
-          userId: "",
-        });
-        // SET PROJECT SELECTED TO "SELECT PROJECT"
-        setProjectSelected("Select Project");
-        // SET PRIORITY TO NULL
-        setPriority(null);
-        // SET STATUS TO NULL
-        setStatus(null);
-        // SET SELECTED TO NULL
-        setSelected(null);
-        // CLOSE MODAL
-        onClose?.();
-      },
-    });
+    // CHECK IF EDITING
+    if (task._id) {
+      // UPDATE TASK
+      updateTaskMutation.mutate(
+        {
+          taskId: task._id,
+          taskData,
+        },
+        {
+          // <== ON SUCCESS ==>
+          onSuccess: (updatedTask: TaskType) => {
+            // CALL ON TASK ADDED CALLBACK
+            onTaskAdded?.(updatedTask as Task);
+            // RESET FORM
+            setTask({
+              _id: "",
+              title: "",
+              description: "",
+              projectId: "",
+              dueDate: 0,
+              status: "to do",
+              priority: "",
+              userId: "",
+            });
+            // SET PROJECT SELECTED TO "SELECT PROJECT"
+            setProjectSelected("Select Project");
+            // SET PRIORITY TO NULL
+            setPriority(null);
+            // SET STATUS TO NULL
+            setStatus(null);
+            // SET SELECTED TO NULL
+            setSelected(null);
+            // CLOSE MODAL
+            onClose?.();
+          },
+        }
+      );
+    } else {
+      // CREATE TASK
+      createTaskMutation.mutate(taskData, {
+        // <== ON SUCCESS ==>
+        onSuccess: (createdTask: TaskType) => {
+          // CALL ON TASK ADDED CALLBACK
+          onTaskAdded?.(createdTask as Task);
+          // RESET FORM
+          setTask({
+            _id: "",
+            title: "",
+            description: "",
+            projectId: "",
+            dueDate: 0,
+            status: "to do",
+            priority: "",
+            userId: "",
+          });
+          // SET PROJECT SELECTED TO "SELECT PROJECT"
+          setProjectSelected("Select Project");
+          // SET PRIORITY TO NULL
+          setPriority(null);
+          // SET STATUS TO NULL
+          setStatus(null);
+          // SET SELECTED TO NULL
+          setSelected(null);
+          // CLOSE MODAL
+          onClose?.();
+        },
+      });
+    }
   };
   // RETURNING THE ADD NEW TASK COMPONENT
   return (
@@ -585,8 +626,10 @@ const AddNewTask = ({
             className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-[var(--accent-btn-hover-color)] bg-[var(--accent-color)] text-white shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleButtonClick}
           >
-            {createTaskMutation.isPending
-              ? "Creating..."
+            {createTaskMutation.isPending || updateTaskMutation.isPending
+              ? task._id
+                ? "Updating..."
+                : "Creating..."
               : task._id
               ? "Update Task"
               : "Add Task"}
