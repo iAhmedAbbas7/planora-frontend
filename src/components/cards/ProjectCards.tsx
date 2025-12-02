@@ -44,8 +44,10 @@ const ProjectCards = (): JSX.Element => {
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   // SEARCH TERM STATE
   const [searchTerm, setSearchTerm] = useState<string>("");
-  // PROJECTS STATE (LOCAL STATE FOR UI UPDATES)
-  const [projects, setProjects] = useState<Project[]>([]);
+  // PROJECTS STATE
+  const [projects, setProjects] = useState<Project[]>(
+    Array.isArray(fetchedProjects) ? fetchedProjects : []
+  );
   // CURRENT PAGE STATE
   const [currentPage, setCurrentPage] = useState<number>(1);
   // EDIT PROJECT STATE
