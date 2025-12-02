@@ -146,13 +146,17 @@ const fetchProjects = async (): Promise<Project[]> => {
 const createProjectAPI = async (
   projectData: CreateProjectRequest
 ): Promise<Project> => {
+  // CREATE PROJECT
   const response = await apiClient.post<ApiResponse<Project>>(
     "/projects",
     projectData
   );
+  // CHECK IF DATA EXISTS
   if (!response.data?.data) {
+    // THROW ERROR
     throw new Error("Failed to create project");
   }
+  // RETURN CREATED PROJECT
   return response.data.data;
 };
 
@@ -183,6 +187,49 @@ const fetchProjectById = async (projectId: string): Promise<Project> => {
     // FOR OTHER ERRORS, RE-THROW
     throw error;
   }
+};
+
+/**
+ * UPDATE PROJECT
+ * @param projectId - Project ID
+ * @param projectData - Project Data to Update
+ * @returns Updated Project
+ */
+const updateProjectAPI = async (
+  projectId: string,
+  projectData: Partial<CreateProjectRequest>
+): Promise<Project> => {
+  // UPDATE PROJECT
+  const response = await apiClient.put<ApiResponse<Project>>(
+    `/projects/${projectId}`,
+    projectData
+  );
+  // CHECK IF DATA EXISTS
+  if (!response.data?.data) {
+    // THROW ERROR
+    throw new Error("Failed to update project");
+  }
+  // RETURN UPDATED PROJECT
+  return response.data.data;
+};
+
+/**
+ * DELETE PROJECT
+ * @param projectId - Project ID
+ * @returns void
+ */
+const deleteProjectAPI = async (projectId: string): Promise<void> => {
+  // DELETE PROJECT
+  const response = await apiClient.delete<ApiResponse<void>>(
+    `/projects/${projectId}`
+  );
+  // CHECK IF SUCCESS
+  if (!response.data?.success) {
+    // THROW ERROR
+    throw new Error("Failed to delete project");
+  }
+  // RETURN VOID
+  return;
 };
 
 /**
@@ -397,6 +444,84 @@ export const useProjectById = (projectId: string | null) => {
       const axiosError = error as AxiosError;
       // DON'T THROW ON 404
       return axiosError?.response?.status !== 404;
+    },
+  });
+};
+
+/**
+ * USE UPDATE PROJECT HOOK
+ * @returns Update Project Mutation
+ */
+export const useUpdateProject = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UPDATE PROJECT MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: ({
+      projectId,
+      projectData,
+    }: {
+      projectId: string;
+      projectData: Partial<CreateProjectRequest>;
+    }) => updateProjectAPI(projectId, projectData),
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE PROJECT STATS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projectStats"] });
+      // INVALIDATE SPECIFIC PROJECT QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["project", variables.projectId],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Project updated successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to update project. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * USE DELETE PROJECT HOOK
+ * @returns Delete Project Mutation
+ */
+export const useDeleteProject = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE PROJECT MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: deleteProjectAPI,
+    // <== ON SUCCESS ==>
+    onSuccess: () => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE PROJECT STATS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projectStats"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Project deleted successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to delete project. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
     },
   });
 };
