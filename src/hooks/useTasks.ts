@@ -172,6 +172,16 @@ const updateTaskAPI = async (
 };
 
 /**
+ * DELETE TASK
+ * @param taskId - Task ID
+ * @returns Success Response
+ */
+const deleteTaskAPI = async (taskId: string): Promise<void> => {
+  // DELETE TASK
+  await apiClient.delete<ApiResponse<void>>(`/tasks/${taskId}`);
+};
+
+/**
  * USE TASKS DATA HOOK
  * @returns Tasks Data Query
  */
@@ -382,6 +392,42 @@ export const useUpdateTask = () => {
       const errorMessage =
         axiosError?.response?.data?.message ||
         "Failed to update task. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * USE DELETE TASK HOOK
+ * @returns Delete Task Mutation
+ */
+export const useDeleteTask = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE TASK MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: deleteTaskAPI,
+    // <== ON SUCCESS ==>
+    onSuccess: () => {
+      // INVALIDATE TASKS QUERY
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // INVALIDATE TASK STATS QUERY
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+      // INVALIDATE TASKS BY PROJECT QUERY
+      queryClient.invalidateQueries({ queryKey: ["tasksByProject"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Task deleted successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to delete task. Please try again.";
       // SHOW ERROR TOAST
       toast.error(errorMessage);
     },
