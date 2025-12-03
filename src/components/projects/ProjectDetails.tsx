@@ -418,7 +418,7 @@ const ProjectDetails = ({
             {activeTab === "tasks" ? (
               isLoadingTasks ? (
                 // TASKS LOADING SKELETON
-                <ul className="flex flex-col gap-3">
+                <ul className="flex flex-col gap-3 pb-2">
                   {[1, 2, 3].map((item) => (
                     <li
                       key={item}
@@ -437,7 +437,7 @@ const ProjectDetails = ({
                 </ul>
               ) : tasks.length > 0 ? (
                 // TASKS LIST
-                <ul className="flex flex-col gap-3">
+                <ul className="flex flex-col gap-3 pb-2">
                   {/* MAPPING THROUGH TASKS */}
                   {tasks.map((task) => (
                     // TASK ITEM
@@ -577,7 +577,7 @@ const ProjectDetails = ({
                 {/* COMMENTS LIST */}
                 {isLoadingComments ? (
                   // COMMENTS LOADING SKELETON
-                  <ul className="flex flex-col gap-3">
+                  <ul className="flex flex-col gap-3 pb-2">
                     {[1, 2, 3].map((item) => (
                       <li
                         key={item}
@@ -590,7 +590,7 @@ const ProjectDetails = ({
                   </ul>
                 ) : comments.length > 0 ? (
                   // MAPPING THROUGH COMMENTS
-                  <ul className="flex flex-col gap-3">
+                  <ul className="flex flex-col gap-3 pb-2">
                     {comments.map((comment) => (
                       // COMMENT ITEM
                       <li
