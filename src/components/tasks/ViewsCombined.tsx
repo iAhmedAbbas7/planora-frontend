@@ -3,8 +3,9 @@ import ListView from "./ListView";
 import BoardView from "./BoardView";
 import AddNewTask from "./AddNewTask";
 import type { Task } from "../../types/task";
-import { useTasks } from "../../hooks/useTasks";
 import { useEffect, useState, JSX } from "react";
+import ConfirmationModal from "../common/ConfirmationModal";
+import { useTasks, useDeleteTask } from "../../hooks/useTasks";
 import { Search, List, LayoutGrid, Plus, X } from "lucide-react";
 
 // <== VIEWS COMBINED COMPONENT ==>
@@ -30,15 +31,15 @@ const ViewsCombined = (): JSX.Element => {
   }, [isOpen]);
   // GET TASKS DATA FROM HOOK
   const { tasks: fetchedTasks, refetchTasks, isLoading } = useTasks();
+  // DELETE TASK MUTATION
+  const deleteTaskMutation = useDeleteTask();
   // VIEW MODE STATE
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   // TASKS STATE (LOCAL STATE FOR UI UPDATES)
-  // Initialize with fetchedTasks if available (from cache), otherwise empty array
   const [tasks, setTasks] = useState<Task[]>(
     Array.isArray(fetchedTasks) ? (fetchedTasks as Task[]) : []
   );
   // HAS LOADED STATE (TO TRACK IF DATA HAS BEEN LOADED AT LEAST ONCE)
-  // Initialize based on whether data already exists (from cache)
   const [hasLoaded, setHasLoaded] = useState<boolean>(
     Array.isArray(fetchedTasks) && fetchedTasks.length >= 0
   );
@@ -85,12 +86,98 @@ const ViewsCombined = (): JSX.Element => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
+  // CONFIRMATION MODAL STATE
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    taskId: string | null;
+    taskTitle: string;
+    isBulkDelete: boolean;
+    taskIds: string[];
+  }>({
+    isOpen: false,
+    taskId: null,
+    taskTitle: "",
+    isBulkDelete: false,
+    taskIds: [],
+  });
   // HANDLE DELETE TASK FUNCTION
   const handleDeleteTask = (taskId: string): void => {
-    // REMOVE TASK FROM STATE
-    setTasks((prev) => prev.filter((t) => t._id !== taskId));
-    // REFETCH TASKS TO GET UPDATED DATA
-    refetchTasks();
+    // FIND TASK
+    const task = tasks.find((t) => t._id === taskId);
+    // SHOW CONFIRMATION MODAL
+    setConfirmationModal({
+      isOpen: true,
+      taskId,
+      taskTitle: task?.title || "this task",
+      isBulkDelete: false,
+      taskIds: [],
+    });
+  };
+  // HANDLE BULK DELETE FUNCTION
+  const handleBulkDelete = (taskIds: string[]): void => {
+    // SHOW CONFIRMATION MODAL
+    setConfirmationModal({
+      isOpen: true,
+      taskId: null,
+      taskTitle: "",
+      isBulkDelete: true,
+      taskIds,
+    });
+  };
+  // HANDLE CONFIRM DELETE FUNCTION
+  const handleConfirmDelete = (): void => {
+    // CHECK IF BULK DELETE
+    if (
+      confirmationModal.isBulkDelete &&
+      confirmationModal.taskIds.length > 0
+    ) {
+      // DELETE ALL TASKS
+      const deletePromises = confirmationModal.taskIds.map((taskId) =>
+        deleteTaskMutation.mutateAsync(taskId)
+      );
+      // WAIT FOR ALL DELETIONS
+      Promise.all(deletePromises)
+        .then(() => {
+          // REMOVE TASKS FROM STATE
+          setTasks((prev) =>
+            prev.filter((t) => !confirmationModal.taskIds.includes(t._id))
+          );
+          // REFETCH TASKS TO GET UPDATED DATA
+          refetchTasks();
+          // CLOSE CONFIRMATION MODAL
+          setConfirmationModal({
+            isOpen: false,
+            taskId: null,
+            taskTitle: "",
+            isBulkDelete: false,
+            taskIds: [],
+          });
+        })
+        .catch(() => {
+          // ERROR HANDLING IS DONE IN THE MUTATION
+        });
+    } else if (confirmationModal.taskId) {
+      // DELETE SINGLE TASK
+      deleteTaskMutation.mutate(confirmationModal.taskId, {
+        // <== ON SUCCESS ==>
+        onSuccess: () => {
+          // REMOVE TASK FROM STATE
+          setTasks((prev) =>
+            prev.filter((t) => t._id !== confirmationModal.taskId)
+          );
+          // REFETCH TASKS TO GET UPDATED DATA
+          refetchTasks();
+          // CLOSE CONFIRMATION MODAL
+          setConfirmationModal({
+            isOpen: false,
+            taskId: null,
+            taskTitle: "",
+            isBulkDelete: false,
+            taskIds: [],
+          });
+        },
+      });
+    }
   };
   // HANDLE EDIT TASK FUNCTION
   const handleEditTask = (taskId: string): void => {
@@ -197,6 +284,7 @@ const ViewsCombined = (): JSX.Element => {
             setTasks={setTasks}
             onTaskDeleted={handleDeleteTask}
             onTaskEdited={handleEditTask}
+            onBulkDelete={handleBulkDelete}
             parentModalOpen={isOpen}
           />
         )}
@@ -277,6 +365,30 @@ const ViewsCombined = (): JSX.Element => {
           </div>
         </div>
       )}
+      {/* CONFIRMATION MODAL */}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={() =>
+          setConfirmationModal({
+            isOpen: false,
+            taskId: null,
+            taskTitle: "",
+            isBulkDelete: false,
+            taskIds: [],
+          })
+        }
+        onConfirm={handleConfirmDelete}
+        title={confirmationModal.isBulkDelete ? "Delete Tasks" : "Delete Task"}
+        message={
+          confirmationModal.isBulkDelete
+            ? `Are you sure you want to delete ${confirmationModal.taskIds.length} task(s)? This action cannot be undone.`
+            : `Are you sure you want to delete "${confirmationModal.taskTitle}"? This action cannot be undone.`
+        }
+        type="warning"
+        confirmText="Delete"
+        cancelText="Cancel"
+        showCancel={true}
+      />
     </div>
   );
 };
