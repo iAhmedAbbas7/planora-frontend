@@ -633,19 +633,37 @@ function TaskColumn({
                       {/* TASK DETAILS */}
                       <div className="flex flex-col gap-2 text-sm">
                         {/* STATUS */}
-                        {task.status && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
-                              Status:
+                        <div className="flex items-center gap-2">
+                          <CircleDot
+                            size={14}
+                            className="text-[var(--light-text)] flex-shrink-0"
+                          />
+                          <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                            Status:
+                          </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                            <span
+                              className="absolute inset-0 rounded-full"
+                              style={{
+                                backgroundColor: `var(--accent-color)`,
+                                opacity: 0.15,
+                              }}
+                            ></span>
+                            <span
+                              className="relative"
+                              style={{ color: `var(--accent-color)` }}
+                            >
+                              {task.status || "N/A"}
                             </span>
-                            <span className="text-xs text-[var(--text-primary)] capitalize">
-                              {task.status}
-                            </span>
-                          </div>
-                        )}
+                          </span>
+                        </div>
                         {/* PRIORITY */}
                         {task.priority && (
                           <div className="flex items-center gap-2">
+                            <Flag
+                              size={14}
+                              className="text-[var(--light-text)] flex-shrink-0"
+                            />
                             <span className="text-xs text-[var(--light-text)] min-w-[80px]">
                               Priority:
                             </span>
@@ -692,6 +710,10 @@ function TaskColumn({
                         {/* DESCRIPTION */}
                         {task.description && (
                           <div className="flex items-start gap-2 mt-1">
+                            <FileText
+                              size={14}
+                              className="text-[var(--light-text)] flex-shrink-0"
+                            />
                             <span className="text-xs text-[var(--light-text)] min-w-[80px]">
                               Description:
                             </span>
@@ -1283,19 +1305,37 @@ const ListView = ({
                       {/* TASK DETAILS */}
                       <div className="flex flex-col gap-2 text-sm">
                         {/* STATUS */}
-                        {task.status && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
-                              Status:
+                        <div className="flex items-center gap-2">
+                          <CircleDot
+                            size={14}
+                            className="text-[var(--light-text)] flex-shrink-0"
+                          />
+                          <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                            Status:
+                          </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                            <span
+                              className="absolute inset-0 rounded-full"
+                              style={{
+                                backgroundColor: `var(--accent-color)`,
+                                opacity: 0.15,
+                              }}
+                            ></span>
+                            <span
+                              className="relative"
+                              style={{ color: `var(--accent-color)` }}
+                            >
+                              {task.status || "N/A"}
                             </span>
-                            <span className="text-xs text-[var(--text-primary)] capitalize">
-                              {task.status}
-                            </span>
-                          </div>
-                        )}
+                          </span>
+                        </div>
                         {/* PRIORITY */}
                         {task.priority && (
                           <div className="flex items-center gap-2">
+                            <Flag
+                              size={14}
+                              className="text-[var(--light-text)] flex-shrink-0"
+                            />
                             <span className="text-xs text-[var(--light-text)] min-w-[80px]">
                               Priority:
                             </span>
@@ -1342,6 +1382,10 @@ const ListView = ({
                         {/* DESCRIPTION */}
                         {task.description && (
                           <div className="flex items-start gap-2 mt-1">
+                            <FileText
+                              size={14}
+                              className="text-[var(--light-text)] flex-shrink-0"
+                            />
                             <span className="text-xs text-[var(--light-text)] min-w-[80px]">
                               Description:
                             </span>
