@@ -33,6 +33,8 @@ type Props = {
   onTaskDeleted?: (taskId: string) => void;
   // <== ON TASK EDITED FUNCTION ==>
   onTaskEdited?: (taskId: string) => void;
+  // <== ON BULK DELETE FUNCTION ==>
+  onBulkDelete?: (taskIds: string[]) => void;
   // <== PARENT MODAL OPEN ==>
   parentModalOpen?: boolean;
 };
@@ -47,6 +49,7 @@ const BoardView = ({
   setTasks,
   onTaskDeleted,
   onTaskEdited,
+  onBulkDelete,
 }: Props): JSX.Element => {
   // SELECTED ITEMS STATE
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -84,15 +87,6 @@ const BoardView = ({
       document.body.style.overflow = "unset";
     };
   }, [selectedItems.length]);
-  // HANDLE DELETE TASK FUNCTION
-  const handleDeleteTask = (taskId: string): void => {
-    // REMOVE TASK FROM STATE (UI ONLY - NO API)
-    setTasks((prev) => prev.filter((t) => t._id !== taskId));
-    // LOG DELETION (UI ONLY)
-    console.log("Task deleted:", taskId);
-    // CALL ON TASK DELETED CALLBACK
-    onTaskDeleted?.(taskId);
-  };
   // HANDLE CANCEL FUNCTION
   const handleCancel = (): void => {
     // CLEAR SELECTED ITEMS
@@ -914,10 +908,8 @@ const BoardView = ({
               <button
                 className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                 onClick={() => {
-                  // DELETE SELECTED TASKS
-                  selectedItems.forEach((taskId) => {
-                    handleDeleteTask(taskId);
-                  });
+                  // CALL BULK DELETE HANDLER
+                  onBulkDelete?.(selectedItems);
                   // CLEAR SELECTION
                   setSelectedItems([]);
                 }}
