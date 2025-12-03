@@ -271,6 +271,7 @@ const ViewsCombined = (): JSX.Element => {
             setTasks={setTasks}
             onTaskDeleted={handleDeleteTask}
             onTaskEdited={handleEditTask}
+            onBulkDelete={handleBulkDelete}
             parentModalOpen={isOpen}
           />
         ) : (
