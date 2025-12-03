@@ -35,6 +35,8 @@ type ListViewProps = {
   onTaskDeleted?: (taskId: string) => void;
   // <== ON TASK EDITED FUNCTION ==>
   onTaskEdited?: (taskId: string) => void;
+  // <== ON BULK DELETE FUNCTION ==>
+  onBulkDelete?: (taskIds: string[]) => void;
 };
 // <== COLUMN PROPS TYPE INTERFACE ==>
 type ColumnProps = {
@@ -52,6 +54,8 @@ type ColumnProps = {
   onTaskEdited?: (taskId: string) => void;
   // <== ON TASK DELETED FUNCTION ==>
   onTaskDeleted?: (taskId: string) => void;
+  // <== ON BULK DELETE FUNCTION ==>
+  onBulkDelete?: (taskIds: string[]) => void;
   // <== HAS LOADED ==>
   hasLoaded: boolean;
   // <== LOADING ==>
@@ -66,14 +70,17 @@ function TaskColumn({
   title,
   tasks,
   originalTasks,
-  setTasks,
+  setTasks: _setTasks,
   onTaskEdited,
   onTaskDeleted,
+  onBulkDelete,
   hasLoaded,
   loading,
   sectionSearchTerm = "",
   onSectionSearchChange,
 }: ColumnProps): JSX.Element {
+  // SUPPRESS UNUSED VARIABLE WARNING - setTasks KEPT FOR API COMPATIBILITY
+  void _setTasks;
   // TABLE OPEN STATE
   const [isOpen, setIsOpen] = useState<boolean>(true);
   // SELECTED ITEMS STATE
@@ -85,15 +92,6 @@ function TaskColumn({
       : title === "In Progress"
       ? "bg-yellow-500"
       : "bg-green-500";
-  // HANDLE DELETE TASK FUNCTION
-  const handleDeleteTask = (taskId: string): void => {
-    // REMOVE TASK FROM STATE (UI ONLY - NO API)
-    setTasks((prev) => prev.filter((t) => t._id !== taskId));
-    // LOG DELETION (UI ONLY)
-    console.log("Task deleted:", taskId);
-    // CALL ON TASK DELETED CALLBACK
-    onTaskDeleted?.(taskId);
-  };
   // HANDLE SELECT ALL FUNCTION
   const handleSelectAll = (checked: boolean): void => {
     // UPDATE SELECTED ITEMS
@@ -721,10 +719,8 @@ function TaskColumn({
               <button
                 className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                 onClick={() => {
-                  // DELETE SELECTED TASKS
-                  selectedItems.forEach((taskId) => {
-                    handleDeleteTask(taskId);
-                  });
+                  // CALL BULK DELETE HANDLER
+                  onBulkDelete?.(selectedItems);
                   // CLEAR SELECTION
                   setSelectedItems([]);
                 }}
@@ -750,6 +746,7 @@ const ListView = ({
   parentModalOpen,
   onTaskDeleted,
   onTaskEdited,
+  onBulkDelete,
 }: ListViewProps): JSX.Element => {
   // SELECTED ITEMS STATE (FOR SEARCH RESULTS)
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -1187,6 +1184,7 @@ const ListView = ({
             parentModalOpen={parentModalOpen}
             onTaskDeleted={onTaskDeleted}
             onTaskEdited={onTaskEdited}
+            onBulkDelete={onBulkDelete}
             hasLoaded={hasLoaded}
             loading={loading}
             sectionSearchTerm={sectionSearchTerms["to do"]}
@@ -1206,6 +1204,7 @@ const ListView = ({
             parentModalOpen={parentModalOpen}
             onTaskDeleted={onTaskDeleted}
             onTaskEdited={onTaskEdited}
+            onBulkDelete={onBulkDelete}
             hasLoaded={hasLoaded}
             loading={loading}
             sectionSearchTerm={sectionSearchTerms["in progress"]}
@@ -1225,6 +1224,7 @@ const ListView = ({
             parentModalOpen={parentModalOpen}
             onTaskDeleted={onTaskDeleted}
             onTaskEdited={onTaskEdited}
+            onBulkDelete={onBulkDelete}
             hasLoaded={hasLoaded}
             loading={loading}
             sectionSearchTerm={sectionSearchTerms["completed"]}
@@ -1369,10 +1369,8 @@ const ListView = ({
               <button
                 className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                 onClick={() => {
-                  // DELETE SELECTED TASKS
-                  selectedItems.forEach((taskId) => {
-                    onTaskDeleted?.(taskId);
-                  });
+                  // CALL BULK DELETE HANDLER
+                  onBulkDelete?.(selectedItems);
                   // CLEAR SELECTION
                   setSelectedItems([]);
                 }}
