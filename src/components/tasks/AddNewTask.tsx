@@ -73,6 +73,22 @@ const AddNewTask = ({
   // PROJECT SELECTED STATE
   const [projectSelected, setProjectSelected] =
     useState<string>("Select Project");
+  // HELPER FUNCTION TO EXTRACT PROJECT ID FROM INITIAL TASK
+  const extractProjectId = (projectIdValue: unknown): string => {
+    // IF NO PROJECT ID, RETURN EMPTY STRING
+    if (!projectIdValue) return "";
+    // IF PROJECT ID IS A STRING, RETURN IT
+    if (typeof projectIdValue === "string") return projectIdValue;
+    // IF PROJECT ID IS AN OBJECT, RETURN THE _ID PROPERTY
+    if (typeof projectIdValue === "object" && projectIdValue !== null) {
+      // CAST THE PROJECT ID VALUE TO AN OBJECT WITH AN _ID PROPERTY
+      const obj = projectIdValue as { _id?: string };
+      // IF THE _ID PROPERTY EXISTS, RETURN IT
+      if (obj._id) return obj._id;
+    }
+    // IF NO PROJECT ID, RETURN EMPTY STRING
+    return "";
+  };
   // TASK STATE
   const [task, setTask] = useState<Task>({
     _id: initialTask._id || "",
@@ -81,7 +97,7 @@ const AddNewTask = ({
     dueDate: initialTask.dueDate || 0,
     status: initialTask.status || "to do",
     priority: initialTask.priority || "low",
-    projectId: initialTask.projectId || "",
+    projectId: extractProjectId(initialTask.projectId),
     userId: initialTask.userId || "",
   });
   // FORMAT STATUS FOR DISPLAY FUNCTION
@@ -141,8 +157,34 @@ const AddNewTask = ({
       }
       // SET SELECTED DATE IF EXISTS
       if (initialTask.dueDate) setSelected(new Date(initialTask.dueDate));
+      // SET PROJECT IF EXISTS AND PROJECTS ARE LOADED
+      const initialProjectId = extractProjectId(initialTask.projectId);
+      // GET THE EFFECTIVE PROJECT ID (USE PROVIDED PROJECT ID OR GET FROM INITIAL TASK)
+      const effectiveProjectId = projectId || initialProjectId;
+      // CHECK IF THE EFFECTIVE PROJECT ID EXISTS AND PROJECTS ARE LOADED
+      if (effectiveProjectId && fetchedProjects && fetchedProjects.length > 0) {
+        // FIND PROJECT BY ID
+        const project = fetchedProjects.find(
+          (p) => p._id === effectiveProjectId
+        );
+        // IF PROJECT EXISTS, SET IT AS SELECTED
+        if (project) {
+          // SET PROJECT SELECTED
+          setProjectSelected(project.title || "");
+          // UPDATE TASK STATE WITH THE PROJECT ID
+          setTask((prev) => ({
+            ...prev,
+            projectId: project._id,
+          }));
+        }
+      }
+    } else {
+      // RESET PROJECT SELECTION FOR NEW TASK
+      if (!projectId) {
+        setProjectSelected("Select Project");
+      }
     }
-  }, [initialTask]);
+  }, [initialTask, fetchedProjects, projectId]);
   // FETCH PROJECTS EFFECT
   useEffect(() => {
     // UPDATE PROJECTS FROM API
@@ -154,10 +196,16 @@ const AddNewTask = ({
           title: p.title || "",
         }))
       );
+      // USE PROVIDED PROJECT ID OR GET FROM INITIAL TASK
+      const initialProjectId = extractProjectId(initialTask?.projectId);
+      // GET THE EFFECTIVE PROJECT ID (USE PROVIDED PROJECT ID OR GET FROM INITIAL TASK)
+      const effectiveProjectId = projectId || initialProjectId;
       // IF PROJECT ID IS PROVIDED, SET IT AS SELECTED
-      if (projectId) {
+      if (effectiveProjectId) {
         // FIND PROJECT BY ID
-        const project = fetchedProjects.find((p) => p._id === projectId);
+        const project = fetchedProjects.find(
+          (p) => p._id === effectiveProjectId
+        );
         // IF PROJECT EXISTS, SET IT AS SELECTED
         if (project) {
           // SET PROJECT SELECTED
@@ -173,7 +221,7 @@ const AddNewTask = ({
       // SET EMPTY PROJECTS IF NO DATA
       setProjects([]);
     }
-  }, [fetchedProjects, projectId]);
+  }, [fetchedProjects, projectId, initialTask]);
   // HANDLE CHANGE FUNCTION
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
