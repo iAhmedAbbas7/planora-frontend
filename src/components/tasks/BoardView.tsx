@@ -10,6 +10,7 @@ import {
   Search,
   Edit,
   Trash2,
+  CircleDot,
 } from "lucide-react";
 import AddNewTask from "./AddNewTask";
 import type { Task } from "../../types/task";
@@ -294,6 +295,35 @@ const BoardView = ({
                               </div>
                             </div>
                           )}
+                          {/* STATUS */}
+                          <div className="flex items-center gap-3">
+                            <CircleDot
+                              size={16}
+                              className="text-[var(--accent-color)] flex-shrink-0"
+                            />
+                            <div className="flex items-center gap-3 flex-1 justify-between">
+                              <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                Status
+                              </span>
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                                <span
+                                  className="absolute inset-0 rounded-full"
+                                  style={{
+                                    backgroundColor: `var(--accent-color)`,
+                                    opacity: 0.15,
+                                  }}
+                                ></span>
+                                <span
+                                  className="relative"
+                                  style={{
+                                    color: `var(--accent-color)`,
+                                  }}
+                                >
+                                  {task.status || "N/A"}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
                           {task.priority && (
                             <div className="flex items-center gap-3">
                               <Flag
@@ -582,6 +612,36 @@ const BoardView = ({
                                   </div>
                                 </div>
                               )}
+
+                              {/* STATUS */}
+                              <div className="flex items-center gap-3">
+                                <CircleDot
+                                  size={16}
+                                  className="text-[var(--accent-color)] flex-shrink-0"
+                                />
+                                <div className="flex items-center gap-3 flex-1 justify-between">
+                                  <span className="font-medium text-[var(--light-text)] text-xs min-w-[60px] sm:min-w-[70px]">
+                                    Status
+                                  </span>
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold relative capitalize">
+                                    <span
+                                      className="absolute inset-0 rounded-full"
+                                      style={{
+                                        backgroundColor: `var(--accent-color)`,
+                                        opacity: 0.15,
+                                      }}
+                                    ></span>
+                                    <span
+                                      className="relative"
+                                      style={{
+                                        color: `var(--accent-color)`,
+                                      }}
+                                    >
+                                      {task.status || "N/A"}
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
 
                               {/* PRIORITY */}
                               {task.priority && (
