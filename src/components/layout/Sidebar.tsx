@@ -9,13 +9,14 @@ import {
   ChevronLeft,
   Bell,
   ChevronRight,
+  Github,
 } from "lucide-react";
+import { useLogout } from "../../hooks/useAuth";
 import LOGO_IMAGE from "../../assets/images/LOGO.png";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import { useState, useEffect, JSX, ComponentType } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import NotificationsDropdown from "../notifications/NotificationsDropdown";
-import { useLogout } from "../../hooks/useAuth";
 
 // <== SIDEBAR PROPS TYPE INTERFACE ==>
 type SidebarProps = {
@@ -75,10 +76,11 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
         setIsNotificationsOpen(false);
       } else {
         // IF NOT ON NOTIFICATIONS PAGE, TOGGLE NOTIFICATIONS DROPDOWN
-        // IF PANEL IS ALREADY OPEN, CLOSE IT
         if (isNotificationsOpen) {
+          // CLOSE NOTIFICATIONS PANEL
           setIsNotificationsOpen(false);
         } else {
+          // OPEN NOTIFICATIONS PANEL
           setIsNotificationsOpen(true);
         }
       }
@@ -89,6 +91,7 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
     { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
     { path: "/projects", name: "Projects", icon: Folder },
     { path: "/tasks", name: "Tasks", icon: ListTodo },
+    { path: "/github", name: "GitHub", icon: Github },
     { path: "/trash", name: "Trash", icon: Trash },
     {
       path: "/notifications",
