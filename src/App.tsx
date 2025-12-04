@@ -5,6 +5,7 @@ import Projects from "./pages/Projects";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import TasksPage from "./pages/TasksPage";
+import GitHubPage from "./pages/GitHubPage";
 import SignUpPage from "./pages/SignUpPage";
 import LandingPage from "./pages/LandingPage";
 import RootLayout from "./layouts/RootLayout";
@@ -117,6 +118,11 @@ const appRouter = createBrowserRouter(
           {
             path: "/tasks",
             element: <TasksPage />,
+          },
+          // <== GITHUB ROUTE ==>
+          {
+            path: "/github",
+            element: <GitHubPage />,
           },
           // <== TRASH ROUTE ==>
           {
