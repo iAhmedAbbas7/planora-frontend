@@ -8,12 +8,13 @@ import {
   LogOut,
   Bell,
   X,
+  Github,
 } from "lucide-react";
+import { useLogout } from "../../hooks/useAuth";
 import LOGO_IMAGE from "../../assets/images/LOGO.png";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import { useState, useEffect, JSX, ComponentType } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useLogout } from "../../hooks/useAuth";
 
 // <== MOBILE SIDEBAR PROPS TYPE INTERFACE ==>
 type MobileSidebarProps = {
@@ -46,26 +47,25 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
   // SYNC SIDEBAR OPEN STATE WITH PARENT (FOR FUTURE API INTEGRATION)
   useEffect(() => {
     // SYNC PARENT STATE WITH STORE STATE
-    // This ensures parent component is aware of sidebar state for future API integration
     if (typeof setIsOpen === "function") {
       setIsOpen(isOpen);
     }
   }, [isOpen, setIsOpen]);
   // HANDLE NOTIFICATIONS STATE FOR FUTURE API INTEGRATION
   useEffect(() => {
-    // RESET NOTIFICATIONS STATE WHEN SIDEBAR CLOSES (FOR FUTURE API INTEGRATION)
-    // This will be used to manage notification dropdown state when API is integrated
+    // RESET NOTIFICATIONS STATE WHEN SIDEBAR CLOSES
     if (!isOpen && isNotificationsOpen) {
+      // RESET NOTIFICATIONS STATE
       setIsNotificationsOpen(false);
     }
   }, [isOpen, isNotificationsOpen, setIsNotificationsOpen]);
   // HANDLE NOTIFICATIONS CLICK FUNCTION
   const handleNotificationsClick = (): void => {
-    // NAVIGATE TO NOTIFICATIONS PAGE
+    // CLOSE SIDEBAR IF OPEN
     closeSidebar();
+    // NAVIGATE TO NOTIFICATIONS PAGE
     navigate("/notifications");
-    // UPDATE NOTIFICATIONS STATE (FOR FUTURE API INTEGRATION)
-    // This will be used to track notification interactions when API is integrated
+    // UPDATE NOTIFICATIONS STATE
     setIsNotificationsOpen((prev) => !prev);
   };
   // MENU ITEMS ARRAY
@@ -73,6 +73,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
     { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
     { path: "/projects", name: "Projects", icon: Folder },
     { path: "/tasks", name: "Tasks", icon: ListTodo },
+    { path: "/github", name: "GitHub", icon: Github },
     { path: "/trash", name: "Trash", icon: Trash },
     {
       path: "/notifications",
