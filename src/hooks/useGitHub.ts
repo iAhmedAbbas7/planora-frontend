@@ -75,8 +75,13 @@ export type GitHubRepository = {
   updatedAt: string;
   // <== PUSHED AT ==>
   pushedAt: string;
+  // <== OWNER ==>
+  owner: {
+    login: string;
+    avatarUrl?: string;
+  };
 };
-// <== RAW API REPOSITORY TYPE (FROM BACKEND) ==>
+// <== RAW API REPOSITORY TYPE ==>
 type RawApiRepository = {
   // <== ID ==>
   id: number;
@@ -108,6 +113,11 @@ type RawApiRepository = {
   updatedAt: string;
   // <== PUSHED AT ==>
   pushedAt: string;
+  // <== OWNER ==>
+  owner?: {
+    login?: string;
+    avatarUrl?: string;
+  };
 };
 // <== RAW API PAGINATION TYPE (FROM BACKEND) ==>
 type RawApiPagination = {
@@ -385,14 +395,24 @@ const fetchRepositories = async (
   page: number = 1,
   perPage: number = 20,
   type: string = "all",
-  sort: string = "updated"
+  sort: string = "updated",
+  searchQuery: string = ""
 ): Promise<RepositoriesResponse> => {
+  // BUILD PARAMS
+  const params: Record<string, string | number> = {
+    page,
+    per_page: perPage,
+    type,
+    sort,
+  };
+  // ADD SEARCH QUERY IF PROVIDED
+  if (searchQuery.trim()) {
+    params.q = searchQuery.trim();
+  }
   // FETCHING REPOSITORIES
   const response = await apiClient.get<ApiResponse<RawRepositoriesResponse>>(
     "/github/repositories",
-    {
-      params: { page, per_page: perPage, type, sort },
-    }
+    { params }
   );
   // GET RAW DATA
   const rawData = response.data.data;
@@ -414,6 +434,10 @@ const fetchRepositories = async (
       createdAt: repo.createdAt,
       updatedAt: repo.updatedAt,
       pushedAt: repo.pushedAt,
+      owner: {
+        login: repo.owner?.login ?? repo.fullName.split("/")[0],
+        avatarUrl: repo.owner?.avatarUrl,
+      },
     })
   );
   // MAP PAGINATION TO EXPECTED FORMAT
@@ -504,20 +528,22 @@ export const useGitHubRepositories = (
   perPage: number = 20,
   type: string = "all",
   sort: string = "updated",
-  enabled: boolean = true
+  enabled: boolean = true,
+  searchQuery: string = ""
 ) => {
   // FETCH REPOSITORIES QUERY
   const {
     data,
     isLoading,
+    isFetching,
     isError,
     error,
     refetch: refetchRepositories,
   } = useQuery<RepositoriesResponse, AxiosError<{ message?: string }>>({
-    queryKey: ["github-repositories", page, perPage, type, sort],
-    queryFn: () => fetchRepositories(page, perPage, type, sort),
+    queryKey: ["github-repositories", page, perPage, type, sort, searchQuery],
+    queryFn: () => fetchRepositories(page, perPage, type, sort, searchQuery),
     retry: 1,
-    staleTime: 2 * 60 * 1000,
+    staleTime: searchQuery ? 30 * 1000 : 2 * 60 * 1000,
     enabled,
   });
   // RETURNING REPOSITORIES HOOK DATA
@@ -525,6 +551,7 @@ export const useGitHubRepositories = (
     repositories: data?.repositories || [],
     pagination: data?.pagination,
     isLoading,
+    isFetching,
     isError,
     error,
     refetchRepositories,
