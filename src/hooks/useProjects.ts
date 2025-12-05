@@ -18,6 +18,21 @@ export type ProjectStats = {
   // <== DUE TODAY COUNT ==>
   dueTodayCount: number;
 };
+// <== GITHUB REPO TYPE INTERFACE ==>
+export type GitHubRepoLink = {
+  // <== REPOSITORY OWNER ==>
+  owner: string;
+  // <== REPOSITORY NAME ==>
+  name: string;
+  // <== REPOSITORY FULL NAME ==>
+  fullName: string;
+  // <== REPOSITORY ID ==>
+  repoId: number;
+  // <== REPOSITORY HTML URL ==>
+  htmlUrl: string;
+  // <== LINKED AT ==>
+  linkedAt: string;
+};
 // <== PROJECT TYPE INTERFACE ==>
 export type Project = {
   // <== PROJECT ID ==>
@@ -46,6 +61,8 @@ export type Project = {
   userId?: string;
   // <== PROJECT CREATED AT ==>
   createdAt?: string;
+  // <== GITHUB REPO ==>
+  githubRepo?: GitHubRepoLink;
 };
 // <== API RESPONSE TYPE INTERFACE ==>
 type ApiResponse<T> = {
@@ -520,6 +537,140 @@ export const useDeleteProject = () => {
       const errorMessage =
         axiosError?.response?.data?.message ||
         "Failed to delete project. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== LINK GITHUB REPO REQUEST TYPE ==>
+type LinkGitHubRepoRequest = {
+  // <== PROJECT ID ==>
+  projectId: string;
+  // <== REPOSITORY OWNER ==>
+  owner: string;
+  // <== REPOSITORY NAME ==>
+  name: string;
+  // <== REPOSITORY FULL NAME ==>
+  fullName?: string;
+  // <== REPOSITORY ID ==>
+  repoId?: number;
+  // <== REPOSITORY HTML URL ==>
+  htmlUrl?: string;
+};
+
+/**
+ * LINK GITHUB REPO TO PROJECT
+ * @param data - Link GitHub Repo Data
+ * @returns Linked Project
+ */
+const linkGitHubRepoAPI = async (
+  data: LinkGitHubRepoRequest
+): Promise<{ projectId: string; githubRepo: GitHubRepoLink }> => {
+  // LINK GITHUB REPO
+  const response = await apiClient.post<
+    ApiResponse<{ projectId: string; githubRepo: GitHubRepoLink }>
+  >(`/projects/${data.projectId}/github/link`, {
+    owner: data.owner,
+    name: data.name,
+    fullName: data.fullName,
+    repoId: data.repoId,
+    htmlUrl: data.htmlUrl,
+  });
+  // CHECK IF DATA EXISTS
+  if (!response.data?.data) {
+    // THROW ERROR
+    throw new Error("Failed to link GitHub repository");
+  }
+  // RETURN DATA
+  return response.data.data;
+};
+
+/**
+ * UNLINK GITHUB REPO FROM PROJECT
+ * @param projectId - Project ID
+ * @returns void
+ */
+const unlinkGitHubRepoAPI = async (projectId: string): Promise<void> => {
+  // UNLINK GITHUB REPO
+  const response = await apiClient.delete<ApiResponse<void>>(
+    `/projects/${projectId}/github/unlink`
+  );
+  // CHECK IF SUCCESS
+  if (!response.data?.success) {
+    // THROW ERROR
+    throw new Error("Failed to unlink GitHub repository");
+  }
+  // RETURN VOID
+  return;
+};
+
+/**
+ * USE LINK GITHUB REPO HOOK
+ * @returns Link GitHub Repo Mutation
+ */
+export const useLinkGitHubRepo = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // LINK GITHUB REPO MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: linkGitHubRepoAPI,
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE SPECIFIC PROJECT QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["project", variables.projectId],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("GitHub repository linked successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to link GitHub repository. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+/**
+ * USE UNLINK GITHUB REPO HOOK
+ * @returns Unlink GitHub Repo Mutation
+ */
+export const useUnlinkGitHubRepo = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UNLINK GITHUB REPO MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: unlinkGitHubRepoAPI,
+    // <== ON SUCCESS ==>
+    onSuccess: (_, projectId) => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE SPECIFIC PROJECT QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["project", projectId],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("GitHub repository unlinked successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to unlink GitHub repository. Please try again.";
       // SHOW ERROR TOAST
       toast.error(errorMessage);
     },
