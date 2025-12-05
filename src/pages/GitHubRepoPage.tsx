@@ -21,6 +21,13 @@ import {
   ChevronUp,
   MessageSquare,
   GitMerge,
+  Sparkles,
+  Activity,
+  Shield,
+  Lightbulb,
+  Tag,
+  Layers,
+  RefreshCw,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -38,6 +45,10 @@ import {
   GitHubBranch,
   GitHubContributor,
 } from "../hooks/useGitHub";
+import {
+  useRepositoryCategorization,
+  useRepositoryHealthScore,
+} from "../hooks/useAI";
 import { JSX, useState } from "react";
 import useTitle from "../hooks/useTitle";
 import ReactMarkdown from "react-markdown";
@@ -550,6 +561,29 @@ const GitHubRepoPage = (): JSX.Element => {
       repo || "",
       status?.isConnected && openSections.contributors
     );
+  // AI INSIGHTS STATE
+  const [showAIInsights, setShowAIInsights] = useState<boolean>(false);
+  // AI CATEGORIZATION HOOK
+  const {
+    categorization,
+    isLoading: isCategorizationLoading,
+    refetch: refetchCategorization,
+  } = useRepositoryCategorization(
+    owner || "",
+    repo || "",
+    status?.isConnected && showAIInsights
+  );
+  // AI HEALTH SCORE HOOK
+  const {
+    healthScore,
+    suggestions,
+    isLoading: isHealthLoading,
+    refetch: refetchHealth,
+  } = useRepositoryHealthScore(
+    owner || "",
+    repo || "",
+    status?.isConnected && showAIInsights
+  );
   // NOT CONNECTED STATE
   if (!isStatusLoading && !status?.isConnected) {
     return (
@@ -803,6 +837,301 @@ const GitHubRepoPage = (): JSX.Element => {
             <LanguagesBar languages={languages} />
           </div>
         )}
+        {/* AI INSIGHTS SECTION */}
+        <div className="bg-[var(--cards-bg)] rounded-2xl border border-[var(--border)] overflow-hidden">
+          {/* AI INSIGHTS HEADER */}
+          <button
+            onClick={() => setShowAIInsights(!showAIInsights)}
+            className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-[var(--hover-bg)] transition cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{
+                  backgroundColor:
+                    "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+                }}
+              >
+                <Sparkles size={20} className="text-[var(--accent-color)]" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-sm sm:text-base font-medium text-[var(--text-primary)]">
+                  AI Insights
+                </h3>
+                <p className="text-xs text-[var(--light-text)]">
+                  Repository analysis, health score & recommendations
+                </p>
+              </div>
+            </div>
+            {showAIInsights ? (
+              <ChevronUp size={20} className="text-[var(--light-text)]" />
+            ) : (
+              <ChevronDown size={20} className="text-[var(--light-text)]" />
+            )}
+          </button>
+          {/* AI INSIGHTS CONTENT */}
+          {showAIInsights && (
+            <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4">
+              {/* LOADING STATE */}
+              {(isCategorizationLoading || isHealthLoading) && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center gap-3 text-[var(--light-text)]">
+                    <RefreshCw size={20} className="animate-spin" />
+                    <span className="text-sm">Analyzing repository...</span>
+                  </div>
+                </div>
+              )}
+              {/* HEALTH SCORE */}
+              {healthScore && !isHealthLoading && (
+                <div className="space-y-4">
+                  {/* HEALTH SCORE CARD */}
+                  <div className="p-4 bg-[var(--inside-card-bg)] rounded-xl border border-[var(--border)]">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Activity
+                          size={18}
+                          className="text-[var(--accent-color)]"
+                        />
+                        <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                          Repository Health
+                        </h4>
+                      </div>
+                      <button
+                        onClick={() => {
+                          refetchHealth();
+                          refetchCategorization();
+                        }}
+                        className="p-1.5 rounded-lg text-[var(--light-text)] hover:text-[var(--accent-color)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                        title="Refresh analysis"
+                      >
+                        <RefreshCw size={14} />
+                      </button>
+                    </div>
+                    {/* SCORE DISPLAY */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold"
+                        style={{
+                          backgroundColor:
+                            healthScore.overall >= 80
+                              ? "color-mix(in srgb, #22c55e 15%, transparent)"
+                              : healthScore.overall >= 60
+                              ? "color-mix(in srgb, #eab308 15%, transparent)"
+                              : "color-mix(in srgb, #ef4444 15%, transparent)",
+                          color:
+                            healthScore.overall >= 80
+                              ? "#22c55e"
+                              : healthScore.overall >= 60
+                              ? "#eab308"
+                              : "#ef4444",
+                        }}
+                      >
+                        {healthScore.grade}
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-[var(--text-primary)]">
+                          {healthScore.overall}/100
+                        </p>
+                        <p className="text-xs text-[var(--light-text)]">
+                          Overall Health Score
+                        </p>
+                      </div>
+                    </div>
+                    {/* METRIC BARS */}
+                    <div className="space-y-2">
+                      {[
+                        {
+                          label: "Documentation",
+                          score: healthScore.metrics.documentation.score,
+                          icon: FileText,
+                        },
+                        {
+                          label: "Maintenance",
+                          score: healthScore.metrics.maintenance.score,
+                          icon: Clock,
+                        },
+                        {
+                          label: "Community",
+                          score: healthScore.metrics.community.score,
+                          icon: Users,
+                        },
+                        {
+                          label: "Issues",
+                          score: healthScore.metrics.issues.score,
+                          icon: CircleDot,
+                        },
+                        {
+                          label: "Best Practices",
+                          score: healthScore.metrics.bestPractices.score,
+                          icon: Shield,
+                        },
+                      ].map((metric) => (
+                        <div key={metric.label} className="flex items-center gap-2">
+                          <metric.icon
+                            size={14}
+                            className="text-[var(--light-text)] flex-shrink-0"
+                          />
+                          <span className="text-xs text-[var(--light-text)] w-24 flex-shrink-0">
+                            {metric.label}
+                          </span>
+                          <div className="flex-1 h-2 bg-[var(--border)] rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${metric.score}%`,
+                                backgroundColor:
+                                  metric.score >= 80
+                                    ? "#22c55e"
+                                    : metric.score >= 60
+                                    ? "#eab308"
+                                    : "#ef4444",
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs text-[var(--text-primary)] w-8 text-right">
+                            {metric.score}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* SUGGESTIONS */}
+                  {suggestions.length > 0 && (
+                    <div className="p-4 bg-[var(--inside-card-bg)] rounded-xl border border-[var(--border)]">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Lightbulb size={18} className="text-[var(--accent-color)]" />
+                        <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                          Recommendations
+                        </h4>
+                      </div>
+                      <div className="space-y-2">
+                        {suggestions.slice(0, 4).map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 p-3 bg-[var(--bg)] rounded-lg"
+                          >
+                            <span
+                              className="w-5 h-5 flex items-center justify-center rounded text-xs font-medium flex-shrink-0"
+                              style={{
+                                backgroundColor:
+                                  suggestion.priority === "high"
+                                    ? "color-mix(in srgb, #ef4444 15%, transparent)"
+                                    : suggestion.priority === "medium"
+                                    ? "color-mix(in srgb, #eab308 15%, transparent)"
+                                    : "color-mix(in srgb, #22c55e 15%, transparent)",
+                                color:
+                                  suggestion.priority === "high"
+                                    ? "#ef4444"
+                                    : suggestion.priority === "medium"
+                                    ? "#eab308"
+                                    : "#22c55e",
+                              }}
+                            >
+                              {index + 1}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-[var(--text-primary)]">
+                                {suggestion.title}
+                              </p>
+                              <p className="text-xs text-[var(--light-text)] mt-0.5">
+                                {suggestion.description}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* CATEGORIZATION */}
+              {categorization && !isCategorizationLoading && (
+                <div className="p-4 bg-[var(--inside-card-bg)] rounded-xl border border-[var(--border)]">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Layers size={18} className="text-[var(--accent-color)]" />
+                    <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                      Project Analysis
+                    </h4>
+                  </div>
+                  {/* CATEGORY INFO */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <p className="text-xs text-[var(--light-text)] mb-1">Category</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)] capitalize">
+                        {categorization.category}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--light-text)] mb-1">Type</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)] capitalize">
+                        {categorization.projectType}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--light-text)] mb-1">Complexity</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)] capitalize">
+                        {categorization.complexity}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--light-text)] mb-1">Subcategory</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">
+                        {categorization.subcategory}
+                      </p>
+                    </div>
+                  </div>
+                  {/* PURPOSE */}
+                  <div className="mb-4">
+                    <p className="text-xs text-[var(--light-text)] mb-1">Purpose</p>
+                    <p className="text-sm text-[var(--text-primary)]">
+                      {categorization.purpose}
+                    </p>
+                  </div>
+                  {/* TECH STACK */}
+                  {categorization.techStack.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs text-[var(--light-text)] mb-2">Tech Stack</p>
+                      <div className="flex flex-wrap gap-2">
+                        {categorization.techStack.map((tech) => (
+                          <span
+                            key={tech}
+                            className="px-2 py-1 text-xs rounded-lg bg-[var(--bg)] text-[var(--text-primary)]"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* SUGGESTED TAGS */}
+                  {categorization.suggestedTags.length > 0 && (
+                    <div>
+                      <p className="text-xs text-[var(--light-text)] mb-2 flex items-center gap-1">
+                        <Tag size={12} />
+                        Suggested Tags
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {categorization.suggestedTags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-1 text-xs rounded-full"
+                            style={{
+                              backgroundColor:
+                                "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+                              color: "var(--accent-color)",
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         {/* COMMITS SECTION */}
         <div className="space-y-2">
           <SectionHeader
