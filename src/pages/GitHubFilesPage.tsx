@@ -15,6 +15,9 @@ import {
   PanelLeft,
   Loader2,
   AlertCircle,
+  FilePlus,
+  FileEdit,
+  Trash2,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -32,6 +35,11 @@ import {
   type EditorSettings,
   defaultEditorSettings,
 } from "../components/github/editorConfig";
+import {
+  CreateFileModal,
+  EditFileModal,
+  DeleteFileModal,
+} from "../components/github/FileCRUDModals";
 import { toast } from "@/lib/toast";
 import useTitle from "../hooks/useTitle";
 import FileTree from "../components/github/FileTree";
@@ -167,11 +175,15 @@ const FileHeader = ({
   onCopy,
   onDownload,
   onExplain,
+  onEdit,
+  onDelete,
 }: {
   file: FileContent | undefined;
   onCopy: () => void;
   onDownload: () => void;
   onExplain: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }): JSX.Element | null => {
   // IF NO FILE, RETURN NULL
   if (!file) return null;
@@ -210,6 +222,21 @@ const FileHeader = ({
         </span>
       </div>
       <div className="flex items-center gap-1">
+        <button
+          onClick={onEdit}
+          className="p-1.5 rounded-md text-[var(--light-text)] hover:text-[var(--accent-color)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+          title="Edit file"
+        >
+          <FileEdit size={14} />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-md text-[var(--light-text)] hover:text-red-500 hover:bg-red-500/10 transition cursor-pointer"
+          title="Delete file"
+        >
+          <Trash2 size={14} />
+        </button>
+        <div className="w-px h-4 bg-[var(--border)] mx-0.5" />
         <button
           onClick={onExplain}
           className="p-1.5 rounded-md text-[var(--light-text)] hover:text-[var(--accent-color)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
@@ -281,6 +308,19 @@ const GitHubFilesPage = (): JSX.Element => {
     // SAVE TO LOCAL STORAGE
     saveEditorSettings(settings);
   }, []);
+  // CREATE FILE MODAL STATE
+  const [showCreateFileModal, setShowCreateFileModal] = useState(false);
+  // EDIT FILE MODAL STATE
+  const [showEditFileModal, setShowEditFileModal] = useState(false);
+  // DELETE FILE MODAL STATE
+  const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
+  // DELETE ITEM STATE (FOR BOTH FILES AND FOLDERS)
+  const [deleteItemInfo, setDeleteItemInfo] = useState<{
+    path: string;
+    name: string;
+    type: "file" | "dir";
+    sha: string;
+  } | null>(null);
   // SET DEFAULT BRANCH WHEN REPO LOADS
   useEffect(() => {
     // CHECK IF DEFAULT BRANCH IS SET AND NO BRANCH IS SELECTED
@@ -553,6 +593,14 @@ const GitHubFilesPage = (): JSX.Element => {
             >
               <RefreshCw size={18} />
             </button>
+            <button
+              onClick={() => setShowCreateFileModal(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] transition cursor-pointer"
+              title="Create new file or folder"
+            >
+              <FilePlus size={14} />
+              <span className="hidden sm:inline">New</span>
+            </button>
             {repository?.htmlUrl && (
               <a
                 href={repository.htmlUrl}
@@ -589,6 +637,10 @@ const GitHubFilesPage = (): JSX.Element => {
               isLoading={isTreeLoading}
               selectedPath={selectedFilePath}
               onSelectFile={handleSelectFile}
+              onDeleteItem={(path, name, type, sha) => {
+                setDeleteItemInfo({ path, name, type, sha });
+                setShowDeleteFileModal(true);
+              }}
               className="flex-1 p-2"
             />
           </div>
@@ -602,6 +654,11 @@ const GitHubFilesPage = (): JSX.Element => {
                   onCopy={handleCopyCode}
                   onDownload={handleDownloadFile}
                   onExplain={() => setShowAIExplainer(true)}
+                  onEdit={() => setShowEditFileModal(true)}
+                  onDelete={() => {
+                    setDeleteItemInfo(null);
+                    setShowDeleteFileModal(true);
+                  }}
                 />
                 {/* EDITOR TOOLBAR */}
                 <EditorToolbar
@@ -703,6 +760,70 @@ const GitHubFilesPage = (): JSX.Element => {
         language={file?.language}
         fileName={file?.name}
       />
+      {/* CREATE FILE MODAL */}
+      <CreateFileModal
+        isOpen={showCreateFileModal}
+        onClose={() => setShowCreateFileModal(false)}
+        owner={owner || ""}
+        repo={repo || ""}
+        branch={selectedBranch}
+        currentPath={
+          selectedFilePath
+            ? selectedFilePath.split("/").slice(0, -1).join("/")
+            : ""
+        }
+        treeData={tree}
+        onSuccess={(path) => {
+          setSelectedFilePath(path);
+          refetchTree();
+        }}
+      />
+      {/* EDIT FILE MODAL */}
+      {file && (
+        <EditFileModal
+          isOpen={showEditFileModal}
+          onClose={() => setShowEditFileModal(false)}
+          owner={owner || ""}
+          repo={repo || ""}
+          branch={selectedBranch}
+          filePath={selectedFilePath || ""}
+          fileName={file.name}
+          fileContent={file.content}
+          fileSha={file.sha}
+          fileLanguage={file.language}
+          onSuccess={() => {
+            refetchFile();
+          }}
+        />
+      )}
+      {/* DELETE FILE MODAL */}
+      {(deleteItemInfo || file) && (
+        <DeleteFileModal
+          isOpen={showDeleteFileModal}
+          onClose={() => {
+            setShowDeleteFileModal(false);
+            setDeleteItemInfo(null);
+          }}
+          owner={owner || ""}
+          repo={repo || ""}
+          branch={selectedBranch}
+          filePath={deleteItemInfo?.path || selectedFilePath || ""}
+          fileName={deleteItemInfo?.name || file?.name || ""}
+          fileSha={deleteItemInfo?.sha || file?.sha || ""}
+          isFolder={deleteItemInfo?.type === "dir"}
+          treeData={tree}
+          onSuccess={() => {
+            if (
+              deleteItemInfo?.path === selectedFilePath ||
+              deleteItemInfo?.type === "dir"
+            ) {
+              setSelectedFilePath(null);
+            }
+            setDeleteItemInfo(null);
+            refetchTree();
+          }}
+        />
+      )}
     </div>
   );
 };
