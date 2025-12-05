@@ -24,6 +24,7 @@ import {
   ArrowUpCircle,
   CalendarPlus,
   ArrowDownAZ,
+  Plus,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -31,12 +32,13 @@ import {
   useGitHubRepositories,
   GitHubRepository,
 } from "../hooks/useGitHub";
-import { Link, useNavigate } from "react-router-dom";
 import useTitle from "../hooks/useTitle";
 import type { LucideIcon } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { JSX, useState, useMemo, useRef, useEffect } from "react";
-import GitHubSkeleton from "../components/skeletons/GitHubSkeleton";
 import DashboardHeader from "../components/layout/DashboardHeader";
+import GitHubSkeleton from "../components/skeletons/GitHubSkeleton";
+import CreateRepositoryModal from "../components/github/CreateRepositoryModal";
 
 // <== DROPDOWN OPTION TYPE ==>
 type DropdownOption = {
@@ -364,6 +366,8 @@ const GitHubPage = (): JSX.Element => {
   const [sort, setSort] = useState<string>("updated");
   // SEARCH STATE
   const [searchQuery, setSearchQuery] = useState<string>("");
+  // CREATE REPOSITORY MODAL STATE
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   // PER PAGE
   const perPage = 18;
   // GITHUB REPOSITORIES HOOK
@@ -530,18 +534,30 @@ const GitHubPage = (): JSX.Element => {
                 </div>
               </div>
             ) : null}
-            {/* REFRESH BUTTON */}
-            <button
-              onClick={() => refetchRepositories()}
-              disabled={isReposLoading}
-              className="p-2 text-[var(--light-text)] hover:text-[var(--accent-color)] hover:bg-[var(--hover-bg)] rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-              title="Refresh repositories"
-            >
-              <RefreshCw
-                size={18}
-                className={isReposLoading ? "animate-spin" : ""}
-              />
-            </button>
+            {/* ACTION BUTTONS */}
+            <div className="flex items-center gap-2">
+              {/* CREATE REPOSITORY BUTTON */}
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] transition cursor-pointer"
+                title="Create new repository"
+              >
+                <Plus size={16} />
+                <span className="hidden sm:inline">New Repo</span>
+              </button>
+              {/* REFRESH BUTTON */}
+              <button
+                onClick={() => refetchRepositories()}
+                disabled={isReposLoading}
+                className="p-2 text-[var(--light-text)] hover:text-[var(--accent-color)] hover:bg-[var(--hover-bg)] rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                title="Refresh repositories"
+              >
+                <RefreshCw
+                  size={18}
+                  className={isReposLoading ? "animate-spin" : ""}
+                />
+              </button>
+            </div>
           </div>
           {/* BOTTOM ROW - SEARCH AND FILTERS */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
@@ -659,6 +675,15 @@ const GitHubPage = (): JSX.Element => {
           </div>
         )}
       </div>
+      {/* CREATE REPOSITORY MODAL */}
+      <CreateRepositoryModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={() => {
+          // REFETCH REPOSITORIES AFTER CREATION
+          refetchRepositories();
+        }}
+      />
     </div>
   );
 };
