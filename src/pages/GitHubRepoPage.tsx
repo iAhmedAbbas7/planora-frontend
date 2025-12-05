@@ -28,6 +28,7 @@ import {
   Tag,
   Layers,
   RefreshCw,
+  Settings,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -54,6 +55,7 @@ import useTitle from "../hooks/useTitle";
 import ReactMarkdown from "react-markdown";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import DashboardHeader from "../components/layout/DashboardHeader";
+import RepositorySettingsPanel from "../components/github/RepositorySettingsPanel";
 
 // <== LANGUAGE COLORS MAP ==>
 const languageColors: Record<string, string> = {
@@ -505,11 +507,11 @@ const GitHubRepoPage = (): JSX.Element => {
   // GITHUB STATUS
   const { status, isLoading: isStatusLoading } = useGitHubStatus();
   // REPOSITORY DETAILS HOOK
-  const { repository, isLoading: isRepoLoading } = useRepositoryDetails(
-    owner || "",
-    repo || "",
-    status?.isConnected ?? false
-  );
+  const {
+    repository,
+    isLoading: isRepoLoading,
+    refetch: refetchRepository,
+  } = useRepositoryDetails(owner || "", repo || "", status?.isConnected ?? false);
   // REPOSITORY COMMITS HOOK
   const { commits, isLoading: isCommitsLoading } = useRepositoryCommits(
     owner || "",
@@ -563,6 +565,8 @@ const GitHubRepoPage = (): JSX.Element => {
     );
   // AI INSIGHTS STATE
   const [showAIInsights, setShowAIInsights] = useState<boolean>(false);
+  // SETTINGS PANEL STATE
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   // AI CATEGORIZATION HOOK
   const {
     categorization,
@@ -788,6 +792,15 @@ const GitHubRepoPage = (): JSX.Element => {
             </div>
             {/* RIGHT SIDE - ACTIONS */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* SETTINGS BUTTON */}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+              >
+                <Settings size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </button>
+              {/* VIEW ON GITHUB BUTTON */}
               <a
                 href={repository.htmlUrl}
                 target="_blank"
@@ -1337,6 +1350,22 @@ const GitHubRepoPage = (): JSX.Element => {
           )}
         </div>
       </div>
+      {/* REPOSITORY SETTINGS PANEL */}
+      {repository && (
+        <RepositorySettingsPanel
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          repository={repository}
+          onUpdate={() => {
+            // SILENTLY REFETCH REPOSITORY DETAILS IN BACKGROUND
+            refetchRepository();
+          }}
+          onDelete={() => {
+            // NAVIGATE TO GITHUB PAGE AFTER DELETE
+            navigate("/github");
+          }}
+        />
+      )}
     </div>
   );
 };
