@@ -681,6 +681,7 @@ const CodeEditor = ({
               bracketPairs: true,
               indentation: true,
             },
+            fixedOverflowWidgets: true,
           }}
         />
       </div>
