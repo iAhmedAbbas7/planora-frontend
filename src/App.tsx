@@ -12,6 +12,7 @@ import RootLayout from "./layouts/RootLayout";
 import SettingsPage from "./pages/SettingsPage";
 import AccessDenied from "./pages/AccessDenied";
 import GitHubRepoPage from "./pages/GitHubRepoPage";
+import GitHubFilesPage from "./pages/GitHubFilesPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
@@ -129,6 +130,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo",
               element: <GitHubRepoPage />,
+            },
+            // <== GITHUB REPOSITORY FILES ROUTE ==>
+            {
+              path: "/github/:owner/:repo/files",
+              element: <GitHubFilesPage />,
             },
             // <== TRASH ROUTE ==>
             {
