@@ -448,6 +448,12 @@ export type UpdateRepositoryInput = {
   // <== DEFAULT BRANCH ==>
   defaultBranch?: string;
 };
+// <== LANGUAGE DATA TYPE ==>
+export type LanguageData = {
+  name: string;
+  bytes: number;
+  percentage: string;
+};
 // <== GIT COMMANDS TYPE ==>
 export type GitCommands = {
   // <== CLONE COMMANDS ==>
@@ -482,6 +488,63 @@ export type GitCommands = {
     // <== EXISTING REPO ==>
     existingRepo: string[];
   };
+};
+// <== COLLABORATOR TYPE ==>
+export type Collaborator = {
+  // <== ID ==>
+  id: number;
+  // <== LOGIN ==>
+  login: string;
+  // <== AVATAR URL ==>
+  avatarUrl: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== PERMISSIONS ==>
+  permissions?: {
+    // <== ADMIN ==>
+    admin: boolean;
+    // <== MAINTAIN ==>
+    maintain: boolean;
+    // <== PUSH ==>
+    push: boolean;
+    // <== TRIAGE ==>
+    triage: boolean;
+    // <== PULL ==>
+    pull: boolean;
+  };
+  // <== ROLE NAME ==>
+  roleName?: string;
+};
+// <== UPDATE TOPICS INPUT TYPE ==>
+export type UpdateTopicsInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== TOPICS ==>
+  topics: string[];
+};
+// <== ADD COLLABORATOR INPUT TYPE ==>
+export type AddCollaboratorInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== USERNAME ==>
+  username: string;
+  // <== PERMISSION ==>
+  permission?: "pull" | "push" | "admin" | "maintain" | "triage";
+};
+// <== TRANSFER REPOSITORY INPUT TYPE ==>
+export type TransferRepositoryInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== NEW OWNER ==>
+  newOwner: string;
+  // <== TEAM IDS ==>
+  teamIds?: number[];
 };
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
@@ -818,13 +881,6 @@ const fetchRepositoryBranches = async (
   >(`/github/repositories/${owner}/${repo}/branches`);
   // RETURN REPOSITORY BRANCHES
   return response.data.data.branches;
-};
-
-// <== LANGUAGE DATA TYPE ==>
-export type LanguageData = {
-  name: string;
-  bytes: number;
-  percentage: string;
 };
 
 // <== FETCH REPOSITORY LANGUAGES FUNCTION ==>
@@ -1224,4 +1280,192 @@ export const useGitCommands = (
   });
   // RETURN GIT COMMANDS
   return { commands: data, isLoading, isError, error, refetch };
+};
+
+// <== UPDATE TOPICS FUNCTION ==>
+const updateRepositoryTopics = async (
+  input: UpdateTopicsInput
+): Promise<{ topics: string[] }> => {
+  // UPDATE TOPICS
+  const response = await apiClient.put<ApiResponse<{ topics: string[] }>>(
+    `/github/repositories/${input.owner}/${input.repo}/topics`,
+    {
+      topics: input.topics,
+    }
+  );
+  // RETURN TOPICS
+  return response.data.data;
+};
+
+// <== FETCH COLLABORATORS FUNCTION ==>
+const fetchCollaborators = async (
+  owner: string,
+  repo: string
+): Promise<Collaborator[]> => {
+  // FETCH COLLABORATORS
+  const response = await apiClient.get<
+    ApiResponse<{ collaborators: Collaborator[] }>
+  >(`/github/repositories/${owner}/${repo}/collaborators`);
+  // RETURN COLLABORATORS
+  return response.data.data.collaborators;
+};
+
+// <== ADD COLLABORATOR FUNCTION ==>
+const addCollaborator = async (
+  input: AddCollaboratorInput
+): Promise<{ username: string; permission: string }> => {
+  // ADD COLLABORATOR
+  const response = await apiClient.put<
+    ApiResponse<{ username: string; permission: string }>
+  >(
+    `/github/repositories/${input.owner}/${input.repo}/collaborators/${input.username}`,
+    { permission: input.permission || "push" }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== REMOVE COLLABORATOR FUNCTION ==>
+const removeCollaborator = async (
+  owner: string,
+  repo: string,
+  username: string
+): Promise<void> => {
+  // REMOVE COLLABORATOR
+  await apiClient.delete(
+    `/github/repositories/${owner}/${repo}/collaborators/${username}`
+  );
+};
+
+// <== TRANSFER REPOSITORY FUNCTION ==>
+const transferRepositoryFn = async (
+  input: TransferRepositoryInput
+): Promise<{ fullName: string; newOwner: string; htmlUrl: string }> => {
+  // TRANSFER REPOSITORY
+  const response = await apiClient.post<
+    ApiResponse<{
+      id: number;
+      name: string;
+      fullName: string;
+      newOwner: string;
+      htmlUrl: string;
+    }>
+  >(`/github/repositories/${input.owner}/${input.repo}/transfer`, {
+    newOwner: input.newOwner,
+    teamIds: input.teamIds,
+  });
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE UPDATE TOPICS HOOK ==>
+export const useUpdateTopics = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UPDATE TOPICS MUTATION
+  const mutation = useMutation<
+    { topics: string[] },
+    AxiosError<{ message?: string }>,
+    UpdateTopicsInput
+  >({
+    mutationFn: updateRepositoryTopics,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE REPOSITORY DETAILS
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-details", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE COLLABORATORS HOOK ==>
+export const useCollaborators = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE COLLABORATORS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    Collaborator[],
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-collaborators", owner, repo],
+    queryFn: () => fetchCollaborators(owner, repo),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN COLLABORATORS
+  return { collaborators: data || [], isLoading, isError, error, refetch };
+};
+
+// <== USE ADD COLLABORATOR HOOK ==>
+export const useAddCollaborator = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // ADD COLLABORATOR MUTATION
+  const mutation = useMutation<
+    { username: string; permission: string },
+    AxiosError<{ message?: string }>,
+    AddCollaboratorInput
+  >({
+    mutationFn: addCollaborator,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE COLLABORATORS
+      queryClient.invalidateQueries({
+        queryKey: ["github-collaborators", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE REMOVE COLLABORATOR HOOK ==>
+export const useRemoveCollaborator = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // REMOVE COLLABORATOR MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; username: string }
+  >({
+    mutationFn: ({ owner, repo, username }) =>
+      removeCollaborator(owner, repo, username),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE COLLABORATORS
+      queryClient.invalidateQueries({
+        queryKey: ["github-collaborators", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE TRANSFER REPOSITORY HOOK ==>
+export const useTransferRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // TRANSFER REPOSITORY MUTATION
+  const mutation = useMutation<
+    { fullName: string; newOwner: string; htmlUrl: string },
+    AxiosError<{ message?: string }>,
+    TransferRepositoryInput
+  >({
+    mutationFn: transferRepositoryFn,
+    // ON SUCCESS
+    onSuccess: () => {
+      // INVALIDATE REPOSITORIES
+      queryClient.invalidateQueries({ queryKey: ["github-repositories"] });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
 };
