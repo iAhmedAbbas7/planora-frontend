@@ -20,6 +20,7 @@ import {
   Code,
   X,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -48,6 +49,8 @@ type ProjectGitHubTabProps = {
   githubRepo?: GitHubRepoLink;
   // <== ON SHOW FULL SELECTOR ==>
   onShowFullSelector?: () => void;
+  // <== ON SHOW AI GENERATOR ==>
+  onShowAIGenerator?: () => void;
 };
 // <== FULL DRAWER REPO SELECTOR PROPS ==>
 type FullDrawerRepoSelectorProps = {
@@ -499,10 +502,12 @@ const LinkedRepoInfo = ({
   githubRepo,
   onUnlink,
   isUnlinking,
+  onShowAIGenerator,
 }: {
   githubRepo: GitHubRepoLink;
   onUnlink: () => void;
   isUnlinking: boolean;
+  onShowAIGenerator?: () => void;
 }): JSX.Element => {
   // EXPANDED SECTIONS STATE
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -541,7 +546,7 @@ const LinkedRepoInfo = ({
   };
   // RETURN LINKED REPO INFO COMPONENT
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pb-4">
       {/* REPO CARD */}
       <div className="p-3 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg">
         {/* HEADER */}
@@ -590,6 +595,37 @@ const LinkedRepoInfo = ({
           <ExternalLink size={10} />
         </Link>
       </div>
+      {/* AI TASK GENERATOR BUTTON */}
+      {onShowAIGenerator && (
+        <button
+          onClick={onShowAIGenerator}
+          className="w-full flex items-center justify-between p-3 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg hover:border-[var(--accent-color)] transition cursor-pointer group"
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent-color) 15%, var(--cards-bg))",
+              }}
+            >
+              <Sparkles size={16} className="text-[var(--accent-color)]" />
+            </div>
+            <div className="text-left">
+              <p className="text-xs font-medium text-[var(--text-primary)]">
+                AI Task Generator
+              </p>
+              <p className="text-[10px] text-[var(--light-text)]">
+                Generate tasks from GitHub data
+              </p>
+            </div>
+          </div>
+          <ChevronRight
+            size={16}
+            className="text-[var(--light-text)] group-hover:text-[var(--accent-color)] transition"
+          />
+        </button>
+      )}
       {/* ACTIVITY SECTIONS */}
       <div className="space-y-2">
         {/* COMMITS SECTION */}
@@ -774,6 +810,7 @@ const ProjectGitHubTab = ({
   projectId,
   githubRepo,
   onShowFullSelector,
+  onShowAIGenerator,
 }: ProjectGitHubTabProps): JSX.Element => {
   // GITHUB STATUS
   const { status, isLoading: isStatusLoading } = useGitHubStatus();
@@ -822,6 +859,7 @@ const ProjectGitHubTab = ({
         githubRepo={githubRepo}
         onUnlink={handleUnlinkRepo}
         isUnlinking={unlinkMutation.isPending}
+        onShowAIGenerator={onShowAIGenerator}
       />
     );
   }
