@@ -29,6 +29,7 @@ import {
   Layers,
   RefreshCw,
   Settings,
+  FolderTree,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -792,6 +793,15 @@ const GitHubRepoPage = (): JSX.Element => {
             </div>
             {/* RIGHT SIDE - ACTIONS */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* BROWSE FILES BUTTON */}
+              <button
+                onClick={() => navigate(`/github/${owner}/${repo}/files`)}
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+              >
+                <FolderTree size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Browse Files</span>
+                <span className="sm:hidden">Files</span>
+              </button>
               {/* SETTINGS BUTTON */}
               <button
                 onClick={() => setShowSettings(true)}
