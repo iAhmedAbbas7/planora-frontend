@@ -25,6 +25,7 @@ import { useState, useEffect, useRef, JSX } from "react";
 import { useProjectById } from "../../hooks/useProjects";
 import { useTasksByProjectId } from "../../hooks/useTasks";
 import ProjectGitHubTab, { FullDrawerRepoSelector } from "./ProjectGitHubTab";
+import { AITaskGenerator } from "./AITaskGenerator";
 
 // <== TASK TYPE INTERFACE (LOCAL) ==>
 type TaskLocal = {
@@ -93,6 +94,8 @@ const ProjectDetails = ({
   // SHOW FULL DRAWER REPO SELECTOR STATE
   const [showFullRepoSelector, setShowFullRepoSelector] =
     useState<boolean>(false);
+  // SHOW AI TASK GENERATOR STATE
+  const [showAIGenerator, setShowAIGenerator] = useState<boolean>(false);
   // LOADING STATE (COMBINED)
   const loading = isLoadingProject || isLoadingTasks;
   // CONVERT TASKS TO LOCAL FORMAT
@@ -216,10 +219,16 @@ const ProjectDetails = ({
             projectId={projectId}
             onClose={() => setShowFullRepoSelector(false)}
           />
+        ) : showAIGenerator && projectId ? (
+          <AITaskGenerator
+            projectId={projectId}
+            githubRepo={project?.githubRepo}
+            onClose={() => setShowAIGenerator(false)}
+          />
         ) : (
-          <>
+          <div className="flex flex-col h-full">
             {/* DRAWER HEADER */}
-            <header className="flex justify-between p-4 pt-2 pb-2 relative">
+            <header className="flex justify-between p-4 pt-2 pb-2 relative flex-shrink-0">
               {/* CLOSE BUTTON */}
               <button className="absolute text-white top-1 right-1 rounded-full bg-[var(--accent-color)] p-1.5">
                 {/* CLOSE ICON */}
@@ -231,7 +240,7 @@ const ProjectDetails = ({
               </button>
             </header>
             {/* DRAWER MAIN CONTENT */}
-            <main className="flex flex-col p-4 gap-4">
+            <main className="flex flex-col p-4 gap-4 flex-shrink-0">
               {/* ERROR MESSAGE */}
               {(isErrorProject || isErrorTasks || isErrorComments) && (
                 <div className="bg-[var(--inside-card-bg)] border border-red-500/50 text-red-500 px-4 py-2 rounded-lg text-sm">
@@ -384,13 +393,13 @@ const ProjectDetails = ({
             </main>
             {/* DESCRIPTION SECTION */}
             {loading ? (
-              <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)]">
+              <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)] flex-shrink-0">
                 <div className="h-5 w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
                 <div className="h-4 w-full bg-[var(--inside-card-bg)] rounded animate-pulse" />
                 <div className="h-4 w-3/4 bg-[var(--inside-card-bg)] rounded animate-pulse" />
               </div>
             ) : (
-              <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)]">
+              <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)] flex-shrink-0">
                 {/* DESCRIPTION LABEL */}
                 <p className="text-left text-base font-medium text-[var(--text-primary)]">
                   Description
@@ -402,9 +411,9 @@ const ProjectDetails = ({
               </div>
             )}
             {/* TABS SECTION */}
-            <div>
+            <div className="flex-1 flex flex-col min-h-0">
               {/* TABS */}
-              <div className="flex gap-2 border-b border-[var(--border)] p-4 pb-0">
+              <div className="flex gap-2 border-b border-[var(--border)] p-4 pb-0 flex-shrink-0">
                 {/* TASKS TAB */}
                 <button
                   onClick={() => setActiveTab("tasks")}
@@ -443,7 +452,7 @@ const ProjectDetails = ({
                 </button>
               </div>
               {/* TAB CONTENT */}
-              <div className="p-4 text-sm max-h-[300px] overflow-y-auto custom-scroll">
+              <div className="p-4 text-sm flex-1 overflow-y-auto custom-scroll">
                 {/* TASKS TAB CONTENT */}
                 {activeTab === "tasks" ? (
                   isLoadingTasks ? (
@@ -681,11 +690,12 @@ const ProjectDetails = ({
                     projectId={projectId || ""}
                     githubRepo={project?.githubRepo}
                     onShowFullSelector={() => setShowFullRepoSelector(true)}
+                    onShowAIGenerator={() => setShowAIGenerator(true)}
                   />
                 )}
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
       {/* EDIT TASK MODAL */}
