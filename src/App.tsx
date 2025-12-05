@@ -11,6 +11,7 @@ import LandingPage from "./pages/LandingPage";
 import RootLayout from "./layouts/RootLayout";
 import SettingsPage from "./pages/SettingsPage";
 import AccessDenied from "./pages/AccessDenied";
+import GitHubRepoPage from "./pages/GitHubRepoPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
@@ -28,121 +29,126 @@ const appRouter = createBrowserRouter(
     {
       element: <RootLayout />,
       children: [
-      // <== PUBLIC ROUTE ==>
-      {
-        path: "/",
-        element: (
-          <PublicRoute>
-            <LandingPage />
-          </PublicRoute>
-        ),
-      },
-      // <== LOGIN ROUTE ==>
-      {
-        path: "/login",
-        element: (
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        ),
-      },
-      // <== SIGN UP ROUTE ==>
-      {
-        path: "/register",
-        element: (
-          <PublicRoute>
-            <SignUpPage />
-          </PublicRoute>
-        ),
-      },
-      // <== VERIFY EMAIL ROUTE ==>
-      {
-        path: "/verify-email",
-        element: (
-          <PublicRoute>
-            <VerifyEmailPage />
-          </PublicRoute>
-        ),
-      },
-      // <== FORGOT PASSWORD ROUTE ==>
-      {
-        path: "/forgot-password",
-        element: (
-          <PublicRoute>
-            <ForgotPasswordPage />
-          </PublicRoute>
-        ),
-      },
-      // <== TERMS OF SERVICE ROUTE ==>
-      {
-        path: "/terms-of-service",
-        element: (
-          <PublicRoute>
-            <TermsOfServicePage />
-          </PublicRoute>
-        ),
-      },
-      // <== PRIVACY POLICY ROUTE ==>
-      {
-        path: "/privacy-policy",
-        element: (
-          <PublicRoute>
-            <PrivacyPolicyPage />
-          </PublicRoute>
-        ),
-      },
-      // <== ACCESS DENIED ROUTE ==>
-      {
-        path: "/access-denied",
-        element: <AccessDenied />,
-      },
-      // <== DASHBOARD LAYOUT ROUTE ==>
-      {
-        element: (
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        ),
-        children: [
-          // <== DASHBOARD ROUTE ==>
-          {
-            path: "/dashboard",
-            element: <Dashboard />,
-          },
-          // <== PROJECTS ROUTE ==>
-          {
-            path: "/projects",
-            element: <Projects />,
-          },
-          // <== TASKS ROUTE ==>
-          {
-            path: "/tasks",
-            element: <TasksPage />,
-          },
-          // <== GITHUB ROUTE ==>
-          {
-            path: "/github",
-            element: <GitHubPage />,
-          },
-          // <== TRASH ROUTE ==>
-          {
-            path: "/trash",
-            element: <Trash />,
-          },
-          // <== SETTINGS ROUTE ==>
-          {
-            path: "/settings",
-            element: <SettingsPage />,
-          },
-          // <== NOTIFICATIONS ROUTE ==>
-          {
-            path: "/notifications",
-            element: <NotificationsPage />,
-          },
-        ],
-      },
-    ],
-  },
+        // <== PUBLIC ROUTE ==>
+        {
+          path: "/",
+          element: (
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          ),
+        },
+        // <== LOGIN ROUTE ==>
+        {
+          path: "/login",
+          element: (
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          ),
+        },
+        // <== SIGN UP ROUTE ==>
+        {
+          path: "/register",
+          element: (
+            <PublicRoute>
+              <SignUpPage />
+            </PublicRoute>
+          ),
+        },
+        // <== VERIFY EMAIL ROUTE ==>
+        {
+          path: "/verify-email",
+          element: (
+            <PublicRoute>
+              <VerifyEmailPage />
+            </PublicRoute>
+          ),
+        },
+        // <== FORGOT PASSWORD ROUTE ==>
+        {
+          path: "/forgot-password",
+          element: (
+            <PublicRoute>
+              <ForgotPasswordPage />
+            </PublicRoute>
+          ),
+        },
+        // <== TERMS OF SERVICE ROUTE ==>
+        {
+          path: "/terms-of-service",
+          element: (
+            <PublicRoute>
+              <TermsOfServicePage />
+            </PublicRoute>
+          ),
+        },
+        // <== PRIVACY POLICY ROUTE ==>
+        {
+          path: "/privacy-policy",
+          element: (
+            <PublicRoute>
+              <PrivacyPolicyPage />
+            </PublicRoute>
+          ),
+        },
+        // <== ACCESS DENIED ROUTE ==>
+        {
+          path: "/access-denied",
+          element: <AccessDenied />,
+        },
+        // <== DASHBOARD LAYOUT ROUTE ==>
+        {
+          element: (
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          ),
+          children: [
+            // <== DASHBOARD ROUTE ==>
+            {
+              path: "/dashboard",
+              element: <Dashboard />,
+            },
+            // <== PROJECTS ROUTE ==>
+            {
+              path: "/projects",
+              element: <Projects />,
+            },
+            // <== TASKS ROUTE ==>
+            {
+              path: "/tasks",
+              element: <TasksPage />,
+            },
+            // <== GITHUB ROUTE ==>
+            {
+              path: "/github",
+              element: <GitHubPage />,
+            },
+            // <== GITHUB REPOSITORY DETAILS ROUTE ==>
+            {
+              path: "/github/:owner/:repo",
+              element: <GitHubRepoPage />,
+            },
+            // <== TRASH ROUTE ==>
+            {
+              path: "/trash",
+              element: <Trash />,
+            },
+            // <== SETTINGS ROUTE ==>
+            {
+              path: "/settings",
+              element: <SettingsPage />,
+            },
+            // <== NOTIFICATIONS ROUTE ==>
+            {
+              path: "/notifications",
+              element: <NotificationsPage />,
+            },
+          ],
+        },
+      ],
+    },
   ],
   {
     // DISABLE SCROLL RESTORATION TO PREVENT PRESERVING SCROLL POSITION
