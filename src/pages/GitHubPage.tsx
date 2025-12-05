@@ -31,7 +31,7 @@ import {
   useGitHubRepositories,
   GitHubRepository,
 } from "../hooks/useGitHub";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useTitle from "../hooks/useTitle";
 import type { LucideIcon } from "lucide-react";
 import { JSX, useState, useMemo, useRef, useEffect } from "react";
@@ -156,7 +156,13 @@ const FilterDropdown = ({
 };
 
 // <== REPOSITORY CARD COMPONENT ==>
-const RepositoryCard = ({ repo }: { repo: GitHubRepository }): JSX.Element => {
+const RepositoryCard = ({
+  repo,
+  onClick,
+}: {
+  repo: GitHubRepository;
+  onClick: () => void;
+}): JSX.Element => {
   // FORMAT DATE FUNCTION
   const formatDate = (dateString: string): string => {
     // CREATE DATE OBJECT
@@ -229,7 +235,10 @@ const RepositoryCard = ({ repo }: { repo: GitHubRepository }): JSX.Element => {
   // RETURNING THE REPOSITORY CARD
   return (
     // REPOSITORY CARD CONTAINER
-    <div className="group p-4 bg-[var(--cards-bg)] rounded-xl border border-[var(--border)] hover:border-[var(--accent-color)] transition-all duration-200 hover:shadow-md">
+    <div
+      onClick={onClick}
+      className="group p-4 bg-[var(--cards-bg)] rounded-xl border border-[var(--border)] hover:border-[var(--accent-color)] transition-all duration-200 hover:shadow-md cursor-pointer"
+    >
       {/* REPOSITORY HEADER */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
@@ -338,6 +347,8 @@ const RepositoryCard = ({ repo }: { repo: GitHubRepository }): JSX.Element => {
 
 // <== GITHUB PAGE COMPONENT ==>
 const GitHubPage = (): JSX.Element => {
+  // NAVIGATE HOOK
+  const navigate = useNavigate();
   // SET PAGE TITLE
   useTitle("PlanOra - GitHub");
   // GITHUB STATUS HOOK
@@ -592,7 +603,11 @@ const GitHubPage = (): JSX.Element => {
           // REPOSITORIES GRID
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRepositories.map((repo) => (
-              <RepositoryCard key={repo.id} repo={repo} />
+              <RepositoryCard
+                key={repo.id}
+                repo={repo}
+                onClick={() => navigate(`/github/${repo.fullName}`)}
+              />
             ))}
           </div>
         )}
