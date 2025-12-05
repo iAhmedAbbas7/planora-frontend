@@ -12,6 +12,7 @@ import {
   Clock,
   Send,
   Trash2,
+  Github,
 } from "lucide-react";
 import {
   useCommentsByProjectId,
@@ -23,6 +24,7 @@ import AddNewTask from "../tasks/AddNewTask";
 import { useState, useEffect, useRef, JSX } from "react";
 import { useProjectById } from "../../hooks/useProjects";
 import { useTasksByProjectId } from "../../hooks/useTasks";
+import ProjectGitHubTab, { FullDrawerRepoSelector } from "./ProjectGitHubTab";
 
 // <== TASK TYPE INTERFACE (LOCAL) ==>
 type TaskLocal = {
@@ -79,13 +81,18 @@ const ProjectDetails = ({
   // COMMENT INPUT REF
   const commentInputRef = useRef<HTMLInputElement>(null);
   // ACTIVE TAB STATE
-  const [activeTab, setActiveTab] = useState<"tasks" | "comments">("tasks");
+  const [activeTab, setActiveTab] = useState<"tasks" | "comments" | "github">(
+    "tasks"
+  );
   // EDIT TASK MODAL STATE
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] =
     useState<boolean>(false);
   // SELECTED TASK FOR EDITING
   const [selectedTaskForEdit, setSelectedTaskForEdit] =
     useState<TaskLocal | null>(null);
+  // SHOW FULL DRAWER REPO SELECTOR STATE
+  const [showFullRepoSelector, setShowFullRepoSelector] =
+    useState<boolean>(false);
   // LOADING STATE (COMBINED)
   const loading = isLoadingProject || isLoadingTasks;
   // CONVERT TASKS TO LOCAL FORMAT
@@ -203,448 +210,483 @@ const ProjectDetails = ({
           projectId ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* DRAWER HEADER */}
-        <header className="flex justify-between p-4 pt-2 pb-2 relative">
-          {/* CLOSE BUTTON */}
-          <button className="absolute text-white top-1 right-1 rounded-full bg-[var(--accent-color)] p-1.5">
-            {/* CLOSE ICON */}
-            <X
-              size={17}
-              className="rounded-full cursor-pointer"
-              onClick={onClose}
-            />
-          </button>
-        </header>
-        {/* DRAWER MAIN CONTENT */}
-        <main className="flex flex-col p-4 gap-4">
-          {/* ERROR MESSAGE */}
-          {(isErrorProject || isErrorTasks || isErrorComments) && (
-            <div className="bg-[var(--inside-card-bg)] border border-red-500/50 text-red-500 px-4 py-2 rounded-lg text-sm">
-              {isErrorProject
-                ? "Failed to load project details. Please try again."
-                : isErrorTasks
-                ? "Failed to load tasks. Please try again."
-                : "Failed to load comments. Please try again."}
-            </div>
-          )}
-          {/* LOADING SKELETON */}
-          {loading ? (
-            <>
-              {/* PROJECT TITLE SKELETON */}
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-5 w-5 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                <div className="h-6 w-48 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-              </div>
-              {/* PROJECT INFO SKELETON */}
-              <div className="grid grid-cols-1 gap-3">
-                {[1, 2, 3, 4].map((item) => (
-                  <div key={item} className="flex items-center gap-3">
-                    <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="h-4 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                      <div className="h-5 w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                    </div>
+        {/* FULL DRAWER REPO SELECTOR */}
+        {showFullRepoSelector && projectId ? (
+          <FullDrawerRepoSelector
+            projectId={projectId}
+            onClose={() => setShowFullRepoSelector(false)}
+          />
+        ) : (
+          <>
+            {/* DRAWER HEADER */}
+            <header className="flex justify-between p-4 pt-2 pb-2 relative">
+              {/* CLOSE BUTTON */}
+              <button className="absolute text-white top-1 right-1 rounded-full bg-[var(--accent-color)] p-1.5">
+                {/* CLOSE ICON */}
+                <X
+                  size={17}
+                  className="rounded-full cursor-pointer"
+                  onClick={onClose}
+                />
+              </button>
+            </header>
+            {/* DRAWER MAIN CONTENT */}
+            <main className="flex flex-col p-4 gap-4">
+              {/* ERROR MESSAGE */}
+              {(isErrorProject || isErrorTasks || isErrorComments) && (
+                <div className="bg-[var(--inside-card-bg)] border border-red-500/50 text-red-500 px-4 py-2 rounded-lg text-sm">
+                  {isErrorProject
+                    ? "Failed to load project details. Please try again."
+                    : isErrorTasks
+                    ? "Failed to load tasks. Please try again."
+                    : "Failed to load comments. Please try again."}
+                </div>
+              )}
+              {/* LOADING SKELETON */}
+              {loading ? (
+                <>
+                  {/* PROJECT TITLE SKELETON */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-5 w-5 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                    <div className="h-6 w-48 bg-[var(--inside-card-bg)] rounded animate-pulse" />
                   </div>
-                ))}
+                  {/* PROJECT INFO SKELETON */}
+                  <div className="grid grid-cols-1 gap-3">
+                    {[1, 2, 3, 4].map((item) => (
+                      <div key={item} className="flex items-center gap-3">
+                        <div className="h-4 w-4 bg-[var(--inside-card-bg)] rounded animate-pulse flex-shrink-0" />
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="h-4 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          <div className="h-5 w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* PROJECT TITLE */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText
+                      size={20}
+                      className="text-[var(--accent-color)]"
+                    />
+                    <p className="text-left text-xl text-[var(--text-primary)] font-semibold">
+                      {project?.title || "Project Details"}
+                    </p>
+                  </div>
+                  {/* PROJECT INFO GRID */}
+                  <div className="grid grid-cols-1 gap-3">
+                    {/* STATUS */}
+                    <div className="flex items-center gap-3">
+                      {/* ICON */}
+                      <CircleDot
+                        size={18}
+                        className="text-[var(--accent-color)] flex-shrink-0"
+                      />
+                      {/* CONTENT */}
+                      <div className="flex items-center gap-3 flex-1">
+                        {/* STATUS LABEL */}
+                        <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                          Status
+                        </span>
+                        {/* STATUS BADGE */}
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold relative">
+                          <span
+                            className="absolute inset-0 rounded-full"
+                            style={{
+                              backgroundColor: `var(--accent-color)`,
+                              opacity: 0.15,
+                            }}
+                          ></span>
+                          <span
+                            className="relative"
+                            style={{ color: `var(--accent-color)` }}
+                          >
+                            {project?.status || "Unknown"}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    {/* DUE DATE */}
+                    <div className="flex items-center gap-3">
+                      {/* ICON */}
+                      <Calendar
+                        size={18}
+                        className="text-[var(--accent-color)] flex-shrink-0"
+                      />
+                      {/* CONTENT */}
+                      <div className="flex items-center gap-3 flex-1">
+                        {/* DUE DATE LABEL */}
+                        <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                          Due Date
+                        </span>
+                        {/* DUE DATE VALUE */}
+                        <p className="text-[var(--text-primary)] text-sm">
+                          {project?.dueDate
+                            ? new Date(project.dueDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )
+                            : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    {/* IN CHARGE */}
+                    {project?.inChargeName && (
+                      <div className="flex items-center gap-3">
+                        {/* ICON */}
+                        <User
+                          size={18}
+                          className="text-[var(--accent-color)] flex-shrink-0"
+                        />
+                        {/* CONTENT */}
+                        <div className="flex items-center gap-3 flex-1">
+                          {/* IN CHARGE LABEL */}
+                          <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                            In Charge
+                          </span>
+                          {/* IN CHARGE VALUE */}
+                          <p className="text-[var(--text-primary)] text-sm">
+                            {project.inChargeName}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {/* ROLE */}
+                    {project?.role && (
+                      <div className="flex items-center gap-3">
+                        {/* ICON */}
+                        <Briefcase
+                          size={18}
+                          className="text-[var(--accent-color)] flex-shrink-0"
+                        />
+                        {/* CONTENT */}
+                        <div className="flex items-center gap-3 flex-1">
+                          {/* ROLE LABEL */}
+                          <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
+                            Role
+                          </span>
+                          {/* ROLE VALUE */}
+                          <p className="text-[var(--text-primary)] text-sm">
+                            {project.role}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </main>
+            {/* DESCRIPTION SECTION */}
+            {loading ? (
+              <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)]">
+                <div className="h-5 w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                <div className="h-4 w-full bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                <div className="h-4 w-3/4 bg-[var(--inside-card-bg)] rounded animate-pulse" />
               </div>
-            </>
-          ) : (
-            <>
-              {/* PROJECT TITLE */}
-              <div className="flex items-center gap-2 mb-2">
-                <FileText size={20} className="text-[var(--accent-color)]" />
-                <p className="text-left text-xl text-[var(--text-primary)] font-semibold">
-                  {project?.title || "Project Details"}
+            ) : (
+              <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)]">
+                {/* DESCRIPTION LABEL */}
+                <p className="text-left text-base font-medium text-[var(--text-primary)]">
+                  Description
+                </p>
+                {/* DESCRIPTION TEXT */}
+                <p className="text-left text-sm text-[var(--light-text)] leading-relaxed">
+                  {project?.description || "No description available."}
                 </p>
               </div>
-              {/* PROJECT INFO GRID */}
-              <div className="grid grid-cols-1 gap-3">
-                {/* STATUS */}
-                <div className="flex items-center gap-3">
-                  {/* ICON */}
-                  <CircleDot
-                    size={18}
-                    className="text-[var(--accent-color)] flex-shrink-0"
-                  />
-                  {/* CONTENT */}
-                  <div className="flex items-center gap-3 flex-1">
-                    {/* STATUS LABEL */}
-                    <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
-                      Status
-                    </span>
-                    {/* STATUS BADGE */}
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold relative">
-                      <span
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                          backgroundColor: `var(--accent-color)`,
-                          opacity: 0.15,
-                        }}
-                      ></span>
-                      <span
-                        className="relative"
-                        style={{ color: `var(--accent-color)` }}
-                      >
-                        {project?.status || "Unknown"}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                {/* DUE DATE */}
-                <div className="flex items-center gap-3">
-                  {/* ICON */}
-                  <Calendar
-                    size={18}
-                    className="text-[var(--accent-color)] flex-shrink-0"
-                  />
-                  {/* CONTENT */}
-                  <div className="flex items-center gap-3 flex-1">
-                    {/* DUE DATE LABEL */}
-                    <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
-                      Due Date
-                    </span>
-                    {/* DUE DATE VALUE */}
-                    <p className="text-[var(--text-primary)] text-sm">
-                      {project?.dueDate
-                        ? new Date(project.dueDate).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            }
-                          )
-                        : "N/A"}
-                    </p>
-                  </div>
-                </div>
-                {/* IN CHARGE */}
-                {project?.inChargeName && (
-                  <div className="flex items-center gap-3">
-                    {/* ICON */}
-                    <User
-                      size={18}
-                      className="text-[var(--accent-color)] flex-shrink-0"
-                    />
-                    {/* CONTENT */}
-                    <div className="flex items-center gap-3 flex-1">
-                      {/* IN CHARGE LABEL */}
-                      <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
-                        In Charge
-                      </span>
-                      {/* IN CHARGE VALUE */}
-                      <p className="text-[var(--text-primary)] text-sm">
-                        {project.inChargeName}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {/* ROLE */}
-                {project?.role && (
-                  <div className="flex items-center gap-3">
-                    {/* ICON */}
-                    <Briefcase
-                      size={18}
-                      className="text-[var(--accent-color)] flex-shrink-0"
-                    />
-                    {/* CONTENT */}
-                    <div className="flex items-center gap-3 flex-1">
-                      {/* ROLE LABEL */}
-                      <span className="font-medium text-[var(--light-text)] text-sm min-w-[80px]">
-                        Role
-                      </span>
-                      {/* ROLE VALUE */}
-                      <p className="text-[var(--text-primary)] text-sm">
-                        {project.role}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </main>
-        {/* DESCRIPTION SECTION */}
-        {loading ? (
-          <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)]">
-            <div className="h-5 w-24 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-            <div className="h-4 w-full bg-[var(--inside-card-bg)] rounded animate-pulse" />
-            <div className="h-4 w-3/4 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-          </div>
-        ) : (
-          <div className="flex flex-col p-4 pt-2 pb-2 gap-2 border-t border-[var(--border)]">
-            {/* DESCRIPTION LABEL */}
-            <p className="text-left text-base font-medium text-[var(--text-primary)]">
-              Description
-            </p>
-            {/* DESCRIPTION TEXT */}
-            <p className="text-left text-sm text-[var(--light-text)] leading-relaxed">
-              {project?.description || "No description available."}
-            </p>
-          </div>
-        )}
-        {/* TABS SECTION */}
-        <div>
-          {/* TABS */}
-          <div className="flex gap-2 border-b border-[var(--border)] p-4 pb-0">
-            {/* TASKS TAB */}
-            <button
-              onClick={() => setActiveTab("tasks")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
-                activeTab === "tasks"
-                  ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
-                  : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
-              }`}
-            >
-              <CheckSquare size={16} />
-              <span>Tasks</span>
-            </button>
-            {/* COMMENTS TAB */}
-            <button
-              onClick={() => setActiveTab("comments")}
-              className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
-                activeTab === "comments"
-                  ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
-                  : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
-              }`}
-            >
-              <MessageSquare size={16} />
-              <span>Comments</span>
-            </button>
-          </div>
-          {/* TAB CONTENT */}
-          <div className="p-4 text-sm max-h-[300px] overflow-y-auto custom-scroll">
-            {/* TASKS TAB CONTENT */}
-            {activeTab === "tasks" ? (
-              isLoadingTasks ? (
-                // TASKS LOADING SKELETON
-                <ul className="flex flex-col gap-3 pb-2">
-                  {[1, 2, 3].map((item) => (
-                    <li
-                      key={item}
-                      className="border border-[var(--border)] p-3 rounded-lg"
-                    >
-                      <div className="h-5 w-3/4 bg-[var(--inside-card-bg)] rounded animate-pulse mb-2" />
-                      <div className="h-4 w-full bg-[var(--inside-card-bg)] rounded animate-pulse mb-2" />
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="h-3 w-3 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                        <div className="h-3 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                        <div className="h-3 w-3 bg-[var(--inside-card-bg)] rounded animate-pulse ml-auto" />
-                        <div className="h-3 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : tasks.length > 0 ? (
-                // TASKS LIST
-                <ul className="flex flex-col gap-3 pb-2">
-                  {/* MAPPING THROUGH TASKS */}
-                  {tasks.map((task) => (
-                    // TASK ITEM
-                    <li
-                      key={task._id}
-                      onClick={() => {
-                        setSelectedTaskForEdit(task);
-                        setIsEditTaskModalOpen(true);
-                      }}
-                      className="border border-[var(--border)] p-3 rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                    >
-                      {/* TASK HEADER */}
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        {/* TASK TITLE */}
-                        <p className="font-medium text-[var(--text-primary)] flex-1">
-                          {task.title}
-                        </p>
-                        {/* PRIORITY BADGE */}
-                        {task.priority && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative flex-shrink-0">
-                            <span
-                              className="absolute inset-0 rounded-full"
-                              style={{
-                                backgroundColor: `var(--accent-color)`,
-                                opacity: 0.15,
-                              }}
-                            ></span>
-                            <span
-                              className="relative flex items-center gap-1"
-                              style={{ color: `var(--accent-color)` }}
-                            >
-                              <Flag size={12} />
-                              {task.priority.toUpperCase()}
-                            </span>
-                          </span>
-                        )}
-                      </div>
-                      {/* TASK DESCRIPTION */}
-                      {task.description && (
-                        <p className="text-sm text-[var(--light-text)] mb-2 line-clamp-2">
-                          {task.description}
-                        </p>
-                      )}
-                      {/* TASK METADATA */}
-                      <div className="flex items-center gap-3 flex-wrap mt-2">
-                        {/* STATUS BADGE */}
-                        {task.status && (
-                          <div className="flex items-center gap-1.5">
-                            <CircleDot
-                              size={14}
-                              className="text-[var(--accent-color)]"
-                            />
-                            <span className="text-xs text-[var(--light-text)] capitalize">
-                              {task.status.replace("inprogress", "in progress")}
-                            </span>
-                          </div>
-                        )}
-                        {/* DUE DATE */}
-                        {task.dueDate && (
-                          <div className="flex items-center gap-1.5">
-                            <Clock
-                              size={14}
-                              className="text-[var(--light-text)]"
-                            />
-                            <span className="text-xs text-[var(--light-text)]">
-                              Due:{" "}
-                              {new Date(
-                                typeof task.dueDate === "string"
-                                  ? task.dueDate
-                                  : task.dueDate
-                              ).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                // EMPTY TASKS STATE
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <CheckSquare
-                    size={48}
-                    className="text-[var(--light-text)] opacity-50"
-                  />
-                  <p className="text-[var(--light-text)] font-medium">
-                    No tasks yet
-                  </p>
-                  <p className="text-sm text-[var(--light-text)] text-center">
-                    Add tasks to track progress on this project.
-                  </p>
-                </div>
-              )
-            ) : (
-              // COMMENTS TAB CONTENT
-              <div className="flex flex-col gap-3">
-                {/* ADD COMMENT INPUT */}
-                <div className="flex gap-2">
-                  {/* COMMENT INPUT */}
-                  <input
-                    ref={commentInputRef}
-                    type="text"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Add a comment..."
-                    className="flex-1 border border-[var(--border)] p-2 rounded-md bg-transparent focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] text-[var(--text-primary)]"
-                    onKeyDown={(e) => {
-                      // CHECK IF ENTER KEY PRESSED
-                      if (e.key === "Enter" && commentText.trim() !== "") {
-                        // PREVENT DEFAULT BEHAVIOR
-                        e.preventDefault();
-                        // ADD COMMENT
-                        handleAddComment();
-                      }
-                    }}
-                    disabled={createCommentMutation.isPending}
-                  />
-                  {/* SEND BUTTON */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      // PREVENT DEFAULT BEHAVIOR
-                      e.preventDefault();
-                      // ADD COMMENT
-                      handleAddComment();
-                    }}
-                    disabled={
-                      !commentText.trim() ||
-                      createCommentMutation.isPending ||
-                      !projectId
-                    }
-                    className="px-3 py-2 rounded-md bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
-                  >
-                    <Send size={16} />
-                  </button>
-                </div>
-                {/* COMMENTS LIST */}
-                {isLoadingComments ? (
-                  // COMMENTS LOADING SKELETON
-                  <ul className="flex flex-col gap-3 pb-2">
-                    {[1, 2, 3].map((item) => (
-                      <li
-                        key={item}
-                        className="border border-[var(--border)] p-3 rounded-lg"
-                      >
-                        <div className="h-4 w-3/4 bg-[var(--inside-card-bg)] rounded animate-pulse mb-2" />
-                        <div className="h-3 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
-                      </li>
-                    ))}
-                  </ul>
-                ) : comments.length > 0 ? (
-                  // MAPPING THROUGH COMMENTS
-                  <ul className="flex flex-col gap-3 pb-2">
-                    {comments.map((comment) => (
-                      // COMMENT ITEM
-                      <li
-                        key={comment._id}
-                        className="border border-[var(--border)] p-3 rounded-lg hover:bg-[var(--hover-bg)] transition"
-                      >
-                        {/* COMMENT HEADER */}
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          {/* COMMENT TEXT */}
-                          <p className="text-sm text-[var(--text-primary)] flex-1">
-                            {comment.text}
-                          </p>
-                          {/* DELETE BUTTON */}
-                          <button
-                            onClick={() => handleDeleteComment(comment._id)}
-                            disabled={deleteCommentMutation.isPending}
-                            className="text-[var(--accent-color)] hover:opacity-75 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 p-1"
-                            title="Delete comment"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                        {/* COMMENT FOOTER */}
-                        <div className="flex items-center gap-1.5">
-                          <Clock
-                            size={12}
-                            className="text-[var(--light-text)]"
-                          />
-                          <span className="text-xs text-[var(--light-text)]">
-                            {formatDate(comment.createdAt)}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  // EMPTY COMMENTS STATE
-                  <div className="flex flex-col items-center justify-center py-12 gap-3">
-                    <MessageSquare
-                      size={48}
-                      className="text-[var(--light-text)] opacity-50"
-                    />
-                    <p className="text-[var(--light-text)] font-medium">
-                      No comments yet
-                    </p>
-                    <p className="text-sm text-[var(--light-text)] text-center">
-                      Be the first to add a comment on this project.
-                    </p>
-                  </div>
-                )}
-              </div>
             )}
-          </div>
-        </div>
+            {/* TABS SECTION */}
+            <div>
+              {/* TABS */}
+              <div className="flex gap-2 border-b border-[var(--border)] p-4 pb-0">
+                {/* TASKS TAB */}
+                <button
+                  onClick={() => setActiveTab("tasks")}
+                  className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
+                    activeTab === "tasks"
+                      ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                      : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  <CheckSquare size={16} />
+                  <span>Tasks</span>
+                </button>
+                {/* COMMENTS TAB */}
+                <button
+                  onClick={() => setActiveTab("comments")}
+                  className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
+                    activeTab === "comments"
+                      ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                      : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  <MessageSquare size={16} />
+                  <span>Comments</span>
+                </button>
+                {/* GITHUB TAB */}
+                <button
+                  onClick={() => setActiveTab("github")}
+                  className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
+                    activeTab === "github"
+                      ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                      : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  <Github size={16} />
+                  <span>GitHub</span>
+                </button>
+              </div>
+              {/* TAB CONTENT */}
+              <div className="p-4 text-sm max-h-[300px] overflow-y-auto custom-scroll">
+                {/* TASKS TAB CONTENT */}
+                {activeTab === "tasks" ? (
+                  isLoadingTasks ? (
+                    // TASKS LOADING SKELETON
+                    <ul className="flex flex-col gap-3 pb-2">
+                      {[1, 2, 3].map((item) => (
+                        <li
+                          key={item}
+                          className="border border-[var(--border)] p-3 rounded-lg"
+                        >
+                          <div className="h-5 w-3/4 bg-[var(--inside-card-bg)] rounded animate-pulse mb-2" />
+                          <div className="h-4 w-full bg-[var(--inside-card-bg)] rounded animate-pulse mb-2" />
+                          <div className="flex items-center gap-2 mt-2">
+                            <div className="h-3 w-3 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                            <div className="h-3 w-16 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                            <div className="h-3 w-3 bg-[var(--inside-card-bg)] rounded animate-pulse ml-auto" />
+                            <div className="h-3 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : tasks.length > 0 ? (
+                    // TASKS LIST
+                    <ul className="flex flex-col gap-3 pb-2">
+                      {/* MAPPING THROUGH TASKS */}
+                      {tasks.map((task) => (
+                        // TASK ITEM
+                        <li
+                          key={task._id}
+                          onClick={() => {
+                            setSelectedTaskForEdit(task);
+                            setIsEditTaskModalOpen(true);
+                          }}
+                          className="border border-[var(--border)] p-3 rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                        >
+                          {/* TASK HEADER */}
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            {/* TASK TITLE */}
+                            <p className="font-medium text-[var(--text-primary)] flex-1">
+                              {task.title}
+                            </p>
+                            {/* PRIORITY BADGE */}
+                            {task.priority && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative flex-shrink-0">
+                                <span
+                                  className="absolute inset-0 rounded-full"
+                                  style={{
+                                    backgroundColor: `var(--accent-color)`,
+                                    opacity: 0.15,
+                                  }}
+                                ></span>
+                                <span
+                                  className="relative flex items-center gap-1"
+                                  style={{ color: `var(--accent-color)` }}
+                                >
+                                  <Flag size={12} />
+                                  {task.priority.toUpperCase()}
+                                </span>
+                              </span>
+                            )}
+                          </div>
+                          {/* TASK DESCRIPTION */}
+                          {task.description && (
+                            <p className="text-sm text-[var(--light-text)] mb-2 line-clamp-2">
+                              {task.description}
+                            </p>
+                          )}
+                          {/* TASK METADATA */}
+                          <div className="flex items-center gap-3 flex-wrap mt-2">
+                            {/* STATUS BADGE */}
+                            {task.status && (
+                              <div className="flex items-center gap-1.5">
+                                <CircleDot
+                                  size={14}
+                                  className="text-[var(--accent-color)]"
+                                />
+                                <span className="text-xs text-[var(--light-text)] capitalize">
+                                  {task.status.replace(
+                                    "inprogress",
+                                    "in progress"
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                            {/* DUE DATE */}
+                            {task.dueDate && (
+                              <div className="flex items-center gap-1.5">
+                                <Clock
+                                  size={14}
+                                  className="text-[var(--light-text)]"
+                                />
+                                <span className="text-xs text-[var(--light-text)]">
+                                  Due:{" "}
+                                  {new Date(
+                                    typeof task.dueDate === "string"
+                                      ? task.dueDate
+                                      : task.dueDate
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    // EMPTY TASKS STATE
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <CheckSquare
+                        size={48}
+                        className="text-[var(--light-text)] opacity-50"
+                      />
+                      <p className="text-[var(--light-text)] font-medium">
+                        No tasks yet
+                      </p>
+                      <p className="text-sm text-[var(--light-text)] text-center">
+                        Add tasks to track progress on this project.
+                      </p>
+                    </div>
+                  )
+                ) : activeTab === "comments" ? (
+                  // COMMENTS TAB CONTENT
+                  <div className="flex flex-col gap-3">
+                    {/* ADD COMMENT INPUT */}
+                    <div className="flex gap-2">
+                      {/* COMMENT INPUT */}
+                      <input
+                        ref={commentInputRef}
+                        type="text"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="Add a comment..."
+                        className="flex-1 border border-[var(--border)] p-2 rounded-md bg-transparent focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] text-[var(--text-primary)]"
+                        onKeyDown={(e) => {
+                          // CHECK IF ENTER KEY PRESSED
+                          if (e.key === "Enter" && commentText.trim() !== "") {
+                            // PREVENT DEFAULT BEHAVIOR
+                            e.preventDefault();
+                            // ADD COMMENT
+                            handleAddComment();
+                          }
+                        }}
+                        disabled={createCommentMutation.isPending}
+                      />
+                      {/* SEND BUTTON */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          // PREVENT DEFAULT BEHAVIOR
+                          e.preventDefault();
+                          // ADD COMMENT
+                          handleAddComment();
+                        }}
+                        disabled={
+                          !commentText.trim() ||
+                          createCommentMutation.isPending ||
+                          !projectId
+                        }
+                        className="px-3 py-2 rounded-md bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
+                      >
+                        <Send size={16} />
+                      </button>
+                    </div>
+                    {/* COMMENTS LIST */}
+                    {isLoadingComments ? (
+                      // COMMENTS LOADING SKELETON
+                      <ul className="flex flex-col gap-3 pb-2">
+                        {[1, 2, 3].map((item) => (
+                          <li
+                            key={item}
+                            className="border border-[var(--border)] p-3 rounded-lg"
+                          >
+                            <div className="h-4 w-3/4 bg-[var(--inside-card-bg)] rounded animate-pulse mb-2" />
+                            <div className="h-3 w-20 bg-[var(--inside-card-bg)] rounded animate-pulse" />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : comments.length > 0 ? (
+                      // MAPPING THROUGH COMMENTS
+                      <ul className="flex flex-col gap-3 pb-2">
+                        {comments.map((comment) => (
+                          // COMMENT ITEM
+                          <li
+                            key={comment._id}
+                            className="border border-[var(--border)] p-3 rounded-lg hover:bg-[var(--hover-bg)] transition"
+                          >
+                            {/* COMMENT HEADER */}
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              {/* COMMENT TEXT */}
+                              <p className="text-sm text-[var(--text-primary)] flex-1">
+                                {comment.text}
+                              </p>
+                              {/* DELETE BUTTON */}
+                              <button
+                                onClick={() => handleDeleteComment(comment._id)}
+                                disabled={deleteCommentMutation.isPending}
+                                className="text-[var(--accent-color)] hover:opacity-75 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 p-1"
+                                title="Delete comment"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                            {/* COMMENT FOOTER */}
+                            <div className="flex items-center gap-1.5">
+                              <Clock
+                                size={12}
+                                className="text-[var(--light-text)]"
+                              />
+                              <span className="text-xs text-[var(--light-text)]">
+                                {formatDate(comment.createdAt)}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      // EMPTY COMMENTS STATE
+                      <div className="flex flex-col items-center justify-center py-12 gap-3">
+                        <MessageSquare
+                          size={48}
+                          className="text-[var(--light-text)] opacity-50"
+                        />
+                        <p className="text-[var(--light-text)] font-medium">
+                          No comments yet
+                        </p>
+                        <p className="text-sm text-[var(--light-text)] text-center">
+                          Be the first to add a comment on this project.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // GITHUB TAB CONTENT
+                  <ProjectGitHubTab
+                    projectId={projectId || ""}
+                    githubRepo={project?.githubRepo}
+                    onShowFullSelector={() => setShowFullRepoSelector(true)}
+                  />
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
       {/* EDIT TASK MODAL */}
       {isEditTaskModalOpen && selectedTaskForEdit && (
