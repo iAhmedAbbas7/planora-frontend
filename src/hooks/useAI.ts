@@ -51,6 +51,99 @@ type RawAIStatus = {
   // <== AI PROVIDER ==>
   aiProvider: string;
 };
+// <== REPOSITORY CATEGORIZATION TYPE ==>
+export type RepositoryCategorization = {
+  // <== CATEGORY ==>
+  category: string;
+  // <== SUBCATEGORY ==>
+  subcategory: string;
+  // <== TECH STACK ==>
+  techStack: string[];
+  // <== FRAMEWORKS ==>
+  frameworks: string[];
+  // <== PURPOSE ==>
+  purpose: string;
+  // <== PROJECT TYPE ==>
+  projectType: string;
+  // <== COMPLEXITY ==>
+  complexity: string;
+  // <== SUGGESTED TAGS ==>
+  suggestedTags: string[];
+};
+// <== HEALTH SCORE METRICS TYPE ==>
+export type HealthScoreMetrics = {
+  // <== DOCUMENTATION ==>
+  documentation: {
+    // <== SCORE ==>
+    score: number;
+    // <== HAS README ==>
+    hasReadme: boolean;
+    // <== HAS DESCRIPTION ==>
+    hasDescription: boolean;
+    // <== HAS TOPICS ==>
+    hasTopics: boolean;
+  };
+  // <== MAINTENANCE ==>
+  maintenance: {
+    // <== SCORE ==>
+    score: number;
+    // <== DAYS SINCE UPDATE ==>
+    daysSinceUpdate: number;
+    // <== LAST COMMIT DATE ==>
+    lastCommitDate: string | null;
+    // <== RECENT COMMITS ==>
+    recentCommits: number;
+  };
+  // <== COMMUNITY ==>
+  community: {
+    // <== SCORE ==>
+    score: number;
+    // <== STARS ==>
+    stars: number;
+    // <== FORKS ==>
+    forks: number;
+    // <== WATCHERS ==>
+    watchers: number;
+  };
+  // <== ISSUES ==>
+  issues: {
+    // <== SCORE ==>
+    score: number;
+    // <== OPEN ISSUES ==>
+    openIssues: number;
+    // <== OPEN PULL REQUESTS ==>
+    openPRs: number;
+  };
+  // <== BEST PRACTICES ==>
+  bestPractices: {
+    // <== SCORE ==>
+    score: number;
+    // <== HAS LICENSE ==>
+    hasLicense: boolean;
+    // <== LICENSE NAME ==>
+    licenseName: string | null;
+  };
+};
+// <== HEALTH SUGGESTION TYPE ==>
+export type HealthSuggestion = {
+  // <== TITLE ==>
+  title: string;
+  // <== DESCRIPTION ==>
+  description: string;
+  // <== PRIORITY ==>
+  priority: "high" | "medium" | "low";
+  // <== CATEGORY ==>
+  category: string;
+};
+// <== REPOSITORY HEALTH SCORE TYPE ==>
+export type RepositoryHealthScore = {
+  // <== OVERALL SCORE ==>
+  overall: number;
+  // <== GRADE ==>
+  grade: string;
+  // <== METRICS ==>
+  metrics: HealthScoreMetrics;
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -289,4 +382,123 @@ export const useSaveGeneratedTasks = () => {
       toast.error(errorMessage);
     },
   });
+};
+
+// <== FETCH REPOSITORY CATEGORIZATION ==>
+const fetchRepositoryCategorization = async (
+  owner: string,
+  repo: string
+): Promise<{
+  repository: {
+    fullName: string;
+    description: string;
+    language: string;
+    topics: string[];
+  };
+  categorization: RepositoryCategorization;
+}> => {
+  // FETCH REPOSITORY CATEGORIZATION
+  const response = await apiClient.get<
+    ApiResponse<{
+      repository: {
+        fullName: string;
+        description: string;
+        language: string;
+        topics: string[];
+      };
+      categorization: RepositoryCategorization;
+    }>
+  >(`/ai/categorize/${owner}/${repo}`);
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== FETCH REPOSITORY HEALTH SCORE ==>
+const fetchRepositoryHealthScore = async (
+  owner: string,
+  repo: string
+): Promise<{
+  repository: { fullName: string; description: string; language: string };
+  healthScore: RepositoryHealthScore;
+  suggestions: HealthSuggestion[];
+}> => {
+  // FETCH REPOSITORY HEALTH SCORE
+  const response = await apiClient.get<
+    ApiResponse<{
+      repository: { fullName: string; description: string; language: string };
+      healthScore: RepositoryHealthScore;
+      suggestions: HealthSuggestion[];
+    }>
+  >(`/ai/health/${owner}/${repo}`);
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== USE REPOSITORY CATEGORIZATION HOOK ==>
+export const useRepositoryCategorization = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE QUERY TO FETCH CATEGORIZATION
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    {
+      repository: {
+        fullName: string;
+        description: string;
+        language: string;
+        topics: string[];
+      };
+      categorization: RepositoryCategorization;
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["ai-categorization", owner, repo],
+    queryFn: () => fetchRepositoryCategorization(owner, repo),
+    retry: 1,
+    staleTime: 30 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN CATEGORIZATION DATA
+  return {
+    categorization: data?.categorization,
+    repository: data?.repository,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE REPOSITORY HEALTH SCORE HOOK ==>
+export const useRepositoryHealthScore = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE QUERY TO FETCH HEALTH SCORE
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    {
+      repository: { fullName: string; description: string; language: string };
+      healthScore: RepositoryHealthScore;
+      suggestions: HealthSuggestion[];
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["ai-health-score", owner, repo],
+    queryFn: () => fetchRepositoryHealthScore(owner, repo),
+    retry: 1,
+    staleTime: 10 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN HEALTH SCORE DATA
+  return {
+    healthScore: data?.healthScore,
+    suggestions: data?.suggestions || [],
+    repository: data?.repository,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
 };
