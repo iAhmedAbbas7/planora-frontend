@@ -274,8 +274,10 @@ export const useSaveGeneratedTasks = () => {
       queryClient.invalidateQueries({
         queryKey: ["tasks", "project", data.projectId],
       });
+      // TASK WORD (SINGULAR OR PLURAL)
+      const taskWord = data.savedCount === 1 ? "task" : "tasks";
       // SHOW SUCCESS TOAST
-      toast.success(`${data.savedCount} tasks saved successfully!`);
+      toast.success(`${data.savedCount} ${taskWord} saved successfully!`);
     },
     // <== ON ERROR ==>
     onError: (error) => {
