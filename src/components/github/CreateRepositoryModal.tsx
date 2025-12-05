@@ -132,6 +132,22 @@ const CreateRepositoryModal = ({
       setCreatedRepo(null);
     }
   }, [isOpen]);
+  // PREVENT BACKGROUND SCROLL WHEN MODAL IS OPEN
+  useEffect(() => {
+    // IF MODAL IS OPEN, PREVENT BACKGROUND SCROLL
+    if (isOpen) {
+      // SAVE ORIGINAL OVERFLOW STYLE
+      document.body.style.overflow = "hidden";
+    } else {
+      // IF MODAL IS NOT OPEN, ALLOW BACKGROUND SCROLL
+      document.body.style.overflow = "";
+    }
+    // CLEANUP FUNCTION
+    return () => {
+      // ENABLE BACKGROUND SCROLL ON UNMOUNT
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
   // VALIDATE NAME FUNCTION
   const validateName = (value: string): boolean => {
     // CHECK IF EMPTY
