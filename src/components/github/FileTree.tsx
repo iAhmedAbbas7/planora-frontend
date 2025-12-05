@@ -10,6 +10,7 @@ import {
   FileText,
   FileImage,
   FileType,
+  Trash2,
 } from "lucide-react";
 import { useState, JSX, useMemo } from "react";
 import { FileTreeItem } from "../../hooks/useGitHub";
@@ -100,6 +101,7 @@ const buildTree = (
   const sortedItems = [...items].sort((a, b) => {
     // DIRECTORIES FIRST
     if (a.type === "tree" && b.type !== "tree") return -1;
+    // FILES AFTER DIRECTORIES
     if (a.type !== "tree" && b.type === "tree") return 1;
     // THEN ALPHABETICALLY
     return a.path.localeCompare(b.path);
@@ -174,6 +176,13 @@ type TreeNodeComponentProps = {
   expandedFolders: Set<string>;
   // <== ON TOGGLE FOLDER ==>
   onToggleFolder: (path: string) => void;
+  // <== ON DELETE ITEM ==>
+  onDeleteItem?: (
+    path: string,
+    name: string,
+    type: "file" | "dir",
+    sha: string
+  ) => void;
 };
 
 // <== TREE NODE COMPONENT ==>
@@ -184,7 +193,10 @@ const TreeNodeComponent = ({
   onSelect,
   expandedFolders,
   onToggleFolder,
+  onDeleteItem,
 }: TreeNodeComponentProps): JSX.Element => {
+  // HOVERED STATE
+  const [isHovered, setIsHovered] = useState(false);
   // IS EXPANDED
   const isExpanded = expandedFolders.has(node.path);
   // IS SELECTED
@@ -199,18 +211,27 @@ const TreeNodeComponent = ({
     // SELECT NODE
     onSelect(node.path, node.type);
   };
+  // HANDLE DELETE CLICK
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    // STOP PROPAGATION
+    e.stopPropagation();
+    // CALL ON DELETE ITEM
+    onDeleteItem?.(node.path, node.name, node.type, node.sha);
+  };
   // RETURN TREE NODE
   return (
     <div>
       {/* NODE ITEM */}
-      <button
-        onClick={handleClick}
-        className={`w-full flex items-center gap-1.5 py-1 px-2 text-left text-sm rounded-md transition cursor-pointer ${
+      <div
+        className={`group w-full flex items-center gap-1.5 py-1 px-2 text-left text-sm rounded-md transition cursor-pointer ${
           isSelected
             ? "bg-[var(--accent-color)]/15 text-[var(--accent-color)]"
             : "text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
         }`}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
+        onClick={handleClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         {/* EXPAND ICON FOR FOLDERS */}
         {node.type === "dir" ? (
@@ -237,8 +258,18 @@ const TreeNodeComponent = ({
           )}
         </span>
         {/* NAME */}
-        <span className="truncate text-xs">{node.name}</span>
-      </button>
+        <span className="truncate text-xs flex-1">{node.name}</span>
+        {/* DELETE BUTTON (VISIBLE ON HOVER) */}
+        {onDeleteItem && isHovered && (
+          <button
+            onClick={handleDeleteClick}
+            className="p-0.5 rounded text-[var(--light-text)] hover:text-red-500 hover:bg-red-500/10 transition flex-shrink-0 opacity-0 group-hover:opacity-100"
+            title={`Delete ${node.type === "dir" ? "folder" : "file"}`}
+          >
+            <Trash2 size={12} />
+          </button>
+        )}
+      </div>
       {/* CHILDREN */}
       {node.type === "dir" && isExpanded && node.children && (
         <div>
@@ -251,6 +282,7 @@ const TreeNodeComponent = ({
               onSelect={onSelect}
               expandedFolders={expandedFolders}
               onToggleFolder={onToggleFolder}
+              onDeleteItem={onDeleteItem}
             />
           ))}
         </div>
@@ -284,6 +316,13 @@ type FileTreeProps = {
   onSelectFile: (path: string) => void;
   // <== ON SELECT FOLDER ==>
   onSelectFolder?: (path: string) => void;
+  // <== ON DELETE ITEM ==>
+  onDeleteItem?: (
+    path: string,
+    name: string,
+    type: "file" | "dir",
+    sha: string
+  ) => void;
   // <== CLASS NAME ==>
   className?: string;
 };
@@ -296,6 +335,7 @@ const FileTree = ({
   selectedPath,
   onSelectFile,
   onSelectFolder,
+  onDeleteItem,
   className = "",
 }: FileTreeProps): JSX.Element => {
   // EXPANDED FOLDERS STATE
@@ -438,6 +478,7 @@ const FileTree = ({
           onSelect={handleSelect}
           expandedFolders={expandedFolders}
           onToggleFolder={handleToggleFolder}
+          onDeleteItem={onDeleteItem}
         />
       ))}
     </div>
