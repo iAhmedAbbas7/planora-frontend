@@ -144,6 +144,125 @@ export type RepositoryHealthScore = {
   // <== METRICS ==>
   metrics: HealthScoreMetrics;
 };
+// <== CODE EXPLANATION TYPE ==>
+export type CodeExplanationType =
+  | "general"
+  | "line-by-line"
+  | "function"
+  | "security"
+  | "performance";
+// <== GENERAL CODE EXPLANATION TYPE ==>
+export type GeneralCodeExplanation = {
+  // <== SUMMARY ==>
+  summary: string;
+  // <== PURPOSE ==>
+  purpose: string;
+  // <== KEY COMPONENTS ==>
+  keyComponents: {
+    name: string;
+    description: string;
+    lineRange: string;
+  }[];
+  // <== COMPLEXITY ==>
+  complexity: "low" | "medium" | "high";
+  // <== SUGGESTIONS ==>
+  suggestions?: string[];
+  // <== DEPENDENCIES ==>
+  dependencies?: string[];
+  // <== PATTERNS ==>
+  patterns?: string[];
+};
+// <== LINE BY LINE EXPLANATION TYPE ==>
+export type LineByLineExplanation = {
+  // <== EXPLANATIONS ==>
+  explanations: {
+    lineNumber: number;
+    code: string;
+    explanation: string;
+  }[];
+  // <== SUMMARY ==>
+  summary: string;
+};
+// <== FUNCTION EXPLANATION TYPE ==>
+export type FunctionExplanation = {
+  // <== FUNCTIONS ==>
+  functions: {
+    name: string;
+    parameters: { name: string; type: string; description: string }[];
+    returnType: string;
+    purpose: string;
+    example?: string;
+    complexity: "low" | "medium" | "high";
+  }[];
+  // <== RELATIONSHIPS ==>
+  relationships: string;
+};
+// <== SECURITY EXPLANATION TYPE ==>
+export type SecurityExplanation = {
+  // <== SECURITY LEVEL ==>
+  securityLevel: "low" | "medium" | "high" | "critical";
+  // <== ISSUES ==>
+  issues: {
+    severity: "low" | "medium" | "high" | "critical";
+    type: string;
+    description: string;
+    location: string;
+    recommendation: string;
+  }[];
+  // <== GOOD PRACTICES ==>
+  goodPractices: string[];
+  // <== RECOMMENDATIONS ==>
+  recommendations: string[];
+};
+// <== PERFORMANCE EXPLANATION TYPE ==>
+export type PerformanceExplanation = {
+  // <== PERFORMANCE RATING ==>
+  performanceRating: "poor" | "fair" | "good" | "excellent";
+  // <== ISSUES ==>
+  issues: {
+    severity: "low" | "medium" | "high";
+    type: string;
+    description: string;
+    location: string;
+    recommendation: string;
+  }[];
+  // <== OPTIMIZATIONS ==>
+  optimizations: {
+    title: string;
+    description: string;
+    impact: string;
+  }[];
+  // <== BIG O ==>
+  bigO?: string;
+};
+// <== CODE EXPLANATION RESULT TYPE ==>
+export type CodeExplanationResult = {
+  // <== TYPE ==>
+  type: CodeExplanationType;
+  // <== LANGUAGE ==>
+  language: string;
+  // <== FILE NAME ==>
+  fileName: string | null;
+  // <== EXPLANATION ==>
+  explanation:
+    | GeneralCodeExplanation
+    | LineByLineExplanation
+    | FunctionExplanation
+    | SecurityExplanation
+    | PerformanceExplanation
+    | { rawExplanation: string };
+};
+// <== EXPLAIN CODE INPUT TYPE ==>
+export type ExplainCodeInput = {
+  // <== CODE ==>
+  code: string;
+  // <== LANGUAGE ==>
+  language?: string;
+  // <== FILE NAME ==>
+  fileName?: string;
+  // <== EXPLAIN TYPE ==>
+  explainType?: CodeExplanationType;
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -501,4 +620,41 @@ export const useRepositoryHealthScore = (
     error,
     refetch,
   };
+};
+
+// <== EXPLAIN CODE FUNCTION ==>
+const explainCodeFn = async (
+  input: ExplainCodeInput
+): Promise<CodeExplanationResult> => {
+  // EXPLAIN CODE
+  const response = await apiClient.post<ApiResponse<CodeExplanationResult>>(
+    "/ai/explain-code",
+    {
+      code: input.code,
+      language: input.language,
+      fileName: input.fileName,
+      explainType: input.explainType || "general",
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE EXPLAIN CODE HOOK ==>
+export const useExplainCode = () => {
+  // EXPLAIN CODE MUTATION
+  const mutation = useMutation<
+    CodeExplanationResult,
+    AxiosError<{ message?: string }>,
+    ExplainCodeInput
+  >({
+    mutationFn: explainCodeFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to explain code");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
 };
