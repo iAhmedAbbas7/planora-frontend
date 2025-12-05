@@ -546,6 +546,166 @@ export type TransferRepositoryInput = {
   // <== TEAM IDS ==>
   teamIds?: number[];
 };
+// <== FILE TREE ITEM TYPE ==>
+export type FileTreeItem = {
+  // <== NAME ==>
+  name: string;
+  // <== PATH ==>
+  path: string;
+  // <== SHA ==>
+  sha: string;
+  // <== SIZE ==>
+  size?: number;
+  // <== TYPE ==>
+  type: "file" | "dir" | "submodule" | "symlink";
+  // <== DOWNLOAD URL ==>
+  downloadUrl?: string | null;
+  // <== HTML URL ==>
+  htmlUrl?: string;
+};
+// <== FILE CONTENT TYPE ==>
+export type FileContent = {
+  // <== NAME ==>
+  name: string;
+  // <== PATH ==>
+  path: string;
+  // <== SHA ==>
+  sha: string;
+  // <== SIZE ==>
+  size: number;
+  // <== CONTENT ==>
+  content: string;
+  // <== ENCODING ==>
+  encoding?: string;
+  // <== HTML URL ==>
+  htmlUrl?: string;
+  // <== DOWNLOAD URL ==>
+  downloadUrl?: string | null;
+  // <== LANGUAGE ==>
+  language: string;
+  // <== EXTENSION ==>
+  extension: string;
+};
+// <== REPOSITORY TREE TYPE ==>
+export type RepositoryTree = {
+  // <== SHA ==>
+  sha: string;
+  // <== URL ==>
+  url: string;
+  // <== TRUNCATED ==>
+  truncated: boolean;
+  // <== TREE ==>
+  tree: {
+    // <== PATH ==>
+    path: string;
+    // <== MODE ==>
+    mode: string;
+    // <== TYPE ==>
+    type: string;
+    // <== SHA ==>
+    sha: string;
+    // <== SIZE ==>
+    size?: number;
+    // <== URL ==>
+    url: string;
+  }[];
+};
+// <== FILE BLAME TYPE ==>
+export type FileBlame = {
+  // <== PATH ==>
+  path: string;
+  // <== COMMITS ==>
+  commits: {
+    // <== SHA ==>
+    sha: string;
+    // <== SHORT SHA ==>
+    shortSha: string;
+    // <== MESSAGE ==>
+    message: string;
+    // <== AUTHOR ==>
+    author: {
+      // <== NAME ==>
+      name: string;
+      // <== EMAIL ==>
+      email: string;
+      // <== DATE ==>
+      date: string;
+      // <== AVATAR URL ==>
+      avatarUrl: string;
+      // <== LOGIN ==>
+      login: string;
+    };
+    // <== HTML URL ==>
+    htmlUrl: string;
+  }[];
+  // <== TOTAL COMMITS ==>
+  totalCommits: number;
+};
+// <== CREATE FILE INPUT TYPE ==>
+export type CreateFileInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PATH ==>
+  path: string;
+  // <== CONTENT ==>
+  content: string;
+  // <== MESSAGE ==>
+  message: string;
+  // <== BRANCH ==>
+  branch?: string;
+};
+// <== UPDATE FILE INPUT TYPE ==>
+export type UpdateFileInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PATH ==>
+  path: string;
+  // <== CONTENT ==>
+  content: string;
+  // <== MESSAGE ==>
+  message: string;
+  // <== SHA ==>
+  sha: string;
+  // <== BRANCH ==>
+  branch?: string;
+};
+// <== DELETE FILE INPUT TYPE ==>
+export type DeleteFileInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PATH ==>
+  path: string;
+  // <== MESSAGE ==>
+  message: string;
+  // <== SHA ==>
+  sha: string;
+  // <== BRANCH ==>
+  branch?: string;
+};
+// <== FILE OPERATION RESULT TYPE ==>
+export type FileOperationResult = {
+  // <== PATH ==>
+  path?: string;
+  // <== SHA ==>
+  sha?: string;
+  // <== HTML URL ==>
+  htmlUrl?: string;
+  // <== COMMIT ==>
+  commit: {
+    // <== SHA ==>
+    sha: string;
+    // <== MESSAGE ==>
+    message: string;
+    // <== HTML URL ==>
+    htmlUrl: string;
+  };
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -1464,6 +1624,324 @@ export const useTransferRepository = () => {
     onSuccess: () => {
       // INVALIDATE REPOSITORIES
       queryClient.invalidateQueries({ queryKey: ["github-repositories"] });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== FETCH REPOSITORY CONTENTS FUNCTION ==>
+const fetchRepositoryContents = async (
+  owner: string,
+  repo: string,
+  path: string = "",
+  ref?: string
+): Promise<FileTreeItem[]> => {
+  // BUILD URL WITH QUERY PARAMS
+  let url = `/github/repositories/${owner}/${repo}/contents?path=${encodeURIComponent(
+    path
+  )}`;
+  if (ref) url += `&ref=${encodeURIComponent(ref)}`;
+  // FETCH CONTENTS
+  const response = await apiClient.get<ApiResponse<FileTreeItem[]>>(url);
+  // RETURN CONTENTS
+  return Array.isArray(response.data.data)
+    ? response.data.data
+    : [response.data.data];
+};
+
+// <== FETCH FILE CONTENT FUNCTION ==>
+const fetchFileContent = async (
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string
+): Promise<FileContent> => {
+  // BUILD URL WITH QUERY PARAMS
+  let url = `/github/repositories/${owner}/${repo}/file?path=${encodeURIComponent(
+    path
+  )}`;
+  if (ref) url += `&ref=${encodeURIComponent(ref)}`;
+  // FETCH FILE
+  const response = await apiClient.get<ApiResponse<FileContent>>(url);
+  // RETURN FILE
+  return response.data.data;
+};
+
+// <== FETCH REPOSITORY TREE FUNCTION ==>
+const fetchRepositoryTree = async (
+  owner: string,
+  repo: string,
+  ref?: string,
+  recursive: boolean = true
+): Promise<RepositoryTree> => {
+  // BUILD URL WITH QUERY PARAMS
+  let url = `/github/repositories/${owner}/${repo}/tree?recursive=${recursive}`;
+  if (ref) url += `&ref=${encodeURIComponent(ref)}`;
+  // FETCH TREE
+  const response = await apiClient.get<ApiResponse<RepositoryTree>>(url);
+  // RETURN TREE
+  return response.data.data;
+};
+
+// <== FETCH FILE BLAME FUNCTION ==>
+const fetchFileBlame = async (
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string
+): Promise<FileBlame> => {
+  // BUILD URL WITH QUERY PARAMS
+  let url = `/github/repositories/${owner}/${repo}/blame?path=${encodeURIComponent(
+    path
+  )}`;
+  if (ref) url += `&ref=${encodeURIComponent(ref)}`;
+  // FETCH BLAME
+  const response = await apiClient.get<ApiResponse<FileBlame>>(url);
+  // RETURN BLAME
+  return response.data.data;
+};
+
+// <== CREATE FILE FUNCTION ==>
+const createFileFn = async (
+  input: CreateFileInput
+): Promise<FileOperationResult> => {
+  // CREATE FILE
+  const response = await apiClient.post<ApiResponse<FileOperationResult>>(
+    `/github/repositories/${input.owner}/${input.repo}/file`,
+    {
+      path: input.path,
+      content: input.content,
+      message: input.message,
+      branch: input.branch,
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== UPDATE FILE FUNCTION ==>
+const updateFileFn = async (
+  input: UpdateFileInput
+): Promise<FileOperationResult> => {
+  // UPDATE FILE
+  const response = await apiClient.put<ApiResponse<FileOperationResult>>(
+    `/github/repositories/${input.owner}/${input.repo}/file`,
+    {
+      path: input.path,
+      content: input.content,
+      message: input.message,
+      sha: input.sha,
+      branch: input.branch,
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== DELETE FILE FUNCTION ==>
+const deleteFileFn = async (
+  input: DeleteFileInput
+): Promise<FileOperationResult> => {
+  // DELETE FILE
+  const response = await apiClient.delete<ApiResponse<FileOperationResult>>(
+    `/github/repositories/${input.owner}/${input.repo}/file`,
+    {
+      data: {
+        path: input.path,
+        message: input.message,
+        sha: input.sha,
+        branch: input.branch,
+      },
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE REPOSITORY CONTENTS HOOK ==>
+export const useRepositoryContents = (
+  owner: string,
+  repo: string,
+  path: string = "",
+  ref?: string,
+  enabled: boolean = true
+) => {
+  // USE REPOSITORY CONTENTS
+  const {
+    data: contents,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<FileTreeItem[], AxiosError<{ message?: string }>>({
+    queryKey: ["github-contents", owner, repo, path, ref],
+    queryFn: () => fetchRepositoryContents(owner, repo, path, ref),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN CONTENTS
+  return { contents: contents || [], isLoading, isError, error, refetch };
+};
+
+// <== USE FILE CONTENT HOOK ==>
+export const useFileContent = (
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+  enabled: boolean = true
+) => {
+  // USE FILE CONTENT
+  const {
+    data: file,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<FileContent, AxiosError<{ message?: string }>>({
+    queryKey: ["github-file", owner, repo, path, ref],
+    queryFn: () => fetchFileContent(owner, repo, path, ref),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!path,
+  });
+  // RETURN FILE
+  return { file, isLoading, isError, error, refetch };
+};
+
+// <== USE REPOSITORY TREE HOOK ==>
+export const useRepositoryTree = (
+  owner: string,
+  repo: string,
+  ref?: string,
+  recursive: boolean = true,
+  enabled: boolean = true
+) => {
+  // USE REPOSITORY TREE
+  const {
+    data: tree,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<RepositoryTree, AxiosError<{ message?: string }>>({
+    queryKey: ["github-tree", owner, repo, ref, recursive],
+    queryFn: () => fetchRepositoryTree(owner, repo, ref, recursive),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN TREE
+  return { tree, isLoading, isError, error, refetch };
+};
+
+// <== USE FILE BLAME HOOK ==>
+export const useFileBlame = (
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+  enabled: boolean = true
+) => {
+  // USE FILE BLAME
+  const {
+    data: blame,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<FileBlame, AxiosError<{ message?: string }>>({
+    queryKey: ["github-blame", owner, repo, path, ref],
+    queryFn: () => fetchFileBlame(owner, repo, path, ref),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!path,
+  });
+  // RETURN BLAME
+  return { blame, isLoading, isError, error, refetch };
+};
+
+// <== USE CREATE FILE HOOK ==>
+export const useCreateFile = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE FILE MUTATION
+  const mutation = useMutation<
+    FileOperationResult,
+    AxiosError<{ message?: string }>,
+    CreateFileInput
+  >({
+    mutationFn: createFileFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE CONTENTS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-contents", variables.owner, variables.repo],
+      });
+      // INVALIDATE TREE QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-tree", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE UPDATE FILE HOOK ==>
+export const useUpdateFile = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UPDATE FILE MUTATION
+  const mutation = useMutation<
+    FileOperationResult,
+    AxiosError<{ message?: string }>,
+    UpdateFileInput
+  >({
+    mutationFn: updateFileFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE FILE AND CONTENTS
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-file",
+          variables.owner,
+          variables.repo,
+          variables.path,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["github-contents", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE DELETE FILE HOOK ==>
+export const useDeleteFile = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE FILE MUTATION
+  const mutation = useMutation<
+    FileOperationResult,
+    AxiosError<{ message?: string }>,
+    DeleteFileInput
+  >({
+    mutationFn: deleteFileFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE CONTENTS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-contents", variables.owner, variables.repo],
+      });
+      // INVALIDATE TREE QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-tree", variables.owner, variables.repo],
+      });
     },
   });
   // RETURN MUTATION
