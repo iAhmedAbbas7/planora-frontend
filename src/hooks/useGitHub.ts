@@ -369,6 +369,120 @@ export type GitHubContributor = {
   // <== CONTRIBUTIONS ==>
   contributions: number;
 };
+// <== CREATE REPOSITORY INPUT TYPE ==>
+export type CreateRepositoryInput = {
+  // <== NAME ==>
+  name: string;
+  // <== DESCRIPTION ==>
+  description?: string;
+  // <== PRIVATE ==>
+  private?: boolean;
+  // <== AUTO INIT ==>
+  autoInit?: boolean;
+  // <== GITIGNORE TEMPLATE ==>
+  gitignoreTemplate?: string;
+  // <== LICENSE TEMPLATE ==>
+  licenseTemplate?: string;
+};
+// <== CREATED REPOSITORY TYPE ==>
+export type CreatedRepository = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string;
+  // <== FULL NAME ==>
+  fullName: string;
+  // <== DESCRIPTION ==>
+  description: string | null;
+  // <== PRIVATE ==>
+  private: boolean;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== CLONE URL ==>
+  cloneUrl: string;
+  // <== SSH URL ==>
+  sshUrl: string;
+  // <== DEFAULT BRANCH ==>
+  defaultBranch: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== OWNER ==>
+  owner: {
+    login: string;
+    avatarUrl: string;
+  };
+};
+// <== FORK REPOSITORY INPUT TYPE ==>
+export type ForkRepositoryInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== NEW NAME (OPTIONAL) ==>
+  name?: string;
+  // <== DEFAULT BRANCH ONLY ==>
+  defaultBranchOnly?: boolean;
+};
+// <== UPDATE REPOSITORY INPUT TYPE ==>
+export type UpdateRepositoryInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== NAME ==>
+  name?: string;
+  // <== DESCRIPTION ==>
+  description?: string;
+  // <== HOMEPAGE ==>
+  homepage?: string;
+  // <== PRIVATE ==>
+  private?: boolean;
+  // <== HAS ISSUES ==>
+  hasIssues?: boolean;
+  // <== HAS PROJECTS ==>
+  hasProjects?: boolean;
+  // <== HAS WIKI ==>
+  hasWiki?: boolean;
+  // <== ARCHIVED ==>
+  archived?: boolean;
+  // <== DEFAULT BRANCH ==>
+  defaultBranch?: string;
+};
+// <== GIT COMMANDS TYPE ==>
+export type GitCommands = {
+  // <== CLONE COMMANDS ==>
+  clone: {
+    // <== HTTPS ==>
+    https: string;
+    // <== SSH ==>
+    ssh: string;
+  };
+  // <== ADD REMOTE COMMANDS ==>
+  addRemote: {
+    // <== HTTPS ==>
+    https: string;
+    // <== SSH ==>
+    ssh: string;
+  };
+  // <== PUSH COMMANDS ==>
+  push: {
+    // <== FIRST PUSH ==>
+    firstPush: string;
+    // <== REGULAR ==>
+    regular: string;
+  };
+  // <== PULL COMMAND ==>
+  pull: string;
+  // <== FETCH COMMAND ==>
+  fetch: string;
+  // <== QUICKSTART COMMANDS ==>
+  quickstart: {
+    // <== NEW REPO ==>
+    newRepo: string[];
+    // <== EXISTING REPO ==>
+    existingRepo: string[];
+  };
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -938,4 +1052,176 @@ export const useRepositoryContributors = (
   });
   // RETURN REPOSITORY CONTRIBUTORS
   return { contributors: data || [], isLoading, isError, error, refetch };
+};
+
+// <== CREATE REPOSITORY FUNCTION ==>
+const createRepository = async (
+  input: CreateRepositoryInput
+): Promise<CreatedRepository> => {
+  // CREATE REPOSITORY
+  const response = await apiClient.post<ApiResponse<CreatedRepository>>(
+    "/github/repositories",
+    input
+  );
+  // RETURN CREATED REPOSITORY
+  return response.data.data;
+};
+
+// <== FORK REPOSITORY FUNCTION ==>
+const forkRepository = async (
+  input: ForkRepositoryInput
+): Promise<CreatedRepository> => {
+  // FORK REPOSITORY
+  const response = await apiClient.post<ApiResponse<CreatedRepository>>(
+    `/github/repositories/${input.owner}/${input.repo}/fork`,
+    {
+      name: input.name,
+      defaultBranchOnly: input.defaultBranchOnly,
+    }
+  );
+  // RETURN FORKED REPOSITORY
+  return response.data.data;
+};
+
+// <== DELETE REPOSITORY FUNCTION ==>
+const deleteRepository = async (owner: string, repo: string): Promise<void> => {
+  // DELETE REPOSITORY
+  await apiClient.delete(`/github/repositories/${owner}/${repo}`);
+};
+
+// <== UPDATE REPOSITORY FUNCTION ==>
+const updateRepository = async (
+  input: UpdateRepositoryInput
+): Promise<RepositoryDetails> => {
+  // DESTRUCTURE OWNER AND REPO
+  const { owner, repo, ...updateData } = input;
+  // UPDATE REPOSITORY
+  const response = await apiClient.patch<ApiResponse<RepositoryDetails>>(
+    `/github/repositories/${owner}/${repo}`,
+    updateData
+  );
+  // RETURN UPDATED REPOSITORY
+  return response.data.data;
+};
+
+// <== FETCH GIT COMMANDS FUNCTION ==>
+const fetchGitCommands = async (
+  owner: string,
+  repo: string
+): Promise<GitCommands> => {
+  // FETCH GIT COMMANDS
+  const response = await apiClient.get<
+    ApiResponse<{ commands: GitCommands; repository: GitHubRepository }>
+  >(`/github/repositories/${owner}/${repo}/commands`);
+  // RETURN GIT COMMANDS
+  return response.data.data.commands;
+};
+
+// <== USE CREATE REPOSITORY HOOK ==>
+export const useCreateRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE REPOSITORY MUTATION
+  const mutation = useMutation<
+    CreatedRepository,
+    AxiosError<{ message?: string }>,
+    CreateRepositoryInput
+  >({
+    mutationFn: createRepository,
+    // ON SUCCESS
+    onSuccess: () => {
+      // INVALIDATE REPOSITORIES QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-repositories"] });
+    },
+  });
+  // RETURN CREATE REPOSITORY MUTATION
+  return mutation;
+};
+
+// <== USE FORK REPOSITORY HOOK ==>
+export const useForkRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // FORK REPOSITORY MUTATION
+  const mutation = useMutation<
+    CreatedRepository,
+    AxiosError<{ message?: string }>,
+    ForkRepositoryInput
+  >({
+    mutationFn: forkRepository,
+    // ON SUCCESS
+    onSuccess: () => {
+      // INVALIDATE REPOSITORIES QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-repositories"] });
+    },
+  });
+  // RETURN FORK REPOSITORY MUTATION
+  return mutation;
+};
+
+// <== USE DELETE REPOSITORY HOOK ==>
+export const useDeleteRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE REPOSITORY MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string }
+  >({
+    mutationFn: ({ owner, repo }) => deleteRepository(owner, repo),
+    // ON SUCCESS
+    onSuccess: () => {
+      // INVALIDATE REPOSITORIES QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-repositories"] });
+    },
+  });
+  // RETURN DELETE REPOSITORY MUTATION
+  return mutation;
+};
+
+// <== USE UPDATE REPOSITORY HOOK ==>
+export const useUpdateRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UPDATE REPOSITORY MUTATION
+  const mutation = useMutation<
+    RepositoryDetails,
+    AxiosError<{ message?: string }>,
+    UpdateRepositoryInput
+  >({
+    mutationFn: updateRepository,
+    // ON SUCCESS
+    onSuccess: (_data, variables) => {
+      // INVALIDATE REPOSITORIES QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-repositories"] });
+      // INVALIDATE REPOSITORY DETAILS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-details", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN UPDATE REPOSITORY MUTATION
+  return mutation;
+};
+
+// <== USE GIT COMMANDS HOOK ==>
+export const useGitCommands = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE GIT COMMANDS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    GitCommands,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-git-commands", owner, repo],
+    queryFn: () => fetchGitCommands(owner, repo),
+    retry: 1,
+    staleTime: 10 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN GIT COMMANDS
+  return { commands: data, isLoading, isError, error, refetch };
 };
