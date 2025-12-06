@@ -30,6 +30,7 @@ import {
   RefreshCw,
   Settings,
   FolderTree,
+  History,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -84,6 +85,7 @@ const languageColors: Record<string, string> = {
 
 // <== GET LANGUAGE COLOR FUNCTION ==>
 const getLanguageColor = (language: string): string => {
+  // RETURN LANGUAGE COLOR
   return languageColors[language] || "#6b7280";
 };
 
@@ -512,7 +514,11 @@ const GitHubRepoPage = (): JSX.Element => {
     repository,
     isLoading: isRepoLoading,
     refetch: refetchRepository,
-  } = useRepositoryDetails(owner || "", repo || "", status?.isConnected ?? false);
+  } = useRepositoryDetails(
+    owner || "",
+    repo || "",
+    status?.isConnected ?? false
+  );
   // REPOSITORY COMMITS HOOK
   const { commits, isLoading: isCommitsLoading } = useRepositoryCommits(
     owner || "",
@@ -802,6 +808,14 @@ const GitHubRepoPage = (): JSX.Element => {
                 <span className="hidden sm:inline">Browse Files</span>
                 <span className="sm:hidden">Files</span>
               </button>
+              {/* COMMITS BUTTON */}
+              <button
+                onClick={() => navigate(`/github/${owner}/${repo}/commits`)}
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+              >
+                <History size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Commits</span>
+              </button>
               {/* SETTINGS BUTTON */}
               <button
                 onClick={() => setShowSettings(true)}
@@ -989,7 +1003,10 @@ const GitHubRepoPage = (): JSX.Element => {
                           icon: Shield,
                         },
                       ].map((metric) => (
-                        <div key={metric.label} className="flex items-center gap-2">
+                        <div
+                          key={metric.label}
+                          className="flex items-center gap-2"
+                        >
                           <metric.icon
                             size={14}
                             className="text-[var(--light-text)] flex-shrink-0"
@@ -1022,7 +1039,10 @@ const GitHubRepoPage = (): JSX.Element => {
                   {suggestions.length > 0 && (
                     <div className="p-4 bg-[var(--inside-card-bg)] rounded-xl border border-[var(--border)]">
                       <div className="flex items-center gap-2 mb-3">
-                        <Lightbulb size={18} className="text-[var(--accent-color)]" />
+                        <Lightbulb
+                          size={18}
+                          className="text-[var(--accent-color)]"
+                        />
                         <h4 className="text-sm font-medium text-[var(--text-primary)]">
                           Recommendations
                         </h4>
@@ -1079,25 +1099,33 @@ const GitHubRepoPage = (): JSX.Element => {
                   {/* CATEGORY INFO */}
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                      <p className="text-xs text-[var(--light-text)] mb-1">Category</p>
+                      <p className="text-xs text-[var(--light-text)] mb-1">
+                        Category
+                      </p>
                       <p className="text-sm font-medium text-[var(--text-primary)] capitalize">
                         {categorization.category}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-[var(--light-text)] mb-1">Type</p>
+                      <p className="text-xs text-[var(--light-text)] mb-1">
+                        Type
+                      </p>
                       <p className="text-sm font-medium text-[var(--text-primary)] capitalize">
                         {categorization.projectType}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-[var(--light-text)] mb-1">Complexity</p>
+                      <p className="text-xs text-[var(--light-text)] mb-1">
+                        Complexity
+                      </p>
                       <p className="text-sm font-medium text-[var(--text-primary)] capitalize">
                         {categorization.complexity}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-[var(--light-text)] mb-1">Subcategory</p>
+                      <p className="text-xs text-[var(--light-text)] mb-1">
+                        Subcategory
+                      </p>
                       <p className="text-sm font-medium text-[var(--text-primary)]">
                         {categorization.subcategory}
                       </p>
@@ -1105,7 +1133,9 @@ const GitHubRepoPage = (): JSX.Element => {
                   </div>
                   {/* PURPOSE */}
                   <div className="mb-4">
-                    <p className="text-xs text-[var(--light-text)] mb-1">Purpose</p>
+                    <p className="text-xs text-[var(--light-text)] mb-1">
+                      Purpose
+                    </p>
                     <p className="text-sm text-[var(--text-primary)]">
                       {categorization.purpose}
                     </p>
@@ -1113,7 +1143,9 @@ const GitHubRepoPage = (): JSX.Element => {
                   {/* TECH STACK */}
                   {categorization.techStack.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-xs text-[var(--light-text)] mb-2">Tech Stack</p>
+                      <p className="text-xs text-[var(--light-text)] mb-2">
+                        Tech Stack
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {categorization.techStack.map((tech) => (
                           <span
