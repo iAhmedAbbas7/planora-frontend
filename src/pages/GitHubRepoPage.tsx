@@ -31,6 +31,7 @@ import {
   Settings,
   FolderTree,
   History,
+  Menu,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -525,6 +526,7 @@ const GitHubRepoPage = (): JSX.Element => {
     repo || "",
     1,
     10,
+    undefined,
     status?.isConnected && openSections.commits
   );
   // REPOSITORY ISSUES HOOK
@@ -574,6 +576,8 @@ const GitHubRepoPage = (): JSX.Element => {
   const [showAIInsights, setShowAIInsights] = useState<boolean>(false);
   // SETTINGS PANEL STATE
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  // ACTIONS DROPDOWN STATE
+  const [showActionsDropdown, setShowActionsDropdown] = useState<boolean>(false);
   // AI CATEGORIZATION HOOK
   const {
     categorization,
@@ -798,44 +802,122 @@ const GitHubRepoPage = (): JSX.Element => {
               )}
             </div>
             {/* RIGHT SIDE - ACTIONS */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* BROWSE FILES BUTTON */}
-              <button
-                onClick={() => navigate(`/github/${owner}/${repo}/files`)}
-                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-              >
-                <FolderTree size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Browse Files</span>
-                <span className="sm:hidden">Files</span>
-              </button>
-              {/* COMMITS BUTTON */}
-              <button
-                onClick={() => navigate(`/github/${owner}/${repo}/commits`)}
-                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-              >
-                <History size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Commits</span>
-              </button>
-              {/* SETTINGS BUTTON */}
-              <button
-                onClick={() => setShowSettings(true)}
-                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-              >
-                <Settings size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Settings</span>
-              </button>
-              {/* VIEW ON GITHUB BUTTON */}
-              <a
-                href={repository.htmlUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition text-white cursor-pointer"
-                style={{ backgroundColor: "var(--accent-color)" }}
-              >
-                <ExternalLink size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">View on GitHub</span>
-                <span className="sm:hidden">GitHub</span>
-              </a>
+            <div className="flex items-center gap-2">
+              {/* MOBILE: ICON-ONLY BUTTONS */}
+              <div className="flex items-center gap-1.5 md:hidden">
+                <button
+                  onClick={() => navigate(`/github/${owner}/${repo}/files`)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="Browse Files"
+                >
+                  <FolderTree size={16} />
+                </button>
+                <button
+                  onClick={() => navigate(`/github/${owner}/${repo}/commits`)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="Commits"
+                >
+                  <History size={16} />
+                </button>
+                <button
+                  onClick={() => navigate(`/github/${owner}/${repo}/branches`)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="Branches"
+                >
+                  <GitBranch size={16} />
+                </button>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="Settings"
+                >
+                  <Settings size={16} />
+                </button>
+                <a
+                  href={repository.htmlUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg transition text-white cursor-pointer"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                  title="View on GitHub"
+                >
+                  <ExternalLink size={16} />
+                </a>
+              </div>
+              {/* DESKTOP: ACTIONS DROPDOWN */}
+              <div className="hidden md:block relative">
+                <button
+                  onClick={() => setShowActionsDropdown(!showActionsDropdown)}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                >
+                  <Menu size={16} className="text-[var(--accent-color)]" />
+                  <span>Actions</span>
+                  <ChevronDown size={14} className={`transition ${showActionsDropdown ? "rotate-180" : ""}`} />
+                </button>
+                {showActionsDropdown && (
+                  <>
+                    {/* BACKDROP TO CLOSE DROPDOWN */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowActionsDropdown(false)}
+                    />
+                    {/* DROPDOWN MENU */}
+                    <div className="absolute top-full right-0 mt-1 w-56 bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg z-50 py-1">
+                      <button
+                        onClick={() => {
+                          navigate(`/github/${owner}/${repo}/files`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <FolderTree size={16} className="text-[var(--accent-color)]" />
+                        <span>Browse Files</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/github/${owner}/${repo}/commits`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <History size={16} className="text-[var(--accent-color)]" />
+                        <span>Commits</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/github/${owner}/${repo}/branches`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <GitBranch size={16} className="text-[var(--accent-color)]" />
+                        <span>Branches</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowSettings(true);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <Settings size={16} className="text-[var(--accent-color)]" />
+                        <span>Settings</span>
+                      </button>
+                      <div className="border-t border-[var(--border)] my-1" />
+                      <a
+                        href={repository.htmlUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShowActionsDropdown(false)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <ExternalLink size={16} className="text-[var(--accent-color)]" />
+                        <span>View on GitHub</span>
+                      </a>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           {/* STATS */}
@@ -1213,9 +1295,19 @@ const GitHubRepoPage = (): JSX.Element => {
                   message="No commits found in this repository."
                 />
               ) : (
-                commits.map((commit) => (
-                  <CommitItem key={commit.sha} commit={commit} />
-                ))
+                <>
+                  {commits.map((commit) => (
+                    <CommitItem key={commit.sha} commit={commit} />
+                  ))}
+                  {/* VIEW ALL COMMITS BUTTON */}
+                  <button
+                    onClick={() => navigate(`/github/${owner}/${repo}/commits`)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] hover:border-[var(--accent-color)] transition cursor-pointer mt-2"
+                  >
+                    <History size={16} className="text-[var(--accent-color)]" />
+                    View All Commits
+                  </button>
+                </>
               )}
             </div>
           )}
