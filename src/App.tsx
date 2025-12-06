@@ -20,6 +20,7 @@ import GitHubComparePage from "./pages/GitHubComparePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
+import GitHubBranchesPage from "./pages/GitHubBranchesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -147,6 +148,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/compare",
               element: <GitHubComparePage />,
+            },
+            // <== GITHUB REPOSITORY BRANCHES ROUTE ==>
+            {
+              path: "/github/:owner/:repo/branches",
+              element: <GitHubBranchesPage />,
             },
             // <== TRASH ROUTE ==>
             {
