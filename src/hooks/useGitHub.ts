@@ -706,6 +706,270 @@ export type FileOperationResult = {
     htmlUrl: string;
   };
 };
+// <== COMMIT DETAILS TYPE ==>
+export type CommitDetails = {
+  // <== SHA ==>
+  sha: string;
+  // <== NODE ID ==>
+  nodeId: string;
+  // <== MESSAGE ==>
+  message: string;
+  // <== AUTHOR ==>
+  author: {
+    // <== NAME ==>
+    name?: string;
+    // <== EMAIL ==>
+    email?: string;
+    // <== DATE ==>
+    date?: string;
+    // <== LOGIN ==>
+    login?: string;
+    // <== AVATAR URL ==>
+    avatarUrl?: string;
+  };
+  // <== COMMITTER ==>
+  committer: {
+    // <== NAME ==>
+    name?: string;
+    // <== EMAIL ==>
+    email?: string;
+    // <== DATE ==>
+    date?: string;
+    // <== LOGIN ==>
+    login?: string;
+    // <== AVATAR URL ==>
+    avatarUrl?: string;
+  };
+  // <== TREE ==>
+  tree: {
+    // <== SHA ==>
+    sha: string;
+    // <== URL ==>
+    url: string;
+  };
+  // <== PARENTS ==>
+  parents: {
+    // <== SHA ==>
+    sha: string;
+    // <== URL ==>
+    url: string;
+  }[];
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== STATS ==>
+  stats?: {
+    // <== ADDITIONS ==>
+    additions: number;
+    // <== DELETIONS ==>
+    deletions: number;
+    // <== TOTAL ==>
+    total: number;
+  };
+  // <== FILES ==>
+  files?: CommitFile[];
+  // <== VERIFIED ==>
+  verified?: boolean;
+  // <== VERIFICATION REASON ==>
+  verificationReason?: string;
+};
+// <== COMMIT FILE TYPE ==>
+export type CommitFile = {
+  // <== SHA ==>
+  sha: string;
+  // <== FILENAME ==>
+  filename: string;
+  // <== STATUS ==>
+  status: string;
+  // <== ADDITIONS ==>
+  additions: number;
+  // <== DELETIONS ==>
+  deletions: number;
+  // <== CHANGES ==>
+  changes: number;
+  // <== BLOB URL ==>
+  blobUrl: string;
+  // <== RAW URL ==>
+  rawUrl: string;
+  // <== CONTENTS URL ==>
+  contentsUrl?: string;
+  // <== PATCH ==>
+  patch?: string;
+  // <== PREVIOUS FILENAME ==>
+  previousFilename?: string;
+};
+// <== COMMIT COMPARISON TYPE ==>
+export type CommitComparison = {
+  // <== URL ==>
+  url: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== PERMALINK URL ==>
+  permalinkUrl: string;
+  // <== DIFF URL ==>
+  diffUrl: string;
+  // <== PATCH URL ==>
+  patchUrl: string;
+  // <== STATUS ==>
+  status: "behind" | "ahead" | "diverged" | "identical";
+  // <== AHEAD BY ==>
+  aheadBy: number;
+  // <== BEHIND BY ==>
+  behindBy: number;
+  // <== TOTAL COMMITS ==>
+  totalCommits: number;
+  // <== BASE COMMIT ==>
+  baseCommit: {
+    // <== SHA ==>
+    sha: string;
+    // <== MESSAGE ==>
+    message: string;
+    // <== AUTHOR ==>
+    author: {
+      // <== NAME ==>
+      name?: string;
+      // <== EMAIL ==>
+      email?: string;
+      // <== DATE ==>
+      date?: string;
+      // <== LOGIN ==>
+      login?: string;
+      // <== AVATAR URL ==>
+      avatarUrl?: string;
+    };
+    // <== HTML URL ==>
+    htmlUrl: string;
+  };
+  // <== MERGE BASE COMMIT ==>
+  mergeBaseCommit: {
+    // <== SHA ==>
+    sha: string;
+    // <== MESSAGE ==>
+    message: string;
+    // <== AUTHOR ==>
+    author: {
+      // <== NAME ==>
+      name?: string;
+      // <== EMAIL ==>
+      email?: string;
+      // <== DATE ==>
+      date?: string;
+      // <== LOGIN ==>
+      login?: string;
+      // <== AVATAR URL ==>
+      avatarUrl?: string;
+    };
+    // <== HTML URL ==>
+    htmlUrl: string;
+  };
+  // <== COMMITS ==>
+  commits: {
+    // <== SHA ==>
+    sha: string;
+    // <== MESSAGE ==>
+    message: string;
+    // <== AUTHOR ==>
+    author: {
+      // <== NAME ==>
+      name?: string;
+      // <== EMAIL ==>
+      email?: string;
+      // <== DATE ==>
+      date?: string;
+      // <== LOGIN ==>
+      login?: string;
+      // <== AVATAR URL ==>
+      avatarUrl?: string;
+    };
+    // <== HTML URL ==>
+    htmlUrl: string;
+  }[];
+  // <== FILES ==>
+  files?: CommitFile[];
+};
+// <== COMMIT BRANCH TYPE ==>
+export type CommitBranch = {
+  // <== NAME ==>
+  name: string;
+  // <== PROTECTED ==>
+  protected: boolean;
+};
+// <== COMMIT PR TYPE ==>
+export type CommitPullRequest = {
+  // <== NUMBER ==>
+  number: number;
+  // <== TITLE ==>
+  title: string;
+  // <== STATE ==>
+  state: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== USER ==>
+  user: {
+    // <== LOGIN ==>
+    login?: string;
+    // <== AVATAR URL ==>
+    avatarUrl?: string;
+  };
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== MERGED AT ==>
+  mergedAt?: string;
+  // <== CLOSED AT ==>
+  closedAt?: string;
+};
+// <== SEARCH COMMIT RESULT TYPE ==>
+export type SearchCommitResult = {
+  // <== SHA ==>
+  sha: string;
+  // <== MESSAGE ==>
+  message: string;
+  // <== AUTHOR ==>
+  author: {
+    // <== NAME ==>
+    name?: string;
+    // <== EMAIL ==>
+    email?: string;
+    // <== DATE ==>
+    date?: string;
+    // <== LOGIN ==>
+    login?: string;
+    // <== AVATAR URL ==>
+    avatarUrl?: string;
+  };
+  // <== COMMITTER ==>
+  committer: {
+    // <== NAME ==>
+    name?: string;
+    // <== EMAIL ==>
+    email?: string;
+    // <== DATE ==>
+    date?: string;
+    // <== LOGIN ==>
+    login?: string;
+    // <== AVATAR URL ==>
+    avatarUrl?: string;
+  };
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== SCORE ==>
+  score?: number;
+};
+// <== SEARCH COMMITS RESPONSE TYPE ==>
+type SearchCommitsResponse = {
+  // <== COMMITS ==>
+  commits: SearchCommitResult[];
+  // <== TOTAL COUNT ==>
+  totalCount: number;
+  // <== PAGINATION ==>
+  pagination: {
+    // <== PAGE ==>
+    page: number;
+    // <== PER PAGE ==>
+    perPage: number;
+    // <== HAS MORE ==>
+    hasMore: boolean;
+  };
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -957,14 +1221,17 @@ const fetchRepositoryCommits = async (
   owner: string,
   repo: string,
   page: number = 1,
-  perPage: number = 10
+  perPage: number = 10,
+  sha?: string
 ): Promise<{ commits: GitHubCommit[]; hasMore: boolean }> => {
+  // BUILD PARAMS
+  const params: Record<string, string | number> = { page, per_page: perPage };
+  // ADD SHA IF PROVIDED (branch name or commit sha)
+  if (sha) params.sha = sha;
   // FETCH REPOSITORY COMMITS
   const response = await apiClient.get<
     ApiResponse<{ commits: GitHubCommit[]; pagination: { hasMore: boolean } }>
-  >(`/github/repositories/${owner}/${repo}/commits`, {
-    params: { page, per_page: perPage },
-  });
+  >(`/github/repositories/${owner}/${repo}/commits`, { params });
   // RETURN REPOSITORY COMMITS
   return {
     commits: response.data.data.commits,
@@ -1099,6 +1366,7 @@ export const useRepositoryCommits = (
   repo: string,
   page: number = 1,
   perPage: number = 10,
+  sha?: string,
   enabled: boolean = true
 ) => {
   // USE REPOSITORY COMMITS
@@ -1106,8 +1374,8 @@ export const useRepositoryCommits = (
     { commits: GitHubCommit[]; hasMore: boolean },
     AxiosError<{ message?: string }>
   >({
-    queryKey: ["github-repo-commits", owner, repo, page, perPage],
-    queryFn: () => fetchRepositoryCommits(owner, repo, page, perPage),
+    queryKey: ["github-repo-commits", owner, repo, page, perPage, sha],
+    queryFn: () => fetchRepositoryCommits(owner, repo, page, perPage, sha),
     retry: 1,
     staleTime: 2 * 60 * 1000,
     enabled: enabled && !!owner && !!repo,
@@ -1946,4 +2214,215 @@ export const useDeleteFile = () => {
   });
   // RETURN MUTATION
   return mutation;
+};
+
+// <== FETCH COMMIT DETAILS FUNCTION ==>
+const fetchCommitDetails = async (
+  owner: string,
+  repo: string,
+  sha: string
+): Promise<CommitDetails> => {
+  // FETCH COMMIT DETAILS
+  const response = await apiClient.get<ApiResponse<CommitDetails>>(
+    `/github/repositories/${owner}/${repo}/commits/${sha}`
+  );
+  // RETURN COMMIT DETAILS
+  return response.data.data;
+};
+
+// <== USE COMMIT DETAILS HOOK ==>
+export const useCommitDetails = (
+  owner: string,
+  repo: string,
+  sha: string,
+  enabled: boolean = true
+) => {
+  // USE COMMIT DETAILS
+  const {
+    data: commit,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<CommitDetails, AxiosError<{ message?: string }>>({
+    queryKey: ["github-commit", owner, repo, sha],
+    queryFn: () => fetchCommitDetails(owner, repo, sha),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!sha,
+  });
+  // RETURN COMMIT DETAILS
+  return { commit, isLoading, isError, error, refetch };
+};
+
+// <== FETCH COMMIT COMPARISON FUNCTION ==>
+const fetchCommitComparison = async (
+  owner: string,
+  repo: string,
+  base: string,
+  head: string
+): Promise<CommitComparison> => {
+  // FETCH COMMIT COMPARISON
+  const response = await apiClient.get<ApiResponse<CommitComparison>>(
+    `/github/repositories/${owner}/${repo}/compare?base=${encodeURIComponent(
+      base
+    )}&head=${encodeURIComponent(head)}`
+  );
+  // RETURN COMMIT COMPARISON
+  return response.data.data;
+};
+
+// <== USE COMMIT COMPARISON HOOK ==>
+export const useCommitComparison = (
+  owner: string,
+  repo: string,
+  base: string,
+  head: string,
+  enabled: boolean = true
+) => {
+  // USE COMMIT COMPARISON
+  const {
+    data: comparison,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<CommitComparison, AxiosError<{ message?: string }>>({
+    queryKey: ["github-compare", owner, repo, base, head],
+    queryFn: () => fetchCommitComparison(owner, repo, base, head),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!base && !!head,
+  });
+  // RETURN COMMIT COMPARISON
+  return { comparison, isLoading, isError, error, refetch };
+};
+
+// <== FETCH COMMIT BRANCHES FUNCTION ==>
+const fetchCommitBranches = async (
+  owner: string,
+  repo: string,
+  sha: string
+): Promise<CommitBranch[]> => {
+  // FETCH COMMIT BRANCHES
+  const response = await apiClient.get<ApiResponse<CommitBranch[]>>(
+    `/github/repositories/${owner}/${repo}/commits/${sha}/branches`
+  );
+  // RETURN COMMIT BRANCHES
+  return response.data.data;
+};
+
+// <== USE COMMIT BRANCHES HOOK ==>
+export const useCommitBranches = (
+  owner: string,
+  repo: string,
+  sha: string,
+  enabled: boolean = true
+) => {
+  // USE COMMIT BRANCHES
+  const {
+    data: branches,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<CommitBranch[], AxiosError<{ message?: string }>>({
+    queryKey: ["github-commit-branches", owner, repo, sha],
+    queryFn: () => fetchCommitBranches(owner, repo, sha),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!sha,
+  });
+  // RETURN COMMIT BRANCHES
+  return { branches, isLoading, isError, error, refetch };
+};
+
+// <== FETCH COMMIT PULL REQUESTS FUNCTION ==>
+const fetchCommitPullRequests = async (
+  owner: string,
+  repo: string,
+  sha: string
+): Promise<CommitPullRequest[]> => {
+  // FETCH COMMIT PULL REQUESTS
+  const response = await apiClient.get<ApiResponse<CommitPullRequest[]>>(
+    `/github/repositories/${owner}/${repo}/commits/${sha}/pulls`
+  );
+  // RETURN COMMIT PULL REQUESTS
+  return response.data.data;
+};
+
+// <== USE COMMIT PULL REQUESTS HOOK ==>
+export const useCommitPullRequests = (
+  owner: string,
+  repo: string,
+  sha: string,
+  enabled: boolean = true
+) => {
+  // USE COMMIT PULL REQUESTS
+  const {
+    data: pullRequests,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<CommitPullRequest[], AxiosError<{ message?: string }>>({
+    queryKey: ["github-commit-prs", owner, repo, sha],
+    queryFn: () => fetchCommitPullRequests(owner, repo, sha),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!sha,
+  });
+  // RETURN COMMIT PULL REQUESTS
+  return { pullRequests, isLoading, isError, error, refetch };
+};
+
+// <== FETCH SEARCH COMMITS FUNCTION ==>
+const fetchSearchCommits = async (
+  owner: string,
+  repo: string,
+  query: string,
+  page: number = 1,
+  perPage: number = 30
+): Promise<SearchCommitsResponse> => {
+  // FETCH SEARCH COMMITS
+  const response = await apiClient.get<ApiResponse<SearchCommitsResponse>>(
+    `/github/repositories/${owner}/${repo}/commits/search?q=${encodeURIComponent(
+      query
+    )}&page=${page}&per_page=${perPage}`
+  );
+  // RETURN SEARCH COMMITS
+  return response.data.data;
+};
+
+// <== USE SEARCH COMMITS HOOK ==>
+export const useSearchCommits = (
+  owner: string,
+  repo: string,
+  query: string,
+  page: number = 1,
+  perPage: number = 30,
+  enabled: boolean = true
+) => {
+  // USE SEARCH COMMITS
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    SearchCommitsResponse,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-search-commits", owner, repo, query, page, perPage],
+    queryFn: () => fetchSearchCommits(owner, repo, query, page, perPage),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!owner && !!repo && !!query && query.trim().length > 0,
+  });
+  // RETURN SEARCH COMMITS
+  return {
+    commits: data?.commits || [],
+    totalCount: data?.totalCount || 0,
+    pagination: data?.pagination,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
 };
