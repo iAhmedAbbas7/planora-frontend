@@ -366,6 +366,68 @@ export type SummarizeCommitsInput = {
   // <== INCLUDE STATS ==>
   includeStats?: boolean;
 };
+// <== BRANCH STRATEGY SUGGESTION TYPE ==>
+export type BranchStrategySuggestion = {
+  // <== CURRENT BRANCH COUNT ==>
+  currentBranchCount: number;
+  // <== SUGGESTION ==>
+  suggestion: {
+    // <== RECOMMENDED STRATEGY ==>
+    recommendedStrategy: string;
+    // <== STRATEGY DESCRIPTION ==>
+    strategyDescription: string;
+    // <== BRANCH STRUCTURE ==>
+    branchStructure: {
+      // <== MAIN BRANCHES ==>
+      mainBranches: string[];
+      // <== SUPPORTING BRANCHES ==>
+      supportingBranches: string[];
+    };
+    // <== NAMING CONVENTIONS ==>
+    namingConventions: {
+      // <== TYPE ==>
+      type: string;
+      // <== PATTERN ==>
+      pattern: string;
+      // <== EXAMPLE ==>
+      example: string;
+    }[];
+    // <== PROTECTION RECOMMENDATIONS ==>
+    protectionRecommendations: {
+      // <== BRANCH ==>
+      branch: string;
+      // <== RULES ==>
+      rules: string[];
+    }[];
+    // <== MERGE STRATEGY ==>
+    mergeStrategy: {
+      // <== RECOMMENDED ==>
+      recommended: string;
+      // <== REASON ==>
+      reason: string;
+    };
+    // <== WORKFLOW STEPS ==>
+    workflowSteps: string[];
+    // <== ADDITIONAL TIPS ==>
+    additionalTips: string[];
+  };
+};
+// <== SUGGEST BRANCH STRATEGY INPUT TYPE ==>
+export type SuggestBranchStrategyInput = {
+  // <== BRANCHES ==>
+  branches: { name: string; protected?: boolean }[];
+  // <== REPO INFO ==>
+  repoInfo?: {
+    // <== NAME ==>
+    name?: string;
+    // <== DEFAULT BRANCH ==>
+    defaultBranch?: string;
+  };
+  // <== TEAM SIZE ==>
+  teamSize?: string;
+  // <== PROJECT TYPE ==>
+  projectType?: string;
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -830,6 +892,45 @@ export const useSummarizeCommits = () => {
       // SHOW ERROR TOAST
       toast.error(
         error.response?.data?.message || "Failed to summarize commits"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== SUGGEST BRANCH STRATEGY FUNCTION ==>
+const suggestBranchStrategyFn = async (
+  input: SuggestBranchStrategyInput
+): Promise<BranchStrategySuggestion> => {
+  // SUGGEST BRANCH STRATEGY
+  const response = await apiClient.post<ApiResponse<BranchStrategySuggestion>>(
+    "/ai/suggest-branch-strategy",
+    {
+      branches: input.branches,
+      repoInfo: input.repoInfo,
+      teamSize: input.teamSize,
+      projectType: input.projectType,
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE SUGGEST BRANCH STRATEGY HOOK ==>
+export const useSuggestBranchStrategy = () => {
+  // SUGGEST BRANCH STRATEGY MUTATION
+  const mutation = useMutation<
+    BranchStrategySuggestion,
+    AxiosError<{ message?: string }>,
+    SuggestBranchStrategyInput
+  >({
+    mutationFn: suggestBranchStrategyFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to generate branch strategy"
       );
     },
   });
