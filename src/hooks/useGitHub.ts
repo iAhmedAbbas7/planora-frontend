@@ -1,5 +1,6 @@
 // <== IMPORTS ==>
 import { AxiosError } from "axios";
+import { toast } from "@/lib/toast";
 import { apiClient } from "../lib/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -970,6 +971,209 @@ type SearchCommitsResponse = {
     hasMore: boolean;
   };
 };
+// <== BRANCH DETAILS TYPE ==>
+export type BranchDetails = {
+  // <== NAME ==>
+  name: string;
+  // <== PROTECTED ==>
+  protected: boolean;
+  // <== COMMIT ==>
+  commit: {
+    // <== SHA ==>
+    sha: string;
+    // <== URL ==>
+    url: string;
+    // <== AUTHOR ==>
+    author?: {
+      // <== NAME ==>
+      name?: string;
+      // <== EMAIL ==>
+      email?: string;
+      // <== DATE ==>
+      date?: string;
+    };
+    // <== COMMITTER ==>
+    committer?: {
+      // <== NAME ==>
+      name?: string;
+      // <== EMAIL ==>
+      email?: string;
+      // <== DATE ==>
+      date?: string;
+    };
+    // <== MESSAGE ==>
+    message?: string;
+  };
+  // <== PROTECTION ==>
+  protection?: {
+    // <== ENABLED ==>
+    enabled: boolean;
+    // <== REQUIRED STATUS CHECKS ==>
+    requiredStatusChecks?: {
+      // <== ENFORCEMENT LEVEL ==>
+      enforcementLevel: string;
+      // <== CONTEXTS ==>
+      contexts: string[];
+    };
+  };
+  // <== PROTECTION URL ==>
+  protectionUrl?: string;
+};
+// <== BRANCH PROTECTION TYPE ==>
+export type BranchProtection = {
+  // <== IS PROTECTED ==>
+  isProtected?: boolean;
+  // <== URL ==>
+  url?: string;
+  // <== REQUIRED STATUS CHECKS ==>
+  requiredStatusChecks?: {
+    // <== STRICT ==>
+    strict: boolean;
+    // <== CONTEXTS ==>
+    contexts: string[];
+  } | null;
+  // <== ENFORCE ADMINS ==>
+  enforceAdmins?: boolean;
+  // <== REQUIRED PULL REQUEST REVIEWS ==>
+  requiredPullRequestReviews?: {
+    // <== DISMISS STALE REVIEWS ==>
+    dismissStaleReviews: boolean;
+    // <== REQUIRE CODE OWNER REVIEWS ==>
+    requireCodeOwnerReviews: boolean;
+    // <== REQUIRED APPROVING REVIEW COUNT ==>
+    requiredApprovingReviewCount: number;
+    // <== REQUIRE LAST PUSH APPROVAL ==>
+    requireLastPushApproval?: boolean;
+  } | null;
+  // <== RESTRICTIONS ==>
+  restrictions?: {
+    // <== USERS ==>
+    users: string[];
+    // <== TEAMS ==>
+    teams: string[];
+    // <== APPS ==>
+    apps: string[];
+  } | null;
+  // <== REQUIRED LINEAR HISTORY ==>
+  requiredLinearHistory?: boolean;
+  // <== ALLOW FORCE PUSHES ==>
+  allowForcePushes?: boolean;
+  // <== ALLOW DELETIONS ==>
+  allowDeletions?: boolean;
+  // <== BLOCK CREATIONS ==>
+  blockCreations?: boolean;
+  // <== REQUIRED CONVERSATION RESOLUTION ==>
+  requiredConversationResolution?: boolean;
+  // <== LOCK BRANCH ==>
+  lockBranch?: boolean;
+  // <== ALLOW FORK SYNCING ==>
+  allowForkSyncing?: boolean;
+};
+// <== MERGE RESULT TYPE ==>
+export type MergeResult = {
+  // <== SHA ==>
+  sha?: string;
+  // <== MERGED ==>
+  merged: boolean;
+  // <== ALREADY UP TO DATE ==>
+  alreadyUpToDate?: boolean;
+  // <== MESSAGE ==>
+  message?: string;
+  // <== HTML URL ==>
+  htmlUrl?: string;
+  // <== PARENTS ==>
+  parents?: { sha: string; url: string }[];
+};
+// <== CREATE BRANCH INPUT TYPE ==>
+type CreateBranchInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== BRANCH NAME ==>
+  branchName: string;
+  // <== SOURCE BRANCH ==>
+  sourceBranch?: string;
+  // <== SOURCE SHA ==>
+  sourceSha?: string;
+};
+// <== DELETE BRANCH INPUT TYPE ==>
+type DeleteBranchInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== BRANCH ==>
+  branch: string;
+};
+// <== MERGE BRANCHES INPUT TYPE ==>
+type MergeBranchesInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== BASE ==>
+  base: string;
+  // <== HEAD ==>
+  head: string;
+  // <== COMMIT MESSAGE ==>
+  commitMessage?: string;
+};
+// <== UPDATE BRANCH PROTECTION INPUT TYPE ==>
+type UpdateBranchProtectionInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== BRANCH ==>
+  branch: string;
+  // <== PROTECTION SETTINGS ==>
+  requiredStatusChecks?: {
+    // <== STRICT ==>
+    strict: boolean;
+    // <== CONTEXTS ==>
+    contexts: string[];
+  } | null;
+  // <== ENFORCE ADMINS ==>
+  enforceAdmins?: boolean;
+  // <== REQUIRED PULL REQUEST REVIEWS ==>
+  requiredPullRequestReviews?: {
+    // <== DISMISS STALE REVIEWS ==>
+    dismissStaleReviews?: boolean;
+    // <== REQUIRE CODE OWNER REVIEWS ==>
+    requireCodeOwnerReviews?: boolean;
+    // <== REQUIRED APPROVING REVIEW COUNT ==>
+    requiredApprovingReviewCount?: number;
+    // <== REQUIRE LAST PUSH APPROVAL ==>
+    requireLastPushApproval?: boolean;
+  } | null;
+  // <== RESTRICTIONS ==>
+  restrictions?: {
+    // <== USERS ==>
+    users: string[];
+    // <== TEAMS ==>
+    teams: string[];
+    // <== APPS ==>
+    apps?: string[];
+  } | null;
+  // <== REQUIRED LINEAR HISTORY ==>
+  requiredLinearHistory?: boolean;
+  // <== ALLOW FORCE PUSHES ==>
+  allowForcePushes?: boolean;
+  // <== ALLOW DELETIONS ==>
+  allowDeletions?: boolean;
+  // <== REQUIRED CONVERSATION RESOLUTION ==>
+  requiredConversationResolution?: boolean;
+};
+// <== DELETE BRANCH PROTECTION INPUT TYPE ==>
+type DeleteBranchProtectionInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== BRANCH ==>
+  branch: string;
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -1494,6 +1698,349 @@ export const useRepositoryBranches = (
   });
   // RETURN REPOSITORY BRANCHES
   return { branches: data || [], isLoading, isError, error, refetch };
+};
+
+// <== FETCH BRANCH DETAILS FUNCTION ==>
+const fetchBranchDetails = async (
+  owner: string,
+  repo: string,
+  branch: string
+): Promise<BranchDetails> => {
+  // FETCH BRANCH DETAILS
+  const response = await apiClient.get<ApiResponse<BranchDetails>>(
+    `/github/repositories/${owner}/${repo}/branches/${encodeURIComponent(
+      branch
+    )}`
+  );
+  // RETURN BRANCH DETAILS
+  return response.data.data;
+};
+
+// <== USE BRANCH DETAILS HOOK ==>
+export const useBranchDetails = (
+  owner: string,
+  repo: string,
+  branch: string,
+  enabled: boolean = true
+) => {
+  // USE BRANCH DETAILS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    BranchDetails,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-branch-details", owner, repo, branch],
+    queryFn: () => fetchBranchDetails(owner, repo, branch),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!branch,
+  });
+  // RETURN BRANCH DETAILS
+  return { branchDetails: data, isLoading, isError, error, refetch };
+};
+
+// <== CREATE BRANCH FUNCTION ==>
+const createBranchFn = async (
+  input: CreateBranchInput
+): Promise<{ ref: string; sha: string; branchName: string }> => {
+  // CREATE BRANCH
+  const response = await apiClient.post<
+    ApiResponse<{ ref: string; sha: string; branchName: string }>
+  >(`/github/repositories/${input.owner}/${input.repo}/branches`, {
+    branchName: input.branchName,
+    sourceBranch: input.sourceBranch,
+    sourceSha: input.sourceSha,
+  });
+  // RETURN RESPONSE
+  return response.data.data;
+};
+
+// <== USE CREATE BRANCH HOOK ==>
+export const useCreateBranch = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE CREATE BRANCH MUTATION
+  const mutation = useMutation<
+    { ref: string; sha: string; branchName: string },
+    AxiosError<{ message?: string }>,
+    CreateBranchInput
+  >({
+    mutationFn: createBranchFn,
+    onSuccess: (_data, variables) => {
+      // INVALIDATE BRANCHES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-branches", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success(`Branch '${variables.branchName}' created successfully!`);
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to create branch");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== DELETE BRANCH FUNCTION ==>
+const deleteBranchFn = async (
+  input: DeleteBranchInput
+): Promise<{ deletedBranch: string }> => {
+  // DELETE BRANCH
+  const response = await apiClient.delete<
+    ApiResponse<{ deletedBranch: string }>
+  >(
+    `/github/repositories/${input.owner}/${
+      input.repo
+    }/branches/${encodeURIComponent(input.branch)}`
+  );
+  // RETURN RESPONSE
+  return response.data.data;
+};
+
+// <== USE DELETE BRANCH HOOK ==>
+export const useDeleteBranch = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE DELETE BRANCH MUTATION
+  const mutation = useMutation<
+    { deletedBranch: string },
+    AxiosError<{ message?: string }>,
+    DeleteBranchInput
+  >({
+    mutationFn: deleteBranchFn,
+    // ON SUCCESS
+    onSuccess: (_data, variables) => {
+      // INVALIDATE BRANCHES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-branches", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success(`Branch '${variables.branch}' deleted successfully!`);
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to delete branch");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== MERGE BRANCHES FUNCTION ==>
+const mergeBranchesFn = async (
+  input: MergeBranchesInput
+): Promise<MergeResult> => {
+  // MERGE BRANCHES
+  const response = await apiClient.post<ApiResponse<MergeResult>>(
+    `/github/repositories/${input.owner}/${input.repo}/merges`,
+    {
+      base: input.base,
+      head: input.head,
+      commitMessage: input.commitMessage,
+    }
+  );
+  // RETURN RESPONSE
+  return response.data.data;
+};
+
+// <== USE MERGE BRANCHES HOOK ==>
+export const useMergeBranches = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MERGE BRANCHES MUTATION
+  const mutation = useMutation<
+    MergeResult,
+    AxiosError<{ message?: string }>,
+    MergeBranchesInput
+  >({
+    mutationFn: mergeBranchesFn,
+    onSuccess: (data, variables) => {
+      // INVALIDATE BRANCHES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-branches", variables.owner, variables.repo],
+      });
+      // INVALIDATE COMMITS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-commits", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      if (data.alreadyUpToDate) {
+        toast.info("Branches are already up to date.");
+      } else if (data.merged) {
+        toast.success(
+          `Successfully merged '${variables.head}' into '${variables.base}'!`
+        );
+      }
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to merge branches");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== FETCH BRANCH PROTECTION FUNCTION ==>
+const fetchBranchProtection = async (
+  owner: string,
+  repo: string,
+  branch: string
+): Promise<BranchProtection> => {
+  // FETCH BRANCH PROTECTION
+  const response = await apiClient.get<ApiResponse<BranchProtection>>(
+    `/github/repositories/${owner}/${repo}/branches/${encodeURIComponent(
+      branch
+    )}/protection`
+  );
+  // RETURN BRANCH PROTECTION
+  return response.data.data;
+};
+
+// <== USE BRANCH PROTECTION HOOK ==>
+export const useBranchProtection = (
+  owner: string,
+  repo: string,
+  branch: string,
+  enabled: boolean = true
+) => {
+  // USE BRANCH PROTECTION
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    BranchProtection,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-branch-protection", owner, repo, branch],
+    queryFn: () => fetchBranchProtection(owner, repo, branch),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!branch,
+  });
+  // RETURN BRANCH PROTECTION
+  return { protection: data, isLoading, isError, error, refetch };
+};
+
+// <== UPDATE BRANCH PROTECTION FUNCTION ==>
+const updateBranchProtectionFn = async (
+  input: UpdateBranchProtectionInput
+): Promise<{ branch: string; protected: boolean }> => {
+  // UPDATE BRANCH PROTECTION
+  const response = await apiClient.put<
+    ApiResponse<{ branch: string; protected: boolean }>
+  >(
+    `/github/repositories/${input.owner}/${
+      input.repo
+    }/branches/${encodeURIComponent(input.branch)}/protection`,
+    {
+      requiredStatusChecks: input.requiredStatusChecks,
+      enforceAdmins: input.enforceAdmins,
+      requiredPullRequestReviews: input.requiredPullRequestReviews,
+      restrictions: input.restrictions,
+      requiredLinearHistory: input.requiredLinearHistory,
+      allowForcePushes: input.allowForcePushes,
+      allowDeletions: input.allowDeletions,
+      requiredConversationResolution: input.requiredConversationResolution,
+    }
+  );
+  // RETURN RESPONSE
+  return response.data.data;
+};
+
+// <== USE UPDATE BRANCH PROTECTION HOOK ==>
+export const useUpdateBranchProtection = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE UPDATE BRANCH PROTECTION MUTATION
+  const mutation = useMutation<
+    { branch: string; protected: boolean },
+    AxiosError<{ message?: string }>,
+    UpdateBranchProtectionInput
+  >({
+    mutationFn: updateBranchProtectionFn,
+    // ON SUCCESS
+    onSuccess: (_data, variables) => {
+      // INVALIDATE BRANCH PROTECTION QUERY
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-branch-protection",
+          variables.owner,
+          variables.repo,
+          variables.branch,
+        ],
+      });
+      // INVALIDATE BRANCHES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-branches", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Branch protection updated successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to update branch protection"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== DELETE BRANCH PROTECTION FUNCTION ==>
+const deleteBranchProtectionFn = async (
+  input: DeleteBranchProtectionInput
+): Promise<{ branch: string; protected: boolean }> => {
+  // DELETE BRANCH PROTECTION
+  const response = await apiClient.delete<
+    ApiResponse<{ branch: string; protected: boolean }>
+  >(
+    `/github/repositories/${input.owner}/${
+      input.repo
+    }/branches/${encodeURIComponent(input.branch)}/protection`
+  );
+  // RETURN RESPONSE
+  return response.data.data;
+};
+
+// <== USE DELETE BRANCH PROTECTION HOOK ==>
+export const useDeleteBranchProtection = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE DELETE BRANCH PROTECTION MUTATION
+  const mutation = useMutation<
+    { branch: string; protected: boolean },
+    AxiosError<{ message?: string }>,
+    DeleteBranchProtectionInput
+  >({
+    mutationFn: deleteBranchProtectionFn,
+    onSuccess: (_data, variables) => {
+      // INVALIDATE BRANCH PROTECTION QUERY
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-branch-protection",
+          variables.owner,
+          variables.repo,
+          variables.branch,
+        ],
+      });
+      // INVALIDATE BRANCHES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-branches", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Branch protection removed successfully!");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to remove branch protection"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
 };
 
 // <== USE REPOSITORY LANGUAGES HOOK ==>
