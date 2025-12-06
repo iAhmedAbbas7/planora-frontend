@@ -15,6 +15,8 @@ import GitHubRepoPage from "./pages/GitHubRepoPage";
 import GitHubFilesPage from "./pages/GitHubFilesPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
+import GitHubCommitsPage from "./pages/GitHubCommitsPage";
+import GitHubComparePage from "./pages/GitHubComparePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
@@ -135,6 +137,16 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/files",
               element: <GitHubFilesPage />,
+            },
+            // <== GITHUB REPOSITORY COMMITS ROUTE ==>
+            {
+              path: "/github/:owner/:repo/commits",
+              element: <GitHubCommitsPage />,
+            },
+            // <== GITHUB REPOSITORY COMPARE ROUTE ==>
+            {
+              path: "/github/:owner/:repo/compare",
+              element: <GitHubComparePage />,
             },
             // <== TRASH ROUTE ==>
             {
