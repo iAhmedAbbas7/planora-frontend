@@ -263,6 +263,109 @@ export type ExplainCodeInput = {
   // <== EXPLAIN TYPE ==>
   explainType?: CodeExplanationType;
 };
+// <== GENERATED COMMIT MESSAGE TYPE ==>
+export type GeneratedCommitMessage = {
+  // <== SUBJECT ==>
+  subject: string;
+  // <== BODY ==>
+  body: string | null;
+  // <== TYPE ==>
+  type: string;
+  // <== SCOPE ==>
+  scope: string | null;
+  // <== BREAKING ==>
+  breaking: boolean;
+  // <== ALTERNATIVES ==>
+  alternatives: string[];
+};
+// <== COMMIT MESSAGE INPUT TYPE ==>
+export type GenerateCommitMessageInput = {
+  // <== CHANGES ==>
+  changes: {
+    // <== FILENAME ==>
+    filename: string;
+    // <== STATUS ==>
+    status: string;
+    // <== ADDITIONS ==>
+    additions?: number;
+    // <== DELETIONS ==>
+    deletions?: number;
+    // <== PATCH ==>
+    patch?: string;
+  }[];
+  // <== TYPE ==>
+  type?: "conventional" | "descriptive" | "simple" | "semantic";
+  // <== CONTEXT ==>
+  context?: string;
+};
+// <== COMMIT HISTORY SUMMARY TYPE ==>
+export type CommitHistorySummary = {
+  // <== COMMIT COUNT ==>
+  commitCount: number;
+  // <== SUMMARY ==>
+  summary: {
+    // <== SUMMARY TEXT ==>
+    summary: string;
+    // <== MAIN CHANGES ==>
+    mainChanges: string[];
+    // <== CATEGORIES ==>
+    categories: {
+      // <== FEATURES ==>
+      features: string[];
+      // <== FIXES ==>
+      fixes: string[];
+      // <== REFACTORING ==>
+      refactoring: string[];
+      // <== DOCUMENTATION ==>
+      documentation: string[];
+      // <== OTHER ==>
+      other: string[];
+    };
+    // <== CONTRIBUTORS ==>
+    contributors: string[];
+    // <== TIMELINE ==>
+    timeline: {
+      // <== START DATE ==>
+      startDate: string;
+      // <== END DATE ==>
+      endDate: string;
+      // <== DURATION ==>
+      duration: string;
+    };
+    // <== HIGHLIGHTS ==>
+    highlights: string[];
+    // <== SUGGESTED RELEASE NOTES ==>
+    suggestedReleaseNotes: string;
+  };
+};
+// <== SUMMARIZE COMMITS INPUT TYPE ==>
+export type SummarizeCommitsInput = {
+  // <== COMMITS ==>
+  commits: {
+    // <== SHA ==>
+    sha: string;
+    // <== MESSAGE ==>
+    message: string;
+    // <== AUTHOR ==>
+    author?: {
+      // <== NAME ==>
+      name?: string;
+      // <== DATE ==>
+      date?: string;
+    };
+    // <== STATS ==>
+    stats?: {
+      // <== ADDITIONS ==>
+      additions?: number;
+      // <== DELETIONS ==>
+      deletions?: number;
+      // <== TOTAL ==>
+      total?: number;
+    };
+  }[];
+  // <== INCLUDE STATS ==>
+  includeStats?: boolean;
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -653,6 +756,81 @@ export const useExplainCode = () => {
     onError: (error) => {
       // SHOW ERROR TOAST
       toast.error(error.response?.data?.message || "Failed to explain code");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== GENERATE COMMIT MESSAGE FUNCTION ==>
+const generateCommitMessageFn = async (
+  input: GenerateCommitMessageInput
+): Promise<GeneratedCommitMessage> => {
+  // GENERATE COMMIT MESSAGE
+  const response = await apiClient.post<ApiResponse<GeneratedCommitMessage>>(
+    "/ai/generate-commit-message",
+    {
+      changes: input.changes,
+      type: input.type || "conventional",
+      context: input.context,
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE GENERATE COMMIT MESSAGE HOOK ==>
+export const useGenerateCommitMessage = () => {
+  // GENERATE COMMIT MESSAGE MUTATION
+  const mutation = useMutation<
+    GeneratedCommitMessage,
+    AxiosError<{ message?: string }>,
+    GenerateCommitMessageInput
+  >({
+    mutationFn: generateCommitMessageFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to generate commit message"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== SUMMARIZE COMMITS FUNCTION ==>
+const summarizeCommitsFn = async (
+  input: SummarizeCommitsInput
+): Promise<CommitHistorySummary> => {
+  // SUMMARIZE COMMITS
+  const response = await apiClient.post<ApiResponse<CommitHistorySummary>>(
+    "/ai/summarize-commits",
+    {
+      commits: input.commits,
+      includeStats: input.includeStats ?? true,
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE SUMMARIZE COMMITS HOOK ==>
+export const useSummarizeCommits = () => {
+  // SUMMARIZE COMMITS MUTATION
+  const mutation = useMutation<
+    CommitHistorySummary,
+    AxiosError<{ message?: string }>,
+    SummarizeCommitsInput
+  >({
+    mutationFn: summarizeCommitsFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to summarize commits"
+      );
     },
   });
   // RETURN MUTATION
