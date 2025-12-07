@@ -633,14 +633,14 @@ function TaskColumn({
                       {/* TASK DETAILS */}
                       <div className="flex flex-col gap-2 text-sm">
                         {/* STATUS */}
-                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
                           <CircleDot
                             size={14}
                             className="text-[var(--light-text)] flex-shrink-0"
                           />
-                          <span className="text-xs text-[var(--light-text)] min-w-[80px]">
-                            Status:
-                          </span>
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Status:
+                            </span>
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
                             <span
                               className="absolute inset-0 rounded-full"
@@ -655,8 +655,8 @@ function TaskColumn({
                             >
                               {task.status || "N/A"}
                             </span>
-                          </span>
-                        </div>
+                            </span>
+                          </div>
                         {/* PRIORITY */}
                         {task.priority && (
                           <div className="flex items-center gap-2">
@@ -1305,14 +1305,14 @@ const ListView = ({
                       {/* TASK DETAILS */}
                       <div className="flex flex-col gap-2 text-sm">
                         {/* STATUS */}
-                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
                           <CircleDot
                             size={14}
                             className="text-[var(--light-text)] flex-shrink-0"
                           />
-                          <span className="text-xs text-[var(--light-text)] min-w-[80px]">
-                            Status:
-                          </span>
+                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                              Status:
+                            </span>
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
                             <span
                               className="absolute inset-0 rounded-full"
@@ -1327,8 +1327,8 @@ const ListView = ({
                             >
                               {task.status || "N/A"}
                             </span>
-                          </span>
-                        </div>
+                            </span>
+                          </div>
                         {/* PRIORITY */}
                         {task.priority && (
                           <div className="flex items-center gap-2">
