@@ -32,6 +32,7 @@ import {
   FolderTree,
   History,
   Menu,
+  Play,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -848,6 +849,13 @@ const GitHubRepoPage = (): JSX.Element => {
                   <Users size={16} />
                 </button>
                 <button
+                  onClick={() => navigate(`/github/${owner}/${repo}/actions`)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="Actions"
+                >
+                  <Play size={16} />
+                </button>
+                <button
                   onClick={() => setShowSettings(true)}
                   className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
                   title="Settings"
@@ -943,6 +951,16 @@ const GitHubRepoPage = (): JSX.Element => {
                       >
                         <Users size={16} className="text-[var(--accent-color)]" />
                         <span>Collaborators</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/github/${owner}/${repo}/actions`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <Play size={16} className="text-[var(--accent-color)]" />
+                        <span>Actions</span>
                       </button>
                       <button
                         onClick={() => {
