@@ -446,7 +446,12 @@ export type AICodeReviewIssue = {
 // <== AI CODE REVIEW SUGGESTION TYPE ==>
 export type AICodeReviewSuggestion = {
   // <== CATEGORY ==>
-  category: "refactoring" | "testing" | "documentation" | "performance" | "security";
+  category:
+    | "refactoring"
+    | "testing"
+    | "documentation"
+    | "performance"
+    | "security";
   // <== DESCRIPTION ==>
   description: string;
 };
@@ -510,6 +515,110 @@ export type AICodeReviewInput = {
   };
   // <== REVIEW TYPE ==>
   reviewType?: "comprehensive" | "security" | "performance" | "best-practices";
+};
+// <== AI ISSUE ANALYSIS INPUT TYPE ==>
+export type AIIssueAnalysisInput = {
+  // <== ISSUE ==>
+  issue: {
+    // <== TITLE ==>
+    title: string;
+    // <== BODY ==>
+    body?: string;
+  };
+  // <== EXISTING ISSUES ==>
+  existingIssues?: {
+    // <== NUMBER ==>
+    number: number;
+    // <== TITLE ==>
+    title: string;
+    // <== LABELS ==>
+    labels?: string[];
+    // <== STATE ==>
+    state: string;
+  }[];
+  // <== AVAILABLE LABELS ==>
+  availableLabels?: {
+    // <== NAME ==>
+    name: string;
+    // <== DESCRIPTION ==>
+    description?: string;
+  }[];
+  // <== ANALYSIS TYPE ==>
+  analysisType?: "full" | "labels" | "duplicates";
+};
+// <== AI ISSUE ANALYSIS RESULT TYPE ==>
+export type AIIssueAnalysisResult = {
+  // <== SUGGESTED LABELS ==>
+  suggestedLabels: string[];
+  // <== LABEL REASONS ==>
+  labelReasons: Record<string, string>;
+  // <== POTENTIAL DUPLICATES ==>
+  potentialDuplicates: {
+    // <== ISSUE NUMBER ==>
+    issueNumber: number;
+    // <== TITLE ==>
+    title: string;
+    // <== SIMILARITY ==>
+    similarity: "high" | "medium" | "low";
+    // <== REASON ==>
+    reason: string;
+  }[];
+  // <== SUGGESTED SOLUTION ==>
+  suggestedSolution: {
+    // <== SUMMARY ==>
+    summary: string;
+    // <== STEPS ==>
+    steps: string[];
+    // <== ADDITIONAL CONTEXT ==>
+    additionalContext?: string | null;
+  };
+  // <== PRIORITY ==>
+  priority: "critical" | "high" | "medium" | "low";
+  // <== PRIORITY REASON ==>
+  priorityReason: string;
+  // <== CATEGORY ==>
+  category: "bug" | "feature" | "question" | "documentation" | "other";
+  // <== CATEGORY REASON ==>
+  categoryReason: string;
+  // <== ESTIMATED EFFORT ==>
+  estimatedEffort: "small" | "medium" | "large";
+  // <== SUGGESTED ASSIGNEE TYPE ==>
+  suggestedAssigneeType:
+    | "maintainer"
+    | "contributor"
+    | "new-contributor"
+    | null;
+};
+// <== AI ISSUE ANALYSIS RESPONSE TYPE ==>
+export type AIIssueAnalysisResponse = {
+  // <== ISSUE TITLE ==>
+  issueTitle: string;
+  // <== ANALYSIS TYPE ==>
+  analysisType: string;
+  // <== ANALYSIS ==>
+  analysis: AIIssueAnalysisResult;
+};
+// <== AI GENERATE ISSUE INPUT TYPE ==>
+export type AIGenerateIssueInput = {
+  // <== DESCRIPTION ==>
+  description: string;
+  // <== ISSUE TYPE ==>
+  issueType?: "bug" | "feature" | "documentation" | "question";
+  // <== CONTEXT ==>
+  context?: string;
+};
+// <== AI GENERATED ISSUE TYPE ==>
+export type AIGeneratedIssue = {
+  // <== TITLE ==>
+  title: string;
+  // <== BODY ==>
+  body: string;
+  // <== SUGGESTED LABELS ==>
+  suggestedLabels: string[];
+  // <== PRIORITY ==>
+  priority: "high" | "medium" | "low";
+  // <== TYPE ==>
+  type: "bug" | "feature" | "documentation" | "question";
 };
 
 // <== FETCH AI STATUS ==>
@@ -1053,6 +1162,79 @@ export const useAICodeReview = () => {
       toast.error(
         error.response?.data?.message || "Failed to generate AI code review"
       );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== AI ISSUE ANALYZER FUNCTION ==>
+const aiIssueAnalyzerFn = async (
+  input: AIIssueAnalysisInput
+): Promise<AIIssueAnalysisResponse> => {
+  // ANALYZE ISSUE
+  const response = await apiClient.post<ApiResponse<AIIssueAnalysisResponse>>(
+    "/ai/analyze-issue",
+    {
+      issue: input.issue,
+      existingIssues: input.existingIssues,
+      availableLabels: input.availableLabels,
+      analysisType: input.analysisType || "full",
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE AI ISSUE ANALYZER HOOK ==>
+export const useAIIssueAnalyzer = () => {
+  // AI ISSUE ANALYZER MUTATION
+  const mutation = useMutation<
+    AIIssueAnalysisResponse,
+    AxiosError<{ message?: string }>,
+    AIIssueAnalysisInput
+  >({
+    mutationFn: aiIssueAnalyzerFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to analyze issue");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== AI GENERATE ISSUE FUNCTION ==>
+const aiGenerateIssueFn = async (
+  input: AIGenerateIssueInput
+): Promise<AIGeneratedIssue> => {
+  // GENERATE ISSUE
+  const response = await apiClient.post<ApiResponse<AIGeneratedIssue>>(
+    "/ai/generate-issue",
+    {
+      description: input.description,
+      issueType: input.issueType || "bug",
+      context: input.context,
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE AI GENERATE ISSUE HOOK ==>
+export const useAIGenerateIssue = () => {
+  // AI GENERATE ISSUE MUTATION
+  const mutation = useMutation<
+    AIGeneratedIssue,
+    AxiosError<{ message?: string }>,
+    AIGenerateIssueInput
+  >({
+    mutationFn: aiGenerateIssueFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to generate issue");
     },
   });
   // RETURN MUTATION
