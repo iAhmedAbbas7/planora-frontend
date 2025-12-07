@@ -293,6 +293,212 @@ export type GitHubIssue = {
     // <== COLOR ==>
     color: string | null;
   }[];
+  // <== ASSIGNEES ==>
+  assignees?: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+  }[];
+  // <== MILESTONE ==>
+  milestone?: {
+    // <== TITLE ==>
+    title: string;
+    // <== STATE ==>
+    state: string;
+    // <== DUE ON ==>
+    dueOn: string | null;
+  } | null;
+};
+// <== ISSUE DETAILS TYPE (EXTENDED) ==>
+export type IssueDetails = GitHubIssue & {
+  // <== BODY HTML ==>
+  bodyHtml?: string;
+  // <== STATE REASON ==>
+  stateReason?: string | null;
+  // <== USER HTML URL ==>
+  user: GitHubIssue["user"] & {
+    // <== HTML URL ==>
+    htmlUrl?: string;
+  };
+  // <== LABELS (EXTENDED) ==>
+  labels: {
+    // <== ID ==>
+    id?: number | null;
+    // <== NAME ==>
+    name: string | null;
+    // <== COLOR ==>
+    color: string | null;
+    // <== DESCRIPTION ==>
+    description?: string | null;
+  }[];
+  // <== ASSIGNEES (EXTENDED) ==>
+  assignees?: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+    // <== HTML URL ==>
+    htmlUrl?: string;
+  }[];
+  // <== MILESTONE (EXTENDED) ==>
+  milestone?: {
+    // <== ID ==>
+    id: number;
+    // <== NUMBER ==>
+    number: number;
+    // <== TITLE ==>
+    title: string;
+    // <== DESCRIPTION ==>
+    description?: string | null;
+    // <== STATE ==>
+    state: string;
+    // <== DUE ON ==>
+    dueOn: string | null;
+  } | null;
+  // <== CLOSED BY ==>
+  closedBy?: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+  } | null;
+  // <== REACTIONS ==>
+  reactions?: {
+    // <== TOTAL COUNT ==>
+    totalCount: number;
+    // <== PLUS ONE ==>
+    plusOne: number;
+    // <== MINUS ONE ==>
+    minusOne: number;
+    // <== LAUGH ==>
+    laugh: number;
+    // <== HOORAY ==>
+    hooray: number;
+    // <== CONFUSED ==>
+    confused: number;
+    // <== HEART ==>
+    heart: number;
+    // <== ROCKET ==>
+    rocket: number;
+    // <== EYES ==>
+    eyes: number;
+  };
+  // <== LOCKED ==>
+  locked?: boolean;
+  // <== AUTHOR ASSOCIATION ==>
+  authorAssociation?: string;
+};
+// <== ISSUE COMMENT TYPE ==>
+export type IssueComment = {
+  // <== ID ==>
+  id: number;
+  // <== BODY ==>
+  body: string;
+  // <== BODY HTML ==>
+  bodyHtml?: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== USER ==>
+  user: {
+    // <== LOGIN ==>
+    login: string | null;
+    // <== AVATAR URL ==>
+    avatarUrl: string | null;
+    // <== HTML URL ==>
+    htmlUrl?: string;
+  };
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== AUTHOR ASSOCIATION ==>
+  authorAssociation?: string;
+  // <== REACTIONS ==>
+  reactions?: {
+    // <== TOTAL COUNT ==>
+    totalCount: number;
+    // <== PLUS ONE ==>
+    plusOne: number;
+    // <== MINUS ONE ==>
+    minusOne: number;
+    // <== LAUGH ==>
+    laugh: number;
+    // <== HOORAY ==>
+    hooray: number;
+    // <== CONFUSED ==>
+    confused: number;
+    // <== HEART ==>
+    heart: number;
+    // <== ROCKET ==>
+    rocket: number;
+    // <== EYES ==>
+    eyes: number;
+  };
+};
+// <== REPOSITORY LABEL TYPE ==>
+export type RepositoryLabel = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string;
+  // <== COLOR ==>
+  color: string;
+  // <== DESCRIPTION ==>
+  description: string | null;
+  // <== DEFAULT ==>
+  default: boolean;
+};
+// <== CREATE ISSUE INPUT TYPE ==>
+export type CreateIssueInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== TITLE ==>
+  title: string;
+  // <== BODY ==>
+  body?: string;
+  // <== LABELS ==>
+  labels?: string[];
+  // <== ASSIGNEES ==>
+  assignees?: string[];
+  // <== MILESTONE ==>
+  milestone?: number;
+};
+// <== UPDATE ISSUE INPUT TYPE ==>
+export type UpdateIssueInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== ISSUE NUMBER ==>
+  issueNumber: number;
+  // <== TITLE ==>
+  title?: string;
+  // <== BODY ==>
+  body?: string;
+  // <== STATE ==>
+  state?: "open" | "closed";
+  // <== STATE REASON ==>
+  stateReason?: "completed" | "not_planned" | "reopened" | null;
+  // <== LABELS ==>
+  labels?: string[];
+  // <== ASSIGNEES ==>
+  assignees?: string[];
+  // <== MILESTONE ==>
+  milestone?: number | null;
+};
+// <== ADD ISSUE COMMENT INPUT TYPE ==>
+export type AddIssueCommentInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== ISSUE NUMBER ==>
+  issueNumber: number;
+  // <== BODY ==>
+  body: string;
 };
 // <== PULL REQUEST TYPE ==>
 export type GitHubPullRequest = {
@@ -2071,6 +2277,365 @@ export const useRepositoryIssues = (
   // RETURN REPOSITORY ISSUES
   return {
     issues: data?.issues || [],
+    hasMore: data?.hasMore || false,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== FETCH ISSUE DETAILS ==>
+const fetchIssueDetails = async (
+  owner: string,
+  repo: string,
+  issueNumber: number
+): Promise<IssueDetails> => {
+  // FETCH ISSUE DETAILS
+  const response = await apiClient.get<ApiResponse<IssueDetails>>(
+    `/github/repositories/${owner}/${repo}/issues/${issueNumber}`
+  );
+  // RETURN ISSUE DETAILS
+  return response.data.data;
+};
+
+// <== USE ISSUE DETAILS HOOK ==>
+export const useIssueDetails = (
+  owner: string,
+  repo: string,
+  issueNumber: number,
+  enabled: boolean = true
+) => {
+  // USE ISSUE DETAILS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    IssueDetails,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-issue-details", owner, repo, issueNumber],
+    queryFn: () => fetchIssueDetails(owner, repo, issueNumber),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!issueNumber,
+  });
+  // RETURN ISSUE DETAILS
+  return { issue: data, isLoading, isError, error, refetch };
+};
+
+// <== FETCH CREATE ISSUE ==>
+const fetchCreateIssue = async (
+  input: CreateIssueInput
+): Promise<GitHubIssue> => {
+  // CREATE ISSUE
+  const response = await apiClient.post<ApiResponse<GitHubIssue>>(
+    `/github/repositories/${input.owner}/${input.repo}/issues`,
+    {
+      title: input.title,
+      body: input.body,
+      labels: input.labels,
+      assignees: input.assignees,
+      milestone: input.milestone,
+    }
+  );
+  // RETURN CREATED ISSUE
+  return response.data.data;
+};
+
+// <== USE CREATE ISSUE HOOK ==>
+export const useCreateIssue = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE CREATE ISSUE MUTATION
+  return useMutation<
+    GitHubIssue,
+    AxiosError<{ message?: string }>,
+    CreateIssueInput
+  >({
+    // <== MUTATION FN ==>
+    mutationFn: fetchCreateIssue,
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE REPOSITORY ISSUES QUERIES
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-issues", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Issue created successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error) => {
+      // GET ERROR MESSAGE
+      const errorMessage =
+        error.response?.data?.message || "Failed to create issue.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== FETCH UPDATE ISSUE ==>
+const fetchUpdateIssue = async (
+  input: UpdateIssueInput
+): Promise<GitHubIssue> => {
+  // UPDATE ISSUE
+  const response = await apiClient.patch<ApiResponse<GitHubIssue>>(
+    `/github/repositories/${input.owner}/${input.repo}/issues/${input.issueNumber}`,
+    {
+      title: input.title,
+      body: input.body,
+      state: input.state,
+      stateReason: input.stateReason,
+      labels: input.labels,
+      assignees: input.assignees,
+      milestone: input.milestone,
+    }
+  );
+  // RETURN UPDATED ISSUE
+  return response.data.data;
+};
+
+// <== USE UPDATE ISSUE HOOK ==>
+export const useUpdateIssue = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE UPDATE ISSUE MUTATION
+  return useMutation<
+    GitHubIssue,
+    AxiosError<{ message?: string }>,
+    UpdateIssueInput
+  >({
+    // <== MUTATION FN ==>
+    mutationFn: fetchUpdateIssue,
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE REPOSITORY ISSUES QUERIES
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-issues", variables.owner, variables.repo],
+      });
+      // INVALIDATE ISSUE DETAILS QUERY
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-issue-details",
+          variables.owner,
+          variables.repo,
+          variables.issueNumber,
+        ],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Issue updated successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error) => {
+      // GET ERROR MESSAGE
+      const errorMessage =
+        error.response?.data?.message || "Failed to update issue.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== FETCH ISSUE COMMENTS ==>
+const fetchIssueComments = async (
+  owner: string,
+  repo: string,
+  issueNumber: number,
+  page: number = 1,
+  perPage: number = 30
+): Promise<{ comments: IssueComment[]; hasMore: boolean }> => {
+  // FETCH ISSUE COMMENTS
+  const response = await apiClient.get<
+    ApiResponse<{
+      comments: IssueComment[];
+      pagination: { hasMore: boolean };
+    }>
+  >(
+    `/github/repositories/${owner}/${repo}/issues/${issueNumber}/comments?page=${page}&per_page=${perPage}`
+  );
+  // RETURN ISSUE COMMENTS
+  return {
+    comments: response.data.data.comments,
+    hasMore: response.data.data.pagination.hasMore,
+  };
+};
+
+// <== USE ISSUE COMMENTS HOOK ==>
+export const useIssueComments = (
+  owner: string,
+  repo: string,
+  issueNumber: number,
+  page: number = 1,
+  perPage: number = 30,
+  enabled: boolean = true
+) => {
+  // USE ISSUE COMMENTS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    { comments: IssueComment[]; hasMore: boolean },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-issue-comments", owner, repo, issueNumber, page, perPage],
+    queryFn: () => fetchIssueComments(owner, repo, issueNumber, page, perPage),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!issueNumber,
+  });
+  // RETURN ISSUE COMMENTS
+  return {
+    comments: data?.comments || [],
+    hasMore: data?.hasMore || false,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== FETCH ADD ISSUE COMMENT ==>
+const fetchAddIssueComment = async (
+  input: AddIssueCommentInput
+): Promise<IssueComment> => {
+  // ADD ISSUE COMMENT
+  const response = await apiClient.post<ApiResponse<IssueComment>>(
+    `/github/repositories/${input.owner}/${input.repo}/issues/${input.issueNumber}/comments`,
+    { body: input.body }
+  );
+  // RETURN CREATED COMMENT
+  return response.data.data;
+};
+
+// <== USE ADD ISSUE COMMENT HOOK ==>
+export const useAddIssueComment = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE ADD ISSUE COMMENT MUTATION
+  return useMutation<
+    IssueComment,
+    AxiosError<{ message?: string }>,
+    AddIssueCommentInput
+  >({
+    // <== MUTATION FN ==>
+    mutationFn: fetchAddIssueComment,
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE ISSUE COMMENTS QUERIES
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-issue-comments",
+          variables.owner,
+          variables.repo,
+          variables.issueNumber,
+        ],
+      });
+      // INVALIDATE ISSUE DETAILS QUERY (COMMENT COUNT CHANGED)
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-issue-details",
+          variables.owner,
+          variables.repo,
+          variables.issueNumber,
+        ],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Comment added successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error) => {
+      // GET ERROR MESSAGE
+      const errorMessage =
+        error.response?.data?.message || "Failed to add comment.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== FETCH REPOSITORY LABELS ==>
+const fetchRepositoryLabels = async (
+  owner: string,
+  repo: string
+): Promise<RepositoryLabel[]> => {
+  // FETCH REPOSITORY LABELS
+  const response = await apiClient.get<
+    ApiResponse<{ labels: RepositoryLabel[] }>
+  >(`/github/repositories/${owner}/${repo}/labels?per_page=100`);
+  // RETURN REPOSITORY LABELS
+  return response.data.data.labels;
+};
+
+// <== USE REPOSITORY LABELS HOOK ==>
+export const useRepositoryLabels = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE REPOSITORY LABELS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    RepositoryLabel[],
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-repo-labels", owner, repo],
+    queryFn: () => fetchRepositoryLabels(owner, repo),
+    retry: 1,
+    staleTime: 10 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN REPOSITORY LABELS
+  return { labels: data || [], isLoading, isError, error, refetch };
+};
+
+// <== FETCH SEARCH ISSUES ==>
+const fetchSearchIssues = async (
+  owner: string,
+  repo: string,
+  query: string,
+  state?: string,
+  page: number = 1,
+  perPage: number = 30
+): Promise<{ issues: GitHubIssue[]; totalCount: number; hasMore: boolean }> => {
+  // BUILD QUERY PARAMS
+  let url = `/github/repositories/${owner}/${repo}/issues/search?page=${page}&per_page=${perPage}`;
+  if (query) url += `&q=${encodeURIComponent(query)}`;
+  if (state) url += `&state=${state}`;
+  // FETCH SEARCH ISSUES
+  const response = await apiClient.get<
+    ApiResponse<{
+      issues: GitHubIssue[];
+      totalCount: number;
+      pagination: { hasMore: boolean };
+    }>
+  >(url);
+  // RETURN SEARCH RESULTS
+  return {
+    issues: response.data.data.issues,
+    totalCount: response.data.data.totalCount,
+    hasMore: response.data.data.pagination.hasMore,
+  };
+};
+
+// <== USE SEARCH ISSUES HOOK ==>
+export const useSearchIssues = (
+  owner: string,
+  repo: string,
+  query: string,
+  state?: string,
+  page: number = 1,
+  perPage: number = 30,
+  enabled: boolean = true
+) => {
+  // USE SEARCH ISSUES
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    { issues: GitHubIssue[]; totalCount: number; hasMore: boolean },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-search-issues", owner, repo, query, state, page, perPage],
+    queryFn: () => fetchSearchIssues(owner, repo, query, state, page, perPage),
+    retry: 1,
+    staleTime: 1 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!query,
+  });
+  // RETURN SEARCH RESULTS
+  return {
+    issues: data?.issues || [],
+    totalCount: data?.totalCount || 0,
     hasMore: data?.hasMore || false,
     isLoading,
     isError,
