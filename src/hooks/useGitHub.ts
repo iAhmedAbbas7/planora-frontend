@@ -234,6 +234,19 @@ export type RepositoryDetails = {
     // <== HTML URL ==>
     htmlUrl: string;
   };
+  // <== PERMISSIONS ==>
+  permissions: {
+    // <== ADMIN ==>
+    admin: boolean;
+    // <== MAINTAIN ==>
+    maintain: boolean;
+    // <== PUSH ==>
+    push: boolean;
+    // <== TRIAGE ==>
+    triage: boolean;
+    // <== PULL ==>
+    pull: boolean;
+  } | null;
 };
 // <== COMMIT TYPE ==>
 export type GitHubCommit = {
@@ -1028,6 +1041,64 @@ export type AddCollaboratorInput = {
   username: string;
   // <== PERMISSION ==>
   permission?: "pull" | "push" | "admin" | "maintain" | "triage";
+};
+// <== REPOSITORY INVITATION TYPE ==>
+export type RepositoryInvitation = {
+  // <== ID ==>
+  id: number;
+  // <== INVITEE ==>
+  invitee: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+    // <== HTML URL ==>
+    htmlUrl: string;
+  } | null;
+  // <== INVITER ==>
+  inviter: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+  } | null;
+  // <== PERMISSIONS ==>
+  permissions: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== EXPIRED ==>
+  expired: boolean;
+};
+// <== COLLABORATOR PERMISSION CHECK TYPE ==>
+export type CollaboratorPermissionCheck = {
+  // <== IS COLLABORATOR ==>
+  isCollaborator: boolean;
+  // <== PERMISSION ==>
+  permission: string;
+  // <== ROLE NAME ==>
+  roleName: string | null;
+  // <== USER ==>
+  user: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+    // <== HTML URL ==>
+    htmlUrl: string;
+  } | null;
+};
+// <== UPDATE INVITATION INPUT TYPE ==>
+export type UpdateInvitationInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== INVITATION ID ==>
+  invitationId: number;
+  // <== PERMISSIONS ==>
+  permissions: "read" | "triage" | "write" | "maintain" | "admin";
 };
 // <== TRANSFER REPOSITORY INPUT TYPE ==>
 export type TransferRepositoryInput = {
@@ -3711,6 +3782,166 @@ export const useRemoveCollaborator = () => {
   });
   // RETURN MUTATION
   return mutation;
+};
+
+// <== FETCH REPOSITORY INVITATIONS ==>
+const fetchRepositoryInvitations = async (
+  owner: string,
+  repo: string
+): Promise<RepositoryInvitation[]> => {
+  // FETCH REPOSITORY INVITATIONS
+  const response = await apiClient.get<
+    ApiResponse<{ invitations: RepositoryInvitation[] }>
+  >(`/github/repositories/${owner}/${repo}/invitations`);
+  // RETURN INVITATIONS
+  return response.data.data.invitations;
+};
+
+// <== USE REPOSITORY INVITATIONS HOOK ==>
+export const useRepositoryInvitations = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE REPOSITORY INVITATIONS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    RepositoryInvitation[],
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-invitations", owner, repo],
+    queryFn: () => fetchRepositoryInvitations(owner, repo),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN INVITATIONS
+  return { invitations: data || [], isLoading, isError, error, refetch };
+};
+
+// <== DELETE REPOSITORY INVITATION ==>
+const deleteRepositoryInvitation = async (
+  owner: string,
+  repo: string,
+  invitationId: number
+): Promise<void> => {
+  // DELETE REPOSITORY INVITATION
+  await apiClient.delete(
+    `/github/repositories/${owner}/${repo}/invitations/${invitationId}`
+  );
+};
+
+// <== USE DELETE INVITATION HOOK ==>
+export const useDeleteInvitation = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE INVITATION MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; invitationId: number }
+  >({
+    mutationFn: ({ owner, repo, invitationId }) =>
+      deleteRepositoryInvitation(owner, repo, invitationId),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE INVITATIONS
+      queryClient.invalidateQueries({
+        queryKey: ["github-invitations", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Invitation cancelled successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to cancel invitation."
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== UPDATE REPOSITORY INVITATION ==>
+const updateRepositoryInvitation = async (
+  input: UpdateInvitationInput
+): Promise<RepositoryInvitation> => {
+  // UPDATE REPOSITORY INVITATION
+  const response = await apiClient.patch<ApiResponse<RepositoryInvitation>>(
+    `/github/repositories/${input.owner}/${input.repo}/invitations/${input.invitationId}`,
+    { permissions: input.permissions }
+  );
+  // RETURN UPDATED INVITATION
+  return response.data.data;
+};
+
+// <== USE UPDATE INVITATION HOOK ==>
+export const useUpdateInvitation = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UPDATE INVITATION MUTATION
+  const mutation = useMutation<
+    RepositoryInvitation,
+    AxiosError<{ message?: string }>,
+    UpdateInvitationInput
+  >({
+    mutationFn: updateRepositoryInvitation,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE INVITATIONS
+      queryClient.invalidateQueries({
+        queryKey: ["github-invitations", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Invitation permission updated successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to update invitation."
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== CHECK COLLABORATOR PERMISSION ==>
+const checkCollaboratorPermission = async (
+  owner: string,
+  repo: string,
+  username: string
+): Promise<CollaboratorPermissionCheck> => {
+  // CHECK COLLABORATOR PERMISSION
+  const response = await apiClient.get<
+    ApiResponse<CollaboratorPermissionCheck>
+  >(`/github/repositories/${owner}/${repo}/collaborators/${username}/permission`);
+  // RETURN PERMISSION CHECK
+  return response.data.data;
+};
+
+// <== USE CHECK COLLABORATOR HOOK ==>
+export const useCheckCollaborator = (
+  owner: string,
+  repo: string,
+  username: string,
+  enabled: boolean = true
+) => {
+  // USE CHECK COLLABORATOR QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    CollaboratorPermissionCheck,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-check-collaborator", owner, repo, username],
+    queryFn: () => checkCollaboratorPermission(owner, repo, username),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!username,
+  });
+  // RETURN PERMISSION CHECK
+  return { permissionCheck: data, isLoading, isError, error, refetch };
 };
 
 // <== USE TRANSFER REPOSITORY HOOK ==>
