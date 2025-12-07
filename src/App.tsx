@@ -21,6 +21,7 @@ import GitHubComparePage from "./pages/GitHubComparePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
+import GitHubActionsPage from "./pages/GitHubActionsPage";
 import GitHubBranchesPage from "./pages/GitHubBranchesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
@@ -171,6 +172,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/collaborators",
               element: <GitHubCollaboratorsPage />,
+            },
+            // <== GITHUB ACTIONS ROUTE ==>
+            {
+              path: "/github/:owner/:repo/actions",
+              element: <GitHubActionsPage />,
             },
             // <== TRASH ROUTE ==>
             {
