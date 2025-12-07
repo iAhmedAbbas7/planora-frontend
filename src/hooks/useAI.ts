@@ -428,6 +428,89 @@ export type SuggestBranchStrategyInput = {
   // <== PROJECT TYPE ==>
   projectType?: string;
 };
+// <== AI CODE REVIEW ISSUE TYPE ==>
+export type AICodeReviewIssue = {
+  // <== SEVERITY ==>
+  severity: "critical" | "warning" | "suggestion" | "nitpick";
+  // <== FILE ==>
+  file: string;
+  // <== LINE ==>
+  line: string;
+  // <== TITLE ==>
+  title: string;
+  // <== DESCRIPTION ==>
+  description: string;
+  // <== SUGGESTION ==>
+  suggestion: string;
+};
+// <== AI CODE REVIEW SUGGESTION TYPE ==>
+export type AICodeReviewSuggestion = {
+  // <== CATEGORY ==>
+  category: "refactoring" | "testing" | "documentation" | "performance" | "security";
+  // <== DESCRIPTION ==>
+  description: string;
+};
+// <== AI CODE REVIEW RESULT TYPE ==>
+export type AICodeReviewResult = {
+  // <== SUMMARY ==>
+  summary: string;
+  // <== OVERALL RATING ==>
+  overallRating: "approve" | "request_changes" | "comment";
+  // <== RATING REASON ==>
+  ratingReason: string;
+  // <== ISSUES ==>
+  issues: AICodeReviewIssue[];
+  // <== POSITIVES ==>
+  positives: string[];
+  // <== SUGGESTIONS ==>
+  suggestions: AICodeReviewSuggestion[];
+  // <== TESTING RECOMMENDATIONS ==>
+  testingRecommendations: string[];
+  // <== SECURITY NOTES ==>
+  securityNotes: string[];
+  // <== RAW REVIEW (IF PARSING FAILED) ==>
+  rawReview?: string;
+};
+// <== AI CODE REVIEW RESPONSE TYPE ==>
+export type AICodeReviewResponse = {
+  // <== FILES REVIEWED ==>
+  filesReviewed: number;
+  // <== TOTAL FILES ==>
+  totalFiles: number;
+  // <== REVIEW TYPE ==>
+  reviewType: string;
+  // <== REVIEW ==>
+  review: AICodeReviewResult;
+};
+// <== AI CODE REVIEW INPUT TYPE ==>
+export type AICodeReviewInput = {
+  // <== FILES ==>
+  files: {
+    // <== FILENAME ==>
+    filename: string;
+    // <== STATUS ==>
+    status: string;
+    // <== ADDITIONS ==>
+    additions: number;
+    // <== DELETIONS ==>
+    deletions: number;
+    // <== PATCH ==>
+    patch?: string;
+  }[];
+  // <== PULL REQUEST INFO ==>
+  pullRequestInfo?: {
+    // <== TITLE ==>
+    title: string;
+    // <== BODY ==>
+    body?: string;
+    // <== HEAD ==>
+    head: string;
+    // <== BASE ==>
+    base: string;
+  };
+  // <== REVIEW TYPE ==>
+  reviewType?: "comprehensive" | "security" | "performance" | "best-practices";
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -931,6 +1014,44 @@ export const useSuggestBranchStrategy = () => {
       // SHOW ERROR TOAST
       toast.error(
         error.response?.data?.message || "Failed to generate branch strategy"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== AI CODE REVIEW FUNCTION ==>
+const aiCodeReviewFn = async (
+  input: AICodeReviewInput
+): Promise<AICodeReviewResponse> => {
+  // AI CODE REVIEW
+  const response = await apiClient.post<ApiResponse<AICodeReviewResponse>>(
+    "/ai/review-pr",
+    {
+      files: input.files,
+      pullRequestInfo: input.pullRequestInfo,
+      reviewType: input.reviewType || "comprehensive",
+    }
+  );
+  // RETURN RESULT
+  return response.data.data;
+};
+
+// <== USE AI CODE REVIEW HOOK ==>
+export const useAICodeReview = () => {
+  // AI CODE REVIEW MUTATION
+  const mutation = useMutation<
+    AICodeReviewResponse,
+    AxiosError<{ message?: string }>,
+    AICodeReviewInput
+  >({
+    mutationFn: aiCodeReviewFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to generate AI code review"
       );
     },
   });
