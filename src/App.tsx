@@ -26,6 +26,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import GitHubPullRequestsPage from "./pages/GitHubPullRequestsPage";
+import GitHubCollaboratorsPage from "./pages/GitHubCollaboratorsPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // <== APP ROUTER ==>
@@ -165,6 +166,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/issues",
               element: <GitHubIssuesPage />,
+            },
+            // <== GITHUB COLLABORATORS ROUTE ==>
+            {
+              path: "/github/:owner/:repo/collaborators",
+              element: <GitHubCollaboratorsPage />,
             },
             // <== TRASH ROUTE ==>
             {
