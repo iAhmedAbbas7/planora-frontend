@@ -620,6 +620,71 @@ export type AIGeneratedIssue = {
   // <== TYPE ==>
   type: "bug" | "feature" | "documentation" | "question";
 };
+// <== AI PERMISSION RECOMMENDATION INPUT TYPE ==>
+export type AIPermissionRecommendationInput = {
+  // <== USERNAME ==>
+  username: string;
+  // <== REPOSITORY INFO ==>
+  repositoryInfo: {
+    // <== NAME ==>
+    name: string;
+    // <== DESCRIPTION ==>
+    description?: string;
+    // <== IS PRIVATE ==>
+    isPrivate: boolean;
+    // <== LANGUAGE ==>
+    language?: string;
+    // <== HAS ISSUES ==>
+    hasIssues?: boolean;
+    // <== HAS WIKI ==>
+    hasWiki?: boolean;
+  };
+  // <== USER ACTIVITY ==>
+  userActivity?: {
+    // <== CONTRIBUTIONS ==>
+    contributions?: number;
+    // <== PULL REQUESTS ==>
+    pullRequests?: number;
+    // <== ISSUES ==>
+    issues?: number;
+  };
+  // <== EXISTING COLLABORATORS ==>
+  existingCollaborators?: {
+    // <== LOGIN ==>
+    login: string;
+    // <== PERMISSION ==>
+    permission: string;
+  }[];
+};
+// <== AI PERMISSION RECOMMENDATION RESULT TYPE ==>
+export type AIPermissionRecommendationResult = {
+  // <== RECOMMENDED PERMISSION ==>
+  recommendedPermission: "read" | "triage" | "write" | "maintain" | "admin";
+  // <== CONFIDENCE ==>
+  confidence: "high" | "medium" | "low";
+  // <== REASONING ==>
+  reasoning: string;
+  // <== CONSIDERATIONS ==>
+  considerations: string[];
+  // <== ALTERNATIVE PERMISSION ==>
+  alternativePermission: {
+    // <== LEVEL ==>
+    level: string;
+    // <== WHEN ==>
+    when: string;
+  } | null;
+  // <== SECURITY NOTES ==>
+  securityNotes: string[];
+};
+// <== AI PERMISSION RECOMMENDATION RESPONSE TYPE ==>
+export type AIPermissionRecommendationResponse = {
+  // <== USERNAME ==>
+  username: string;
+  // <== REPOSITORY ==>
+  repository: string;
+  // <== RECOMMENDATION ==>
+  recommendation: AIPermissionRecommendationResult;
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -1235,6 +1300,45 @@ export const useAIGenerateIssue = () => {
     onError: (error) => {
       // SHOW ERROR TOAST
       toast.error(error.response?.data?.message || "Failed to generate issue");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== AI PERMISSION RECOMMENDATION FUNCTION ==>
+const aiPermissionRecommendationFn = async (
+  input: AIPermissionRecommendationInput
+): Promise<AIPermissionRecommendationResponse> => {
+  // FETCH RECOMMENDATION
+  const response = await apiClient.post<
+    ApiResponse<AIPermissionRecommendationResponse>
+  >("/ai/recommend-permission", {
+    username: input.username,
+    repositoryInfo: input.repositoryInfo,
+    userActivity: input.userActivity,
+    existingCollaborators: input.existingCollaborators,
+  });
+  // RETURN RECOMMENDATION
+  return response.data.data;
+};
+
+// <== USE AI PERMISSION RECOMMENDATION HOOK ==>
+export const useAIPermissionRecommendation = () => {
+  // AI PERMISSION RECOMMENDATION MUTATION
+  const mutation = useMutation<
+    AIPermissionRecommendationResponse,
+    AxiosError<{ message?: string }>,
+    AIPermissionRecommendationInput
+  >({
+    mutationFn: aiPermissionRecommendationFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to generate permission recommendation"
+      );
     },
   });
   // RETURN MUTATION
