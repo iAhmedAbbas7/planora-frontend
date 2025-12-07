@@ -827,6 +827,13 @@ const GitHubRepoPage = (): JSX.Element => {
                   <GitBranch size={16} />
                 </button>
                 <button
+                  onClick={() => navigate(`/github/${owner}/${repo}/pulls`)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="Pull Requests"
+                >
+                  <GitPullRequest size={16} />
+                </button>
+                <button
                   onClick={() => setShowSettings(true)}
                   className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
                   title="Settings"
@@ -892,6 +899,16 @@ const GitHubRepoPage = (): JSX.Element => {
                       >
                         <GitBranch size={16} className="text-[var(--accent-color)]" />
                         <span>Branches</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/github/${owner}/${repo}/pulls`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <GitPullRequest size={16} className="text-[var(--accent-color)]" />
+                        <span>Pull Requests</span>
                       </button>
                       <button
                         onClick={() => {
