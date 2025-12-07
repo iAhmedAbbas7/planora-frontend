@@ -15,6 +15,7 @@ import GitHubRepoPage from "./pages/GitHubRepoPage";
 import GitHubFilesPage from "./pages/GitHubFilesPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
+import GitHubIssuesPage from "./pages/GitHubIssuesPage";
 import GitHubCommitsPage from "./pages/GitHubCommitsPage";
 import GitHubComparePage from "./pages/GitHubComparePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
@@ -159,6 +160,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/pulls",
               element: <GitHubPullRequestsPage />,
+            },
+            // <== GITHUB ISSUES ROUTE ==>
+            {
+              path: "/github/:owner/:repo/issues",
+              element: <GitHubIssuesPage />,
             },
             // <== TRASH ROUTE ==>
             {
