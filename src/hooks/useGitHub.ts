@@ -1879,6 +1879,189 @@ export type TriggerWorkflowInput = {
   // <== INPUTS ==>
   inputs?: Record<string, string>;
 };
+// <== RELEASE ASSET TYPE ==>
+export type ReleaseAsset = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string;
+  // <== LABEL ==>
+  label?: string;
+  // <== SIZE ==>
+  size: number;
+  // <== DOWNLOAD COUNT ==>
+  downloadCount: number;
+  // <== BROWSER DOWNLOAD URL ==>
+  browserDownloadUrl: string;
+  // <== CONTENT TYPE ==>
+  contentType: string;
+  // <== STATE ==>
+  state?: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+};
+// <== RELEASE TYPE ==>
+export type Release = {
+  // <== ID ==>
+  id: number;
+  // <== TAG NAME ==>
+  tagName: string;
+  // <== TARGET COMMITISH ==>
+  targetCommitish?: string;
+  // <== NAME ==>
+  name: string;
+  // <== BODY ==>
+  body: string | null;
+  // <== DRAFT ==>
+  draft: boolean;
+  // <== PRERELEASE ==>
+  prerelease: boolean;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== PUBLISHED AT ==>
+  publishedAt: string | null;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== TARBALL URL ==>
+  tarballUrl?: string;
+  // <== ZIPBALL URL ==>
+  zipballUrl?: string;
+  // <== AUTHOR ==>
+  author: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+    // <== HTML URL ==>
+    htmlUrl?: string;
+  } | null;
+  // <== ASSETS ==>
+  assets: ReleaseAsset[];
+};
+// <== TAG TYPE ==>
+export type Tag = {
+  // <== NAME ==>
+  name: string;
+  // <== SHA ==>
+  sha: string;
+  // <== ZIPBALL URL ==>
+  zipballUrl?: string;
+  // <== TARBALL URL ==>
+  tarballUrl?: string;
+  // <== NODE ID ==>
+  nodeId?: string;
+};
+// <== TAG DETAILS TYPE ==>
+export type TagDetails = {
+  // <== NAME ==>
+  name: string;
+  // <== SHA ==>
+  sha: string;
+  // <== TYPE ==>
+  type: string;
+  // <== MESSAGE ==>
+  message?: string;
+  // <== TAGGER ==>
+  tagger?: {
+    // <== NAME ==>
+    name: string;
+    // <== EMAIL ==>
+    email: string;
+    // <== DATE ==>
+    date: string;
+  } | null;
+  // <== OBJECT SHA ==>
+  objectSha?: string;
+  // <== OBJECT TYPE ==>
+  objectType?: string;
+  // <== VERIFIED ==>
+  verified?: boolean;
+  // <== RELEASE ==>
+  release?: {
+    // <== ID ==>
+    id: number;
+    // <== NAME ==>
+    name: string | null;
+    // <== HTML URL ==>
+    htmlUrl: string;
+    // <== DRAFT ==>
+    draft: boolean;
+    // <== PRERELEASE ==>
+    prerelease: boolean;
+    // <== PUBLISHED AT ==>
+    publishedAt: string | null;
+  } | null;
+};
+// <== CREATE RELEASE INPUT TYPE ==>
+export type CreateReleaseInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== TAG NAME ==>
+  tagName: string;
+  // <== TARGET COMMITISH ==>
+  targetCommitish?: string;
+  // <== NAME ==>
+  name?: string;
+  // <== BODY ==>
+  body?: string;
+  // <== DRAFT ==>
+  draft?: boolean;
+  // <== PRERELEASE ==>
+  prerelease?: boolean;
+  // <== GENERATE RELEASE NOTES ==>
+  generateReleaseNotes?: boolean;
+};
+// <== UPDATE RELEASE INPUT TYPE ==>
+export type UpdateReleaseInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== RELEASE ID ==>
+  releaseId: number;
+  // <== TAG NAME ==>
+  tagName?: string;
+  // <== TARGET COMMITISH ==>
+  targetCommitish?: string;
+  // <== NAME ==>
+  name?: string;
+  // <== BODY ==>
+  body?: string;
+  // <== DRAFT ==>
+  draft?: boolean;
+  // <== PRERELEASE ==>
+  prerelease?: boolean;
+};
+// <== CREATE TAG INPUT TYPE ==>
+export type CreateTagInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== TAG NAME ==>
+  tagName: string;
+  // <== SHA ==>
+  sha: string;
+  // <== MESSAGE ==>
+  message?: string;
+};
+// <== GENERATE RELEASE NOTES INPUT TYPE ==>
+export type GenerateReleaseNotesInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== TAG NAME ==>
+  tagName: string;
+  // <== TARGET COMMITISH ==>
+  targetCommitish?: string;
+  // <== PREVIOUS TAG NAME ==>
+  previousTagName?: string;
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -5179,6 +5362,519 @@ export const useDeleteWorkflowRun = () => {
       queryClient.invalidateQueries({
         queryKey: ["github-workflow-runs", variables.owner, variables.repo],
       });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== FETCH RELEASES FUNCTION ==>
+const fetchReleases = async (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 10
+): Promise<{
+  releases: Release[];
+  pagination: { page: number; perPage: number; hasMore: boolean };
+}> => {
+  // FETCH RELEASES
+  const response = await apiClient.get<
+    ApiResponse<{
+      releases: Release[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    }>
+  >(
+    `/github/repositories/${owner}/${repo}/releases?page=${page}&per_page=${perPage}`
+  );
+  // RETURN RELEASES
+  return response.data.data;
+};
+
+// <== FETCH RELEASE DETAILS FUNCTION ==>
+const fetchReleaseDetails = async (
+  owner: string,
+  repo: string,
+  releaseId: number
+): Promise<Release> => {
+  // FETCH RELEASE DETAILS
+  const response = await apiClient.get<ApiResponse<Release>>(
+    `/github/repositories/${owner}/${repo}/releases/${releaseId}`
+  );
+  // RETURN RELEASE
+  return response.data.data;
+};
+
+// <== FETCH LATEST RELEASE FUNCTION ==>
+const fetchLatestRelease = async (
+  owner: string,
+  repo: string
+): Promise<Release> => {
+  // FETCH LATEST RELEASE
+  const response = await apiClient.get<ApiResponse<Release>>(
+    `/github/repositories/${owner}/${repo}/releases/latest`
+  );
+  // RETURN RELEASE
+  return response.data.data;
+};
+
+// <== CREATE RELEASE FUNCTION ==>
+const createReleaseFn = async (input: CreateReleaseInput): Promise<Release> => {
+  // CREATE RELEASE
+  const response = await apiClient.post<ApiResponse<Release>>(
+    `/github/repositories/${input.owner}/${input.repo}/releases`,
+    {
+      tagName: input.tagName,
+      targetCommitish: input.targetCommitish,
+      name: input.name,
+      body: input.body,
+      draft: input.draft,
+      prerelease: input.prerelease,
+      generateReleaseNotes: input.generateReleaseNotes,
+    }
+  );
+  // RETURN RELEASE
+  return response.data.data;
+};
+
+// <== UPDATE RELEASE FUNCTION ==>
+const updateReleaseFn = async (input: UpdateReleaseInput): Promise<Release> => {
+  // UPDATE RELEASE
+  const response = await apiClient.patch<ApiResponse<Release>>(
+    `/github/repositories/${input.owner}/${input.repo}/releases/${input.releaseId}`,
+    {
+      tagName: input.tagName,
+      targetCommitish: input.targetCommitish,
+      name: input.name,
+      body: input.body,
+      draft: input.draft,
+      prerelease: input.prerelease,
+    }
+  );
+  // RETURN RELEASE
+  return response.data.data;
+};
+
+// <== DELETE RELEASE FUNCTION ==>
+const deleteReleaseFn = async (
+  owner: string,
+  repo: string,
+  releaseId: number
+): Promise<void> => {
+  // DELETE RELEASE
+  await apiClient.delete(
+    `/github/repositories/${owner}/${repo}/releases/${releaseId}`
+  );
+};
+
+// <== FETCH TAGS FUNCTION ==>
+const fetchTags = async (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 30
+): Promise<{
+  tags: Tag[];
+  pagination: { page: number; perPage: number; hasMore: boolean };
+}> => {
+  // FETCH TAGS
+  const response = await apiClient.get<
+    ApiResponse<{
+      tags: Tag[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    }>
+  >(
+    `/github/repositories/${owner}/${repo}/tags?page=${page}&per_page=${perPage}`
+  );
+  // RETURN TAGS
+  return response.data.data;
+};
+
+// <== FETCH TAG DETAILS FUNCTION ==>
+const fetchTagDetails = async (
+  owner: string,
+  repo: string,
+  tag: string
+): Promise<TagDetails> => {
+  // FETCH TAG DETAILS
+  const response = await apiClient.get<ApiResponse<TagDetails>>(
+    `/github/repositories/${owner}/${repo}/tags/${encodeURIComponent(tag)}`
+  );
+  // RETURN TAG DETAILS
+  return response.data.data;
+};
+
+// <== CREATE TAG FUNCTION ==>
+const createTagFn = async (
+  input: CreateTagInput
+): Promise<{ name: string; sha: string; ref: string }> => {
+  // CREATE TAG
+  const response = await apiClient.post<
+    ApiResponse<{ name: string; sha: string; ref: string }>
+  >(`/github/repositories/${input.owner}/${input.repo}/tags`, {
+    tagName: input.tagName,
+    sha: input.sha,
+    message: input.message,
+  });
+  // RETURN TAG
+  return response.data.data;
+};
+
+// <== DELETE TAG FUNCTION ==>
+const deleteTagFn = async (
+  owner: string,
+  repo: string,
+  tag: string
+): Promise<void> => {
+  // DELETE TAG
+  await apiClient.delete(
+    `/github/repositories/${owner}/${repo}/tags/${encodeURIComponent(tag)}`
+  );
+};
+
+// <== GENERATE RELEASE NOTES FUNCTION ==>
+const generateReleaseNotesFn = async (
+  input: GenerateReleaseNotesInput
+): Promise<{ name: string; body: string }> => {
+  // GENERATE RELEASE NOTES
+  const response = await apiClient.post<
+    ApiResponse<{ name: string; body: string }>
+  >(
+    `/github/repositories/${input.owner}/${input.repo}/releases/generate-notes`,
+    {
+      tagName: input.tagName,
+      targetCommitish: input.targetCommitish,
+      previousTagName: input.previousTagName,
+    }
+  );
+  // RETURN RELEASE NOTES
+  return response.data.data;
+};
+
+// <== USE RELEASES HOOK ==>
+export const useReleases = (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 10,
+  enabled: boolean = true
+) => {
+  // USE RELEASES QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    {
+      releases: Release[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-releases", owner, repo, page, perPage],
+    queryFn: () => fetchReleases(owner, repo, page, perPage),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN RELEASES
+  return {
+    releases: data?.releases || [],
+    pagination: data?.pagination,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE RELEASE DETAILS HOOK ==>
+export const useReleaseDetails = (
+  owner: string,
+  repo: string,
+  releaseId: number,
+  enabled: boolean = true
+) => {
+  // USE RELEASE DETAILS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    Release,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-release", owner, repo, releaseId],
+    queryFn: () => fetchReleaseDetails(owner, repo, releaseId),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!releaseId,
+  });
+  // RETURN RELEASE DETAILS
+  return { release: data, isLoading, isError, error, refetch };
+};
+
+// <== USE LATEST RELEASE HOOK ==>
+export const useLatestRelease = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE LATEST RELEASE QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    Release,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-latest-release", owner, repo],
+    queryFn: () => fetchLatestRelease(owner, repo),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN LATEST RELEASE
+  return { release: data, isLoading, isError, error, refetch };
+};
+
+// <== USE CREATE RELEASE HOOK ==>
+export const useCreateRelease = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE RELEASE MUTATION
+  const mutation = useMutation<
+    Release,
+    AxiosError<{ message?: string }>,
+    CreateReleaseInput
+  >({
+    mutationFn: createReleaseFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE RELEASES
+      queryClient.invalidateQueries({
+        queryKey: ["github-releases", variables.owner, variables.repo],
+      });
+      // INVALIDATE LATEST RELEASE
+      queryClient.invalidateQueries({
+        queryKey: ["github-latest-release", variables.owner, variables.repo],
+      });
+      // INVALIDATE TAGS
+      queryClient.invalidateQueries({
+        queryKey: ["github-tags", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Release created successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to create release");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE UPDATE RELEASE HOOK ==>
+export const useUpdateRelease = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UPDATE RELEASE MUTATION
+  const mutation = useMutation<
+    Release,
+    AxiosError<{ message?: string }>,
+    UpdateReleaseInput
+  >({
+    mutationFn: updateReleaseFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE RELEASES
+      queryClient.invalidateQueries({
+        queryKey: ["github-releases", variables.owner, variables.repo],
+      });
+      // INVALIDATE RELEASE DETAILS
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-release",
+          variables.owner,
+          variables.repo,
+          variables.releaseId,
+        ],
+      });
+      // INVALIDATE LATEST RELEASE
+      queryClient.invalidateQueries({
+        queryKey: ["github-latest-release", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Release updated successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to update release");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE DELETE RELEASE HOOK ==>
+export const useDeleteRelease = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE RELEASE MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; releaseId: number }
+  >({
+    mutationFn: ({ owner, repo, releaseId }) =>
+      deleteReleaseFn(owner, repo, releaseId),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE RELEASES
+      queryClient.invalidateQueries({
+        queryKey: ["github-releases", variables.owner, variables.repo],
+      });
+      // INVALIDATE LATEST RELEASE
+      queryClient.invalidateQueries({
+        queryKey: ["github-latest-release", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Release deleted successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to delete release");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE TAGS HOOK ==>
+export const useTags = (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 30,
+  enabled: boolean = true
+) => {
+  // USE TAGS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    {
+      tags: Tag[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-tags", owner, repo, page, perPage],
+    queryFn: () => fetchTags(owner, repo, page, perPage),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN TAGS
+  return {
+    tags: data?.tags || [],
+    pagination: data?.pagination,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE TAG DETAILS HOOK ==>
+export const useTagDetails = (
+  owner: string,
+  repo: string,
+  tag: string,
+  enabled: boolean = true
+) => {
+  // USE TAG DETAILS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    TagDetails,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-tag", owner, repo, tag],
+    queryFn: () => fetchTagDetails(owner, repo, tag),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!tag,
+  });
+  // RETURN TAG DETAILS
+  return { tagDetails: data, isLoading, isError, error, refetch };
+};
+
+// <== USE CREATE TAG HOOK ==>
+export const useCreateTag = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE TAG MUTATION
+  const mutation = useMutation<
+    { name: string; sha: string; ref: string },
+    AxiosError<{ message?: string }>,
+    CreateTagInput
+  >({
+    mutationFn: createTagFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE TAGS
+      queryClient.invalidateQueries({
+        queryKey: ["github-tags", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success(`Tag '${variables.tagName}' created successfully!`);
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to create tag");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE DELETE TAG HOOK ==>
+export const useDeleteTag = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE TAG MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; tag: string }
+  >({
+    mutationFn: ({ owner, repo, tag }) => deleteTagFn(owner, repo, tag),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE TAGS
+      queryClient.invalidateQueries({
+        queryKey: ["github-tags", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success(`Tag '${variables.tag}' deleted successfully!`);
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to delete tag");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE GENERATE RELEASE NOTES HOOK ==>
+export const useGenerateReleaseNotes = () => {
+  // GENERATE RELEASE NOTES MUTATION
+  const mutation = useMutation<
+    { name: string; body: string },
+    AxiosError<{ message?: string }>,
+    GenerateReleaseNotesInput
+  >({
+    mutationFn: generateReleaseNotesFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to generate release notes"
+      );
     },
   });
   // RETURN MUTATION
