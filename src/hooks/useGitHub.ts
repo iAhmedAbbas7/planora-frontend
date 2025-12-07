@@ -1738,6 +1738,147 @@ type DeleteBranchProtectionInput = {
   // <== BRANCH ==>
   branch: string;
 };
+// <== WORKFLOW TYPE ==>
+export type Workflow = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string;
+  // <== PATH ==>
+  path: string;
+  // <== STATE ==>
+  state:
+    | "active"
+    | "deleted"
+    | "disabled_fork"
+    | "disabled_inactivity"
+    | "disabled_manually";
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== BADGE URL ==>
+  badgeUrl: string;
+};
+// <== WORKFLOW RUN TYPE ==>
+export type WorkflowRun = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string | null;
+  // <== DISPLAY TITLE ==>
+  displayTitle: string;
+  // <== WORKFLOW ID ==>
+  workflowId: number;
+  // <== HEAD BRANCH ==>
+  headBranch: string | null;
+  // <== HEAD SHA ==>
+  headSha: string;
+  // <== PATH ==>
+  path: string;
+  // <== RUN NUMBER ==>
+  runNumber: number;
+  // <== RUN ATTEMPT ==>
+  runAttempt: number | undefined;
+  // <== EVENT ==>
+  event: string;
+  // <== STATUS ==>
+  status: string | null;
+  // <== CONCLUSION ==>
+  conclusion: string | null;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== RUN STARTED AT ==>
+  runStartedAt: string | null;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== ACTOR ==>
+  actor: {
+    login: string;
+    avatarUrl: string;
+  } | null;
+  // <== TRIGGERING ACTOR ==>
+  triggeringActor: {
+    login: string;
+    avatarUrl: string;
+  } | null;
+};
+// <== WORKFLOW RUN DETAILS TYPE ==>
+export type WorkflowRunDetails = WorkflowRun & {
+  // <== HEAD COMMIT ==>
+  headCommit: {
+    id: string;
+    message: string;
+    timestamp: string;
+    author: {
+      name: string | null;
+      email: string | null;
+    };
+  } | null;
+  // <== REPOSITORY ==>
+  repository: {
+    id: number;
+    name: string;
+    fullName: string;
+  };
+};
+// <== WORKFLOW JOB STEP TYPE ==>
+export type WorkflowJobStep = {
+  // <== NAME ==>
+  name: string;
+  // <== STATUS ==>
+  status: string;
+  // <== CONCLUSION ==>
+  conclusion: string | null;
+  // <== NUMBER ==>
+  number: number;
+  // <== STARTED AT ==>
+  startedAt: string | null;
+  // <== COMPLETED AT ==>
+  completedAt: string | null;
+};
+// <== WORKFLOW JOB TYPE ==>
+export type WorkflowJob = {
+  // <== ID ==>
+  id: number;
+  // <== RUN ID ==>
+  runId: number;
+  // <== NAME ==>
+  name: string;
+  // <== STATUS ==>
+  status: string;
+  // <== CONCLUSION ==>
+  conclusion: string | null;
+  // <== STARTED AT ==>
+  startedAt: string | null;
+  // <== COMPLETED AT ==>
+  completedAt: string | null;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== RUNNER NAME ==>
+  runnerName: string | null;
+  // <== RUNNER GROUP NAME ==>
+  runnerGroupName: string | null;
+  // <== STEPS ==>
+  steps: WorkflowJobStep[] | undefined;
+};
+// <== TRIGGER WORKFLOW INPUT TYPE ==>
+export type TriggerWorkflowInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== WORKFLOW ID ==>
+  workflowId: number;
+  // <== REF ==>
+  ref: string;
+  // <== INPUTS ==>
+  inputs?: Record<string, string>;
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -2203,10 +2344,14 @@ const createPullRequestReview = async (
 // <== REQUEST PULL REQUEST REVIEWERS FUNCTION ==>
 const requestPullRequestReviewers = async (
   input: RequestReviewersInput
-): Promise<{ requestedReviewers: { login: string | null; avatarUrl: string | null }[] }> => {
+): Promise<{
+  requestedReviewers: { login: string | null; avatarUrl: string | null }[];
+}> => {
   // REQUEST REVIEWERS
   const response = await apiClient.post<
-    ApiResponse<{ requestedReviewers: { login: string | null; avatarUrl: string | null }[] }>
+    ApiResponse<{
+      requestedReviewers: { login: string | null; avatarUrl: string | null }[];
+    }>
   >(
     `/github/repositories/${input.owner}/${input.repo}/pulls/${input.pullNumber}/reviewers`,
     {
@@ -2543,7 +2688,14 @@ export const useIssueComments = (
     { comments: IssueComment[]; hasMore: boolean },
     AxiosError<{ message?: string }>
   >({
-    queryKey: ["github-issue-comments", owner, repo, issueNumber, page, perPage],
+    queryKey: [
+      "github-issue-comments",
+      owner,
+      repo,
+      issueNumber,
+      page,
+      perPage,
+    ],
     queryFn: () => fetchIssueComments(owner, repo, issueNumber, page, perPage),
     retry: 1,
     staleTime: 2 * 60 * 1000,
@@ -2697,7 +2849,15 @@ export const useSearchIssues = (
     { issues: GitHubIssue[]; totalCount: number; hasMore: boolean },
     AxiosError<{ message?: string }>
   >({
-    queryKey: ["github-search-issues", owner, repo, query, state, page, perPage],
+    queryKey: [
+      "github-search-issues",
+      owner,
+      repo,
+      query,
+      state,
+      page,
+      perPage,
+    ],
     queryFn: () => fetchSearchIssues(owner, repo, query, state, page, perPage),
     retry: 1,
     staleTime: 1 * 60 * 1000,
@@ -2778,7 +2938,10 @@ export const usePullRequestComments = (
 ) => {
   // USE PULL REQUEST COMMENTS
   const { data, isLoading, isError, error, refetch } = useQuery<
-    { issueComments: PullRequestComment[]; reviewComments: PullRequestComment[] },
+    {
+      issueComments: PullRequestComment[];
+      reviewComments: PullRequestComment[];
+    },
     AxiosError<{ message?: string }>
   >({
     queryKey: ["github-pr-comments", owner, repo, pullNumber],
@@ -2863,7 +3026,9 @@ export const useCreatePullRequest = () => {
     },
     onError: (error) => {
       // SHOW ERROR TOAST
-      toast.error(error.response?.data?.message || "Failed to create pull request");
+      toast.error(
+        error.response?.data?.message || "Failed to create pull request"
+      );
     },
   });
 };
@@ -2887,7 +3052,12 @@ export const useMergePullRequest = () => {
         queryKey: ["github-repo-pulls", variables.owner, variables.repo],
       });
       queryClient.invalidateQueries({
-        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+        queryKey: [
+          "github-pr-details",
+          variables.owner,
+          variables.repo,
+          variables.pullNumber,
+        ],
       });
       queryClient.invalidateQueries({
         queryKey: ["github-repo-branches", variables.owner, variables.repo],
@@ -2895,7 +3065,9 @@ export const useMergePullRequest = () => {
     },
     onError: (error) => {
       // SHOW ERROR TOAST
-      toast.error(error.response?.data?.message || "Failed to merge pull request");
+      toast.error(
+        error.response?.data?.message || "Failed to merge pull request"
+      );
     },
   });
 };
@@ -2919,12 +3091,19 @@ export const useUpdatePullRequest = () => {
         queryKey: ["github-repo-pulls", variables.owner, variables.repo],
       });
       queryClient.invalidateQueries({
-        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+        queryKey: [
+          "github-pr-details",
+          variables.owner,
+          variables.repo,
+          variables.pullNumber,
+        ],
       });
     },
     onError: (error) => {
       // SHOW ERROR TOAST
-      toast.error(error.response?.data?.message || "Failed to update pull request");
+      toast.error(
+        error.response?.data?.message || "Failed to update pull request"
+      );
     },
   });
 };
@@ -2945,10 +3124,20 @@ export const useAddPullRequestComment = () => {
       toast.success("Comment added successfully!");
       // INVALIDATE COMMENTS QUERY
       queryClient.invalidateQueries({
-        queryKey: ["github-pr-comments", variables.owner, variables.repo, variables.pullNumber],
+        queryKey: [
+          "github-pr-comments",
+          variables.owner,
+          variables.repo,
+          variables.pullNumber,
+        ],
       });
       queryClient.invalidateQueries({
-        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+        queryKey: [
+          "github-pr-details",
+          variables.owner,
+          variables.repo,
+          variables.pullNumber,
+        ],
       });
     },
     onError: (error) => {
@@ -2979,10 +3168,20 @@ export const useCreatePullRequestReview = () => {
       toast.success(eventMessages[variables.event] || "Review submitted!");
       // INVALIDATE QUERIES
       queryClient.invalidateQueries({
-        queryKey: ["github-pr-reviews", variables.owner, variables.repo, variables.pullNumber],
+        queryKey: [
+          "github-pr-reviews",
+          variables.owner,
+          variables.repo,
+          variables.pullNumber,
+        ],
       });
       queryClient.invalidateQueries({
-        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+        queryKey: [
+          "github-pr-details",
+          variables.owner,
+          variables.repo,
+          variables.pullNumber,
+        ],
       });
     },
     onError: (error) => {
@@ -2998,7 +3197,9 @@ export const useRequestPullRequestReviewers = () => {
   const queryClient = useQueryClient();
   // USE REQUEST REVIEWERS MUTATION
   return useMutation<
-    { requestedReviewers: { login: string | null; avatarUrl: string | null }[] },
+    {
+      requestedReviewers: { login: string | null; avatarUrl: string | null }[];
+    },
     AxiosError<{ message?: string }>,
     RequestReviewersInput
   >({
@@ -3008,12 +3209,19 @@ export const useRequestPullRequestReviewers = () => {
       toast.success("Reviewers requested successfully!");
       // INVALIDATE QUERIES
       queryClient.invalidateQueries({
-        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+        queryKey: [
+          "github-pr-details",
+          variables.owner,
+          variables.repo,
+          variables.pullNumber,
+        ],
       });
     },
     onError: (error) => {
       // SHOW ERROR TOAST
-      toast.error(error.response?.data?.message || "Failed to request reviewers");
+      toast.error(
+        error.response?.data?.message || "Failed to request reviewers"
+      );
     },
   });
 };
@@ -3917,7 +4125,9 @@ const checkCollaboratorPermission = async (
   // CHECK COLLABORATOR PERMISSION
   const response = await apiClient.get<
     ApiResponse<CollaboratorPermissionCheck>
-  >(`/github/repositories/${owner}/${repo}/collaborators/${username}/permission`);
+  >(
+    `/github/repositories/${owner}/${repo}/collaborators/${username}/permission`
+  );
   // RETURN PERMISSION CHECK
   return response.data.data;
 };
@@ -4492,4 +4702,485 @@ export const useSearchCommits = (
     error,
     refetch,
   };
+};
+
+// <== FETCH WORKFLOWS FUNCTION ==>
+const fetchWorkflows = async (
+  owner: string,
+  repo: string
+): Promise<{ workflows: Workflow[]; totalCount: number }> => {
+  // FETCH WORKFLOWS
+  const response = await apiClient.get<
+    ApiResponse<{ workflows: Workflow[]; totalCount: number }>
+  >(`/github/repositories/${owner}/${repo}/actions/workflows`);
+  // RETURN WORKFLOWS
+  return response.data.data;
+};
+
+// <== FETCH WORKFLOW DETAILS FUNCTION ==>
+const fetchWorkflowDetails = async (
+  owner: string,
+  repo: string,
+  workflowId: number
+): Promise<Workflow> => {
+  // FETCH WORKFLOW DETAILS
+  const response = await apiClient.get<ApiResponse<Workflow>>(
+    `/github/repositories/${owner}/${repo}/actions/workflows/${workflowId}`
+  );
+  // RETURN WORKFLOW
+  return response.data.data;
+};
+
+// <== FETCH WORKFLOW RUNS FUNCTION ==>
+const fetchWorkflowRuns = async (
+  owner: string,
+  repo: string,
+  options?: {
+    workflowId?: number;
+    branch?: string;
+    event?: string;
+    status?: string;
+    actor?: string;
+    page?: number;
+    perPage?: number;
+  }
+): Promise<{
+  runs: WorkflowRun[];
+  totalCount: number;
+  pagination: { page: number; perPage: number; hasMore: boolean };
+}> => {
+  // BUILD QUERY STRING
+  const params = new URLSearchParams();
+  if (options?.workflowId)
+    params.append("workflow_id", options.workflowId.toString());
+  if (options?.branch) params.append("branch", options.branch);
+  if (options?.event) params.append("event", options.event);
+  if (options?.status) params.append("status", options.status);
+  if (options?.actor) params.append("actor", options.actor);
+  if (options?.page) params.append("page", options.page.toString());
+  if (options?.perPage) params.append("per_page", options.perPage.toString());
+  // FETCH WORKFLOW RUNS
+  const response = await apiClient.get<
+    ApiResponse<{
+      runs: WorkflowRun[];
+      totalCount: number;
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    }>
+  >(`/github/repositories/${owner}/${repo}/actions/runs?${params.toString()}`);
+  // RETURN RUNS
+  return response.data.data;
+};
+
+// <== FETCH WORKFLOW RUN DETAILS FUNCTION ==>
+const fetchWorkflowRunDetails = async (
+  owner: string,
+  repo: string,
+  runId: number
+): Promise<WorkflowRunDetails> => {
+  // FETCH WORKFLOW RUN DETAILS
+  const response = await apiClient.get<ApiResponse<WorkflowRunDetails>>(
+    `/github/repositories/${owner}/${repo}/actions/runs/${runId}`
+  );
+  // RETURN RUN DETAILS
+  return response.data.data;
+};
+
+// <== FETCH WORKFLOW RUN JOBS FUNCTION ==>
+const fetchWorkflowRunJobs = async (
+  owner: string,
+  repo: string,
+  runId: number,
+  filter: "latest" | "all" = "latest"
+): Promise<{ jobs: WorkflowJob[]; totalCount: number }> => {
+  // FETCH WORKFLOW RUN JOBS
+  const response = await apiClient.get<
+    ApiResponse<{ jobs: WorkflowJob[]; totalCount: number }>
+  >(
+    `/github/repositories/${owner}/${repo}/actions/runs/${runId}/jobs?filter=${filter}`
+  );
+  // RETURN JOBS
+  return response.data.data;
+};
+
+// <== FETCH JOB LOGS FUNCTION ==>
+const fetchJobLogs = async (
+  owner: string,
+  repo: string,
+  jobId: number
+): Promise<string> => {
+  // FETCH JOB LOGS
+  const response = await apiClient.get<ApiResponse<{ logs: string }>>(
+    `/github/repositories/${owner}/${repo}/actions/jobs/${jobId}/logs`
+  );
+  // RETURN LOGS
+  return response.data.data.logs;
+};
+
+// <== TRIGGER WORKFLOW FUNCTION ==>
+const triggerWorkflow = async (input: TriggerWorkflowInput): Promise<void> => {
+  // TRIGGER WORKFLOW
+  await apiClient.post(
+    `/github/repositories/${input.owner}/${input.repo}/actions/workflows/${input.workflowId}/dispatches`,
+    { ref: input.ref, inputs: input.inputs || {} }
+  );
+};
+
+// <== RERUN WORKFLOW FUNCTION ==>
+const rerunWorkflow = async (
+  owner: string,
+  repo: string,
+  runId: number
+): Promise<void> => {
+  // RERUN WORKFLOW
+  await apiClient.post(
+    `/github/repositories/${owner}/${repo}/actions/runs/${runId}/rerun`
+  );
+};
+
+// <== RERUN FAILED JOBS FUNCTION ==>
+const rerunFailedJobs = async (
+  owner: string,
+  repo: string,
+  runId: number
+): Promise<void> => {
+  // RERUN FAILED JOBS
+  await apiClient.post(
+    `/github/repositories/${owner}/${repo}/actions/runs/${runId}/rerun-failed-jobs`
+  );
+};
+
+// <== CANCEL WORKFLOW RUN FUNCTION ==>
+const cancelWorkflowRun = async (
+  owner: string,
+  repo: string,
+  runId: number
+): Promise<void> => {
+  // CANCEL WORKFLOW RUN
+  await apiClient.post(
+    `/github/repositories/${owner}/${repo}/actions/runs/${runId}/cancel`
+  );
+};
+
+// <== DELETE WORKFLOW RUN FUNCTION ==>
+const deleteWorkflowRun = async (
+  owner: string,
+  repo: string,
+  runId: number
+): Promise<void> => {
+  // DELETE WORKFLOW RUN
+  await apiClient.delete(
+    `/github/repositories/${owner}/${repo}/actions/runs/${runId}`
+  );
+};
+
+// <== USE WORKFLOWS HOOK ==>
+export const useWorkflows = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE WORKFLOWS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    { workflows: Workflow[]; totalCount: number },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-workflows", owner, repo],
+    queryFn: () => fetchWorkflows(owner, repo),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN WORKFLOWS
+  return {
+    workflows: data?.workflows || [],
+    totalCount: data?.totalCount || 0,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE WORKFLOW DETAILS HOOK ==>
+export const useWorkflowDetails = (
+  owner: string,
+  repo: string,
+  workflowId: number,
+  enabled: boolean = true
+) => {
+  // USE WORKFLOW DETAILS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    Workflow,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-workflow", owner, repo, workflowId],
+    queryFn: () => fetchWorkflowDetails(owner, repo, workflowId),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!workflowId,
+  });
+  // RETURN WORKFLOW DETAILS
+  return { workflow: data, isLoading, isError, error, refetch };
+};
+
+// <== USE WORKFLOW RUNS HOOK ==>
+export const useWorkflowRuns = (
+  owner: string,
+  repo: string,
+  options?: {
+    workflowId?: number;
+    branch?: string;
+    event?: string;
+    status?: string;
+    actor?: string;
+    page?: number;
+    perPage?: number;
+  },
+  enabled: boolean = true
+) => {
+  // USE WORKFLOW RUNS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    {
+      runs: WorkflowRun[];
+      totalCount: number;
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-workflow-runs", owner, repo, options],
+    queryFn: () => fetchWorkflowRuns(owner, repo, options),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN WORKFLOW RUNS
+  return {
+    runs: data?.runs || [],
+    totalCount: data?.totalCount || 0,
+    pagination: data?.pagination,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE WORKFLOW RUN DETAILS HOOK ==>
+export const useWorkflowRunDetails = (
+  owner: string,
+  repo: string,
+  runId: number,
+  enabled: boolean = true
+) => {
+  // USE WORKFLOW RUN DETAILS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    WorkflowRunDetails,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-workflow-run", owner, repo, runId],
+    queryFn: () => fetchWorkflowRunDetails(owner, repo, runId),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!owner && !!repo && !!runId,
+  });
+  // RETURN WORKFLOW RUN DETAILS
+  return { run: data, isLoading, isError, error, refetch };
+};
+
+// <== USE WORKFLOW RUN JOBS HOOK ==>
+export const useWorkflowRunJobs = (
+  owner: string,
+  repo: string,
+  runId: number,
+  filter: "latest" | "all" = "latest",
+  enabled: boolean = true
+) => {
+  // USE WORKFLOW RUN JOBS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    { jobs: WorkflowJob[]; totalCount: number },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-workflow-run-jobs", owner, repo, runId, filter],
+    queryFn: () => fetchWorkflowRunJobs(owner, repo, runId, filter),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!owner && !!repo && !!runId,
+  });
+  // RETURN WORKFLOW RUN JOBS
+  return {
+    jobs: data?.jobs || [],
+    totalCount: data?.totalCount || 0,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE JOB LOGS HOOK ==>
+export const useJobLogs = (
+  owner: string,
+  repo: string,
+  jobId: number,
+  enabled: boolean = true
+) => {
+  // USE JOB LOGS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    string,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-job-logs", owner, repo, jobId],
+    queryFn: () => fetchJobLogs(owner, repo, jobId),
+    retry: 1,
+    staleTime: 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!jobId,
+  });
+  // RETURN JOB LOGS
+  return { logs: data || "", isLoading, isError, error, refetch };
+};
+
+// <== USE TRIGGER WORKFLOW HOOK ==>
+export const useTriggerWorkflow = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // TRIGGER WORKFLOW MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    TriggerWorkflowInput
+  >({
+    mutationFn: (input) => triggerWorkflow(input),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE WORKFLOW RUNS
+      queryClient.invalidateQueries({
+        queryKey: ["github-workflow-runs", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE RERUN WORKFLOW HOOK ==>
+export const useRerunWorkflow = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // RERUN WORKFLOW MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; runId: number }
+  >({
+    mutationFn: ({ owner, repo, runId }) => rerunWorkflow(owner, repo, runId),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE WORKFLOW RUN
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-workflow-run",
+          variables.owner,
+          variables.repo,
+          variables.runId,
+        ],
+      });
+      // INVALIDATE WORKFLOW RUNS
+      queryClient.invalidateQueries({
+        queryKey: ["github-workflow-runs", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE RERUN FAILED JOBS HOOK ==>
+export const useRerunFailedJobs = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // RERUN FAILED JOBS MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; runId: number }
+  >({
+    mutationFn: ({ owner, repo, runId }) => rerunFailedJobs(owner, repo, runId),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE WORKFLOW RUN
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-workflow-run",
+          variables.owner,
+          variables.repo,
+          variables.runId,
+        ],
+      });
+      // INVALIDATE WORKFLOW RUNS
+      queryClient.invalidateQueries({
+        queryKey: ["github-workflow-runs", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE CANCEL WORKFLOW RUN HOOK ==>
+export const useCancelWorkflowRun = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CANCEL WORKFLOW RUN MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; runId: number }
+  >({
+    mutationFn: ({ owner, repo, runId }) =>
+      cancelWorkflowRun(owner, repo, runId),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE WORKFLOW RUN
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-workflow-run",
+          variables.owner,
+          variables.repo,
+          variables.runId,
+        ],
+      });
+      // INVALIDATE WORKFLOW RUNS
+      queryClient.invalidateQueries({
+        queryKey: ["github-workflow-runs", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE DELETE WORKFLOW RUN HOOK ==>
+export const useDeleteWorkflowRun = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE WORKFLOW RUN MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; runId: number }
+  >({
+    mutationFn: ({ owner, repo, runId }) =>
+      deleteWorkflowRun(owner, repo, runId),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE WORKFLOW RUNS
+      queryClient.invalidateQueries({
+        queryKey: ["github-workflow-runs", variables.owner, variables.repo],
+      });
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
 };
