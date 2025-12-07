@@ -23,6 +23,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
 import GitHubActionsPage from "./pages/GitHubActionsPage";
 import GitHubBranchesPage from "./pages/GitHubBranchesPage";
+import GitHubReleasesPage from "./pages/GitHubReleasesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -177,6 +178,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/actions",
               element: <GitHubActionsPage />,
+            },
+            // <== GITHUB RELEASES ROUTE ==>
+            {
+              path: "/github/:owner/:repo/releases",
+              element: <GitHubReleasesPage />,
             },
             // <== TRASH ROUTE ==>
             {
