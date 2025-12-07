@@ -346,6 +346,293 @@ export type GitHubPullRequest = {
     color: string | null;
   }[];
 };
+// <== PULL REQUEST DETAILS TYPE ==>
+export type PullRequestDetails = {
+  // <== ID ==>
+  id: number;
+  // <== NUMBER ==>
+  number: number;
+  // <== TITLE ==>
+  title: string;
+  // <== BODY ==>
+  body: string | null;
+  // <== STATE ==>
+  state: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== DIFF URL ==>
+  diffUrl: string;
+  // <== PATCH URL ==>
+  patchUrl: string;
+  // <== DRAFT ==>
+  draft: boolean;
+  // <== MERGED ==>
+  merged: boolean;
+  // <== MERGEABLE ==>
+  mergeable: boolean | null;
+  // <== MERGEABLE STATE ==>
+  mergeableState: string | null;
+  // <== MERGED AT ==>
+  mergedAt: string | null;
+  // <== MERGED BY ==>
+  mergedBy: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+  } | null;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== CLOSED AT ==>
+  closedAt: string | null;
+  // <== HEAD ==>
+  head: {
+    // <== REF ==>
+    ref: string;
+    // <== SHA ==>
+    sha: string;
+    // <== LABEL ==>
+    label: string;
+    // <== REPO ==>
+    repo: {
+      // <== NAME ==>
+      name: string;
+      // <== FULL NAME ==>
+      fullName: string;
+    } | null;
+  };
+  // <== BASE ==>
+  base: {
+    // <== REF ==>
+    ref: string;
+    // <== SHA ==>
+    sha: string;
+    // <== LABEL ==>
+    label: string;
+    // <== REPO ==>
+    repo: {
+      // <== NAME ==>
+      name: string;
+      // <== FULL NAME ==>
+      fullName: string;
+    };
+  };
+  // <== USER ==>
+  user: {
+    // <== LOGIN ==>
+    login: string | null;
+    // <== AVATAR URL ==>
+    avatarUrl: string | null;
+    // <== HTML URL ==>
+    htmlUrl: string | null;
+  };
+  // <== LABELS ==>
+  labels: {
+    // <== ID ==>
+    id: number;
+    // <== NAME ==>
+    name: string;
+    // <== COLOR ==>
+    color: string;
+    // <== DESCRIPTION ==>
+    description: string | null;
+  }[];
+  // <== REQUESTED REVIEWERS ==>
+  requestedReviewers: {
+    // <== LOGIN ==>
+    login: string | null;
+    // <== AVATAR URL ==>
+    avatarUrl: string | null;
+  }[];
+  // <== ADDITIONS ==>
+  additions: number;
+  // <== DELETIONS ==>
+  deletions: number;
+  // <== CHANGED FILES ==>
+  changedFiles: number;
+  // <== COMMITS ==>
+  commits: number;
+  // <== COMMENTS ==>
+  comments: number;
+  // <== REVIEW COMMENTS ==>
+  reviewComments: number;
+};
+// <== PULL REQUEST COMMENT TYPE ==>
+export type PullRequestComment = {
+  // <== ID ==>
+  id: number;
+  // <== BODY ==>
+  body: string | null;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== USER ==>
+  user: {
+    // <== LOGIN ==>
+    login: string | null;
+    // <== AVATAR URL ==>
+    avatarUrl: string | null;
+  };
+  // <== TYPE ==>
+  type: "issue" | "review";
+  // <== PATH (FOR REVIEW COMMENTS) ==>
+  path?: string;
+  // <== LINE (FOR REVIEW COMMENTS) ==>
+  line?: number | null;
+  // <== SIDE (FOR REVIEW COMMENTS) ==>
+  side?: string;
+  // <== COMMIT ID (FOR REVIEW COMMENTS) ==>
+  commitId?: string;
+  // <== DIFF HUNK (FOR REVIEW COMMENTS) ==>
+  diffHunk?: string;
+};
+// <== PULL REQUEST REVIEW TYPE ==>
+export type PullRequestReview = {
+  // <== ID ==>
+  id: number;
+  // <== BODY ==>
+  body: string | null;
+  // <== STATE ==>
+  state: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== COMMIT ID ==>
+  commitId: string;
+  // <== SUBMITTED AT ==>
+  submittedAt: string | null;
+  // <== USER ==>
+  user: {
+    // <== LOGIN ==>
+    login: string | null;
+    // <== AVATAR URL ==>
+    avatarUrl: string | null;
+  };
+};
+// <== PULL REQUEST FILE TYPE ==>
+export type PullRequestFile = {
+  // <== SHA ==>
+  sha: string;
+  // <== FILENAME ==>
+  filename: string;
+  // <== STATUS ==>
+  status: string;
+  // <== ADDITIONS ==>
+  additions: number;
+  // <== DELETIONS ==>
+  deletions: number;
+  // <== CHANGES ==>
+  changes: number;
+  // <== BLOB URL ==>
+  blobUrl: string;
+  // <== RAW URL ==>
+  rawUrl: string;
+  // <== CONTENTS URL ==>
+  contentsUrl: string;
+  // <== PATCH ==>
+  patch?: string;
+  // <== PREVIOUS FILENAME ==>
+  previousFilename?: string;
+};
+// <== CREATE PULL REQUEST INPUT TYPE ==>
+export type CreatePullRequestInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== TITLE ==>
+  title: string;
+  // <== BODY ==>
+  body?: string;
+  // <== HEAD ==>
+  head: string;
+  // <== BASE ==>
+  base: string;
+  // <== DRAFT ==>
+  draft?: boolean;
+};
+// <== MERGE PULL REQUEST INPUT TYPE ==>
+export type MergePullRequestInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PULL NUMBER ==>
+  pullNumber: number;
+  // <== COMMIT TITLE ==>
+  commitTitle?: string;
+  // <== COMMIT MESSAGE ==>
+  commitMessage?: string;
+  // <== MERGE METHOD ==>
+  mergeMethod?: "merge" | "squash" | "rebase";
+};
+// <== UPDATE PULL REQUEST INPUT TYPE ==>
+export type UpdatePullRequestInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PULL NUMBER ==>
+  pullNumber: number;
+  // <== TITLE ==>
+  title?: string;
+  // <== BODY ==>
+  body?: string;
+  // <== STATE ==>
+  state?: "open" | "closed";
+  // <== BASE ==>
+  base?: string;
+};
+// <== CREATE REVIEW INPUT TYPE ==>
+export type CreateReviewInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PULL NUMBER ==>
+  pullNumber: number;
+  // <== BODY ==>
+  body?: string;
+  // <== EVENT ==>
+  event: "APPROVE" | "REQUEST_CHANGES" | "COMMENT";
+  // <== COMMENTS ==>
+  comments?: {
+    // <== PATH ==>
+    path: string;
+    // <== POSITION ==>
+    position?: number;
+    // <== BODY ==>
+    body: string;
+  }[];
+};
+// <== ADD COMMENT INPUT TYPE ==>
+export type AddPRCommentInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PULL NUMBER ==>
+  pullNumber: number;
+  // <== BODY ==>
+  body: string;
+};
+// <== REQUEST REVIEWERS INPUT TYPE ==>
+export type RequestReviewersInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== PULL NUMBER ==>
+  pullNumber: number;
+  // <== REVIEWERS ==>
+  reviewers?: string[];
+  // <== TEAM REVIEWERS ==>
+  teamReviewers?: string[];
+};
 // <== BRANCH TYPE ==>
 export type GitHubBranch = {
   // <== NAME ==>
@@ -1488,6 +1775,172 @@ const fetchRepositoryPullRequests = async (
   };
 };
 
+// <== FETCH PULL REQUEST DETAILS FUNCTION ==>
+const fetchPullRequestDetails = async (
+  owner: string,
+  repo: string,
+  pullNumber: number
+): Promise<PullRequestDetails> => {
+  // FETCH PULL REQUEST DETAILS
+  const response = await apiClient.get<ApiResponse<PullRequestDetails>>(
+    `/github/repositories/${owner}/${repo}/pulls/${pullNumber}`
+  );
+  // RETURN PULL REQUEST DETAILS
+  return response.data.data;
+};
+
+// <== FETCH PULL REQUEST COMMENTS FUNCTION ==>
+const fetchPullRequestComments = async (
+  owner: string,
+  repo: string,
+  pullNumber: number
+): Promise<{
+  issueComments: PullRequestComment[];
+  reviewComments: PullRequestComment[];
+}> => {
+  // FETCH PULL REQUEST COMMENTS
+  const response = await apiClient.get<
+    ApiResponse<{
+      issueComments: PullRequestComment[];
+      reviewComments: PullRequestComment[];
+    }>
+  >(`/github/repositories/${owner}/${repo}/pulls/${pullNumber}/comments`);
+  // RETURN PULL REQUEST COMMENTS
+  return response.data.data;
+};
+
+// <== FETCH PULL REQUEST REVIEWS FUNCTION ==>
+const fetchPullRequestReviews = async (
+  owner: string,
+  repo: string,
+  pullNumber: number
+): Promise<PullRequestReview[]> => {
+  // FETCH PULL REQUEST REVIEWS
+  const response = await apiClient.get<ApiResponse<PullRequestReview[]>>(
+    `/github/repositories/${owner}/${repo}/pulls/${pullNumber}/reviews`
+  );
+  // RETURN PULL REQUEST REVIEWS
+  return response.data.data;
+};
+
+// <== FETCH PULL REQUEST FILES FUNCTION ==>
+const fetchPullRequestFiles = async (
+  owner: string,
+  repo: string,
+  pullNumber: number
+): Promise<PullRequestFile[]> => {
+  // FETCH PULL REQUEST FILES
+  const response = await apiClient.get<ApiResponse<PullRequestFile[]>>(
+    `/github/repositories/${owner}/${repo}/pulls/${pullNumber}/files`
+  );
+  // RETURN PULL REQUEST FILES
+  return response.data.data;
+};
+
+// <== CREATE PULL REQUEST FUNCTION ==>
+const createPullRequest = async (
+  input: CreatePullRequestInput
+): Promise<GitHubPullRequest> => {
+  // CREATE PULL REQUEST
+  const response = await apiClient.post<ApiResponse<GitHubPullRequest>>(
+    `/github/repositories/${input.owner}/${input.repo}/pulls`,
+    {
+      title: input.title,
+      body: input.body,
+      head: input.head,
+      base: input.base,
+      draft: input.draft,
+    }
+  );
+  // RETURN CREATED PULL REQUEST
+  return response.data.data;
+};
+
+// <== MERGE PULL REQUEST FUNCTION ==>
+const mergePullRequest = async (
+  input: MergePullRequestInput
+): Promise<{ sha: string; merged: boolean; message: string }> => {
+  // MERGE PULL REQUEST
+  const response = await apiClient.put<
+    ApiResponse<{ sha: string; merged: boolean; message: string }>
+  >(
+    `/github/repositories/${input.owner}/${input.repo}/pulls/${input.pullNumber}/merge`,
+    {
+      commit_title: input.commitTitle,
+      commit_message: input.commitMessage,
+      merge_method: input.mergeMethod,
+    }
+  );
+  // RETURN MERGE RESULT
+  return response.data.data;
+};
+
+// <== UPDATE PULL REQUEST FUNCTION ==>
+const updatePullRequest = async (
+  input: UpdatePullRequestInput
+): Promise<GitHubPullRequest> => {
+  // UPDATE PULL REQUEST
+  const response = await apiClient.patch<ApiResponse<GitHubPullRequest>>(
+    `/github/repositories/${input.owner}/${input.repo}/pulls/${input.pullNumber}`,
+    {
+      title: input.title,
+      body: input.body,
+      state: input.state,
+      base: input.base,
+    }
+  );
+  // RETURN UPDATED PULL REQUEST
+  return response.data.data;
+};
+
+// <== ADD PULL REQUEST COMMENT FUNCTION ==>
+const addPullRequestComment = async (
+  input: AddPRCommentInput
+): Promise<PullRequestComment> => {
+  // ADD COMMENT
+  const response = await apiClient.post<ApiResponse<PullRequestComment>>(
+    `/github/repositories/${input.owner}/${input.repo}/pulls/${input.pullNumber}/comments`,
+    { body: input.body }
+  );
+  // RETURN ADDED COMMENT
+  return response.data.data;
+};
+
+// <== CREATE PULL REQUEST REVIEW FUNCTION ==>
+const createPullRequestReview = async (
+  input: CreateReviewInput
+): Promise<PullRequestReview> => {
+  // CREATE REVIEW
+  const response = await apiClient.post<ApiResponse<PullRequestReview>>(
+    `/github/repositories/${input.owner}/${input.repo}/pulls/${input.pullNumber}/reviews`,
+    {
+      body: input.body,
+      event: input.event,
+      comments: input.comments,
+    }
+  );
+  // RETURN CREATED REVIEW
+  return response.data.data;
+};
+
+// <== REQUEST PULL REQUEST REVIEWERS FUNCTION ==>
+const requestPullRequestReviewers = async (
+  input: RequestReviewersInput
+): Promise<{ requestedReviewers: { login: string | null; avatarUrl: string | null }[] }> => {
+  // REQUEST REVIEWERS
+  const response = await apiClient.post<
+    ApiResponse<{ requestedReviewers: { login: string | null; avatarUrl: string | null }[] }>
+  >(
+    `/github/repositories/${input.owner}/${input.repo}/pulls/${input.pullNumber}/reviewers`,
+    {
+      reviewers: input.reviewers,
+      team_reviewers: input.teamReviewers,
+    }
+  );
+  // RETURN REQUESTED REVIEWERS
+  return response.data.data;
+};
+
 // <== FETCH REPOSITORY README FUNCTION ==>
 const fetchRepositoryReadme = async (
   owner: string,
@@ -1656,6 +2109,277 @@ export const useRepositoryPullRequests = (
     error,
     refetch,
   };
+};
+
+// <== USE PULL REQUEST DETAILS HOOK ==>
+export const usePullRequestDetails = (
+  owner: string,
+  repo: string,
+  pullNumber: number,
+  enabled: boolean = true
+) => {
+  // USE PULL REQUEST DETAILS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    PullRequestDetails,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-pr-details", owner, repo, pullNumber],
+    queryFn: () => fetchPullRequestDetails(owner, repo, pullNumber),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!pullNumber,
+  });
+  // RETURN PULL REQUEST DETAILS
+  return { pullRequest: data, isLoading, isError, error, refetch };
+};
+
+// <== USE PULL REQUEST COMMENTS HOOK ==>
+export const usePullRequestComments = (
+  owner: string,
+  repo: string,
+  pullNumber: number,
+  enabled: boolean = true
+) => {
+  // USE PULL REQUEST COMMENTS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    { issueComments: PullRequestComment[]; reviewComments: PullRequestComment[] },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-pr-comments", owner, repo, pullNumber],
+    queryFn: () => fetchPullRequestComments(owner, repo, pullNumber),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!pullNumber,
+  });
+  // RETURN PULL REQUEST COMMENTS
+  return {
+    issueComments: data?.issueComments || [],
+    reviewComments: data?.reviewComments || [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE PULL REQUEST REVIEWS HOOK ==>
+export const usePullRequestReviews = (
+  owner: string,
+  repo: string,
+  pullNumber: number,
+  enabled: boolean = true
+) => {
+  // USE PULL REQUEST REVIEWS
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    PullRequestReview[],
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-pr-reviews", owner, repo, pullNumber],
+    queryFn: () => fetchPullRequestReviews(owner, repo, pullNumber),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!pullNumber,
+  });
+  // RETURN PULL REQUEST REVIEWS
+  return { reviews: data || [], isLoading, isError, error, refetch };
+};
+
+// <== USE PULL REQUEST FILES HOOK ==>
+export const usePullRequestFiles = (
+  owner: string,
+  repo: string,
+  pullNumber: number,
+  enabled: boolean = true
+) => {
+  // USE PULL REQUEST FILES
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    PullRequestFile[],
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-pr-files", owner, repo, pullNumber],
+    queryFn: () => fetchPullRequestFiles(owner, repo, pullNumber),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!pullNumber,
+  });
+  // RETURN PULL REQUEST FILES
+  return { files: data || [], isLoading, isError, error, refetch };
+};
+
+// <== USE CREATE PULL REQUEST HOOK ==>
+export const useCreatePullRequest = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE CREATE PULL REQUEST MUTATION
+  return useMutation<
+    GitHubPullRequest,
+    AxiosError<{ message?: string }>,
+    CreatePullRequestInput
+  >({
+    mutationFn: createPullRequest,
+    onSuccess: (_, variables) => {
+      // SHOW SUCCESS TOAST
+      toast.success("Pull request created successfully!");
+      // INVALIDATE PULL REQUESTS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-pulls", variables.owner, variables.repo],
+      });
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to create pull request");
+    },
+  });
+};
+
+// <== USE MERGE PULL REQUEST HOOK ==>
+export const useMergePullRequest = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MERGE PULL REQUEST MUTATION
+  return useMutation<
+    { sha: string; merged: boolean; message: string },
+    AxiosError<{ message?: string }>,
+    MergePullRequestInput
+  >({
+    mutationFn: mergePullRequest,
+    onSuccess: (_, variables) => {
+      // SHOW SUCCESS TOAST
+      toast.success("Pull request merged successfully!");
+      // INVALIDATE QUERIES
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-pulls", variables.owner, variables.repo],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-branches", variables.owner, variables.repo],
+      });
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to merge pull request");
+    },
+  });
+};
+
+// <== USE UPDATE PULL REQUEST HOOK ==>
+export const useUpdatePullRequest = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE UPDATE PULL REQUEST MUTATION
+  return useMutation<
+    GitHubPullRequest,
+    AxiosError<{ message?: string }>,
+    UpdatePullRequestInput
+  >({
+    mutationFn: updatePullRequest,
+    onSuccess: (_, variables) => {
+      // SHOW SUCCESS TOAST
+      toast.success("Pull request updated successfully!");
+      // INVALIDATE QUERIES
+      queryClient.invalidateQueries({
+        queryKey: ["github-repo-pulls", variables.owner, variables.repo],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+      });
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to update pull request");
+    },
+  });
+};
+
+// <== USE ADD PULL REQUEST COMMENT HOOK ==>
+export const useAddPullRequestComment = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE ADD COMMENT MUTATION
+  return useMutation<
+    PullRequestComment,
+    AxiosError<{ message?: string }>,
+    AddPRCommentInput
+  >({
+    mutationFn: addPullRequestComment,
+    onSuccess: (_, variables) => {
+      // SHOW SUCCESS TOAST
+      toast.success("Comment added successfully!");
+      // INVALIDATE COMMENTS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-pr-comments", variables.owner, variables.repo, variables.pullNumber],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+      });
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to add comment");
+    },
+  });
+};
+
+// <== USE CREATE PULL REQUEST REVIEW HOOK ==>
+export const useCreatePullRequestReview = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE CREATE REVIEW MUTATION
+  return useMutation<
+    PullRequestReview,
+    AxiosError<{ message?: string }>,
+    CreateReviewInput
+  >({
+    mutationFn: createPullRequestReview,
+    onSuccess: (_, variables) => {
+      // SHOW SUCCESS TOAST
+      const eventMessages: Record<string, string> = {
+        APPROVE: "Pull request approved!",
+        REQUEST_CHANGES: "Changes requested!",
+        COMMENT: "Review comment added!",
+      };
+      toast.success(eventMessages[variables.event] || "Review submitted!");
+      // INVALIDATE QUERIES
+      queryClient.invalidateQueries({
+        queryKey: ["github-pr-reviews", variables.owner, variables.repo, variables.pullNumber],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+      });
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to submit review");
+    },
+  });
+};
+
+// <== USE REQUEST PULL REQUEST REVIEWERS HOOK ==>
+export const useRequestPullRequestReviewers = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE REQUEST REVIEWERS MUTATION
+  return useMutation<
+    { requestedReviewers: { login: string | null; avatarUrl: string | null }[] },
+    AxiosError<{ message?: string }>,
+    RequestReviewersInput
+  >({
+    mutationFn: requestPullRequestReviewers,
+    onSuccess: (_, variables) => {
+      // SHOW SUCCESS TOAST
+      toast.success("Reviewers requested successfully!");
+      // INVALIDATE QUERIES
+      queryClient.invalidateQueries({
+        queryKey: ["github-pr-details", variables.owner, variables.repo, variables.pullNumber],
+      });
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to request reviewers");
+    },
+  });
 };
 
 // <== USE REPOSITORY README HOOK ==>
