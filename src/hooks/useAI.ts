@@ -685,6 +685,109 @@ export type AIPermissionRecommendationResponse = {
   // <== RECOMMENDATION ==>
   recommendation: AIPermissionRecommendationResult;
 };
+// <== AI WORKFLOW FAILURE ANALYSIS INPUT TYPE ==>
+export type AIWorkflowFailureInput = {
+  // <== WORKFLOW NAME ==>
+  workflowName?: string;
+  // <== JOB NAME ==>
+  jobName?: string;
+  // <== LOGS ==>
+  logs?: string;
+  // <== CONCLUSION ==>
+  conclusion?: string;
+  // <== STEPS ==>
+  steps?: Array<{
+    name: string;
+    conclusion: string;
+  }>;
+};
+// <== AI WORKFLOW FAILURE FIX TYPE ==>
+export type AIWorkflowFailureFix = {
+  // <== STEP ==>
+  step: number;
+  // <== ACTION ==>
+  action: string;
+  // <== DETAILS ==>
+  details: string;
+};
+// <== AI WORKFLOW FAILURE ANALYSIS RESPONSE TYPE ==>
+export type AIWorkflowFailureResponse = {
+  // <== WORKFLOW NAME ==>
+  workflowName: string;
+  // <== JOB NAME ==>
+  jobName: string;
+  // <== CONCLUSION ==>
+  conclusion: string;
+  // <== ANALYSIS ==>
+  analysis: {
+    // <== ROOT CAUSE ==>
+    rootCause: string;
+    // <== ERROR TYPE ==>
+    errorType: string;
+    // <== SEVERITY ==>
+    severity: "high" | "medium" | "low";
+    // <== SUGGESTED FIXES ==>
+    suggestedFixes: AIWorkflowFailureFix[];
+    // <== PREVENTION TIPS ==>
+    preventionTips: string[];
+    // <== RELATED DOCS ==>
+    relatedDocs: string[];
+    // <== SUMMARY ==>
+    summary: string;
+  };
+};
+// <== AI WORKFLOW IMPROVEMENTS INPUT TYPE ==>
+export type AIWorkflowImprovementsInput = {
+  // <== WORKFLOW CONTENT ==>
+  workflowContent: string;
+  // <== WORKFLOW PATH ==>
+  workflowPath?: string;
+  // <== RECENT RUNS ==>
+  recentRuns?: {
+    total: number;
+    successRate: number;
+    avgDuration: string;
+    commonFailures?: string[];
+  };
+};
+// <== AI WORKFLOW IMPROVEMENT SUGGESTION TYPE ==>
+export type AIWorkflowImprovementSuggestion = {
+  // <== ISSUE ==>
+  issue: string;
+  // <== SUGGESTION ==>
+  suggestion: string;
+  // <== IMPACT ==>
+  impact: "high" | "medium" | "low";
+};
+// <== AI WORKFLOW IMPROVEMENTS CATEGORY TYPE ==>
+export type AIWorkflowImprovementsCategory = {
+  // <== SCORE ==>
+  score: number;
+  // <== SUGGESTIONS ==>
+  suggestions: AIWorkflowImprovementSuggestion[];
+};
+// <== AI WORKFLOW IMPROVEMENTS RESPONSE TYPE ==>
+export type AIWorkflowImprovementsResponse = {
+  // <== WORKFLOW PATH ==>
+  workflowPath: string;
+  // <== SUGGESTIONS ==>
+  suggestions: {
+    // <== OVERALL SCORE ==>
+    overallScore: number;
+    // <== PERFORMANCE ==>
+    performance: AIWorkflowImprovementsCategory;
+    // <== BEST PRACTICES ==>
+    bestPractices: AIWorkflowImprovementsCategory;
+    // <== SECURITY ==>
+    security: AIWorkflowImprovementsCategory;
+    // <== COST ==>
+    cost: AIWorkflowImprovementsCategory;
+    // <== RELIABILITY ==>
+    reliability: AIWorkflowImprovementsCategory;
+    // <== SUMMARY ==>
+    summary: string;
+  };
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -1338,6 +1441,74 @@ export const useAIPermissionRecommendation = () => {
       toast.error(
         error.response?.data?.message ||
           "Failed to generate permission recommendation"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== AI ANALYZE WORKFLOW FAILURE FUNCTION ==>
+const aiAnalyzeWorkflowFailureFn = async (
+  input: AIWorkflowFailureInput
+): Promise<AIWorkflowFailureResponse> => {
+  // FETCH ANALYSIS
+  const response = await apiClient.post<ApiResponse<AIWorkflowFailureResponse>>(
+    "/ai/analyze-workflow-failure",
+    input
+  );
+  // RETURN ANALYSIS
+  return response.data.data;
+};
+
+// <== AI SUGGEST WORKFLOW IMPROVEMENTS FUNCTION ==>
+const aiSuggestWorkflowImprovementsFn = async (
+  input: AIWorkflowImprovementsInput
+): Promise<AIWorkflowImprovementsResponse> => {
+  // FETCH SUGGESTIONS
+  const response = await apiClient.post<
+    ApiResponse<AIWorkflowImprovementsResponse>
+  >("/ai/suggest-workflow-improvements", input);
+  // RETURN SUGGESTIONS
+  return response.data.data;
+};
+
+// <== USE AI ANALYZE WORKFLOW FAILURE HOOK ==>
+export const useAIAnalyzeWorkflowFailure = () => {
+  // AI ANALYZE WORKFLOW FAILURE MUTATION
+  const mutation = useMutation<
+    AIWorkflowFailureResponse,
+    AxiosError<{ message?: string }>,
+    AIWorkflowFailureInput
+  >({
+    mutationFn: aiAnalyzeWorkflowFailureFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to analyze workflow failure"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE AI SUGGEST WORKFLOW IMPROVEMENTS HOOK ==>
+export const useAISuggestWorkflowImprovements = () => {
+  // AI SUGGEST WORKFLOW IMPROVEMENTS MUTATION
+  const mutation = useMutation<
+    AIWorkflowImprovementsResponse,
+    AxiosError<{ message?: string }>,
+    AIWorkflowImprovementsInput
+  >({
+    mutationFn: aiSuggestWorkflowImprovementsFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to suggest workflow improvements"
       );
     },
   });
