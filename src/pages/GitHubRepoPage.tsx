@@ -841,6 +841,13 @@ const GitHubRepoPage = (): JSX.Element => {
                   <CircleDot size={16} />
                 </button>
                 <button
+                  onClick={() => navigate(`/github/${owner}/${repo}/collaborators`)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="Collaborators"
+                >
+                  <Users size={16} />
+                </button>
+                <button
                   onClick={() => setShowSettings(true)}
                   className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
                   title="Settings"
@@ -926,6 +933,16 @@ const GitHubRepoPage = (): JSX.Element => {
                       >
                         <CircleDot size={16} className="text-[var(--accent-color)]" />
                         <span>Issues</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/github/${owner}/${repo}/collaborators`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <Users size={16} className="text-[var(--accent-color)]" />
+                        <span>Collaborators</span>
                       </button>
                       <button
                         onClick={() => {
