@@ -24,6 +24,7 @@ import GitHubBranchesPage from "./pages/GitHubBranchesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import GitHubPullRequestsPage from "./pages/GitHubPullRequestsPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // <== APP ROUTER ==>
@@ -153,6 +154,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/branches",
               element: <GitHubBranchesPage />,
+            },
+            // <== GITHUB REPOSITORY PULL REQUESTS ROUTE ==>
+            {
+              path: "/github/:owner/:repo/pulls",
+              element: <GitHubPullRequestsPage />,
             },
             // <== TRASH ROUTE ==>
             {
