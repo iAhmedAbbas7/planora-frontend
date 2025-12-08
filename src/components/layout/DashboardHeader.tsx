@@ -1,9 +1,11 @@
 // <== IMPORTS ==>
 import Dropdown from "../common/Dropdown";
+import { useLocation } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
-import { useEffect, useRef, useState, JSX } from "react";
 import { Sun, Moon, Menu, Search, User } from "lucide-react";
 import { useSidebarStore } from "../../store/useSidebarStore";
+import { useEffect, useRef, useState, JSX, useMemo } from "react";
+import GitHubNotificationsDropdown from "../github/GitHubNotificationsDropdown";
 
 // <== DASHBOARD HEADER PROPS TYPE INTERFACE ==>
 type Props = {
@@ -31,6 +33,13 @@ const DashboardHeader = ({
   const { setTheme, isDark } = useTheme();
   // DROPDOWN REF
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  // LOCATION
+  const location = useLocation();
+  // CHECK IF ON GITHUB PAGE
+  const isGitHubPage = useMemo(() => {
+    // CHECK IF LOCATION PATHNAME STARTS WITH /GITHUB
+    return location.pathname.startsWith("/github");
+  }, [location.pathname]);
   // HANDLE CLICK OUTSIDE EFFECT
   useEffect(() => {
     // HANDLE CLICK OUTSIDE FUNCTION
@@ -107,6 +116,12 @@ const DashboardHeader = ({
               className="bg-transparent outline-none text-sm w-40"
               style={{ color: "var(--text-primary)" }}
             />
+          </div>
+        )}
+        {/* GITHUB NOTIFICATIONS - ONLY ON GITHUB PAGES */}
+        {isGitHubPage && (
+          <div className="hidden sm:block">
+            <GitHubNotificationsDropdown />
           </div>
         )}
         {/* THEME TOGGLE BUTTON */}
