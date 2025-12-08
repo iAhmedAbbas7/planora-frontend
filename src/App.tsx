@@ -26,6 +26,7 @@ import GitHubBranchesPage from "./pages/GitHubBranchesPage";
 import GitHubReleasesPage from "./pages/GitHubReleasesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
+import GitHubInsightsPage from "./pages/GitHubInsightsPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import GitHubDeploymentsPage from "./pages/GitHubDeploymentsPage";
 import GitHubPullRequestsPage from "./pages/GitHubPullRequestsPage";
@@ -189,6 +190,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/deployments",
               element: <GitHubDeploymentsPage />,
+            },
+            // <== GITHUB INSIGHTS ROUTE ==>
+            {
+              path: "/github/:owner/:repo/insights",
+              element: <GitHubInsightsPage />,
             },
             // <== TRASH ROUTE ==>
             {
