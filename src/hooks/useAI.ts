@@ -788,6 +788,414 @@ export type AIWorkflowImprovementsResponse = {
     summary: string;
   };
 };
+// <== AI REPOSITORY ANALYSIS INPUT TYPE ==>
+export type AIRepositoryAnalysisInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== README ==>
+  readme?: string;
+  // <== LANGUAGES ==>
+  languages?: Record<string, number>;
+  // <== RECENT COMMITS ==>
+  recentCommits?: Array<{ message: string; date: string; author: string }>;
+  // <== OPEN ISSUES ==>
+  openIssues?: Array<{ title: string; state: string }>;
+  // <== OPEN PULL REQUESTS ==>
+  openPRs?: Array<{ title: string; state: string }>;
+  // <== CONTRIBUTORS ==>
+  contributors?: Array<{ login: string }>;
+  // <== REPO INFO ==>
+  repoInfo?: {
+    // <== DESCRIPTION ==>
+    description?: string;
+    // <== STARS ==>
+    stars?: number;
+    // <== FORKS ==>
+    forks?: number;
+    // <== WATCHERS ==>
+    watchers?: number;
+    // <== CREATED AT ==>
+    createdAt?: string;
+    // <== UPDATED AT ==>
+    updatedAt?: string;
+  };
+};
+// <== AI REPOSITORY ANALYSIS RESPONSE TYPE ==>
+export type AIRepositoryAnalysisResponse = {
+  // <== OVERVIEW ==>
+  overview: {
+    // <== SUMMARY ==>
+    summary: string;
+    // <== PRIMARY PURPOSE ==>
+    primaryPurpose: string;
+    // <== TARGET AUDIENCE ==>
+    targetAudience: string;
+    // <== TECH STACK ==>
+    techStack: string[];
+  };
+  // <== CODE QUALITY ==>
+  codeQuality: {
+    // <== SCORE ==>
+    score: number;
+    // <== STRENGTHS ==>
+    strengths: string[];
+    // <== CONCERNS ==>
+    concerns: string[];
+    // <== RECOMMENDATIONS ==>
+    recommendations: string[];
+  };
+  // <== ACTIVITY ==>
+  activity: {
+    // <== SCORE ==>
+    score: number;
+    // <== COMMIT FREQUENCY ==>
+    commitFrequency: string;
+    // <== CONTRIBUTOR ENGAGEMENT ==>
+    contributorEngagement: string;
+    // <== RECENT ACTIVITY SUMMARY ==>
+    recentActivitySummary: string;
+    // <== TREND ==>
+    trend: string;
+  };
+  // <== DOCUMENTATION ==>
+  documentation: {
+    // <== SCORE ==>
+    score: number;
+    // <== HAS README ==>
+    hasReadme: boolean;
+    // <== README QUALITY ==>
+    readmeQuality: string;
+    // <== SUGGESTIONS ==>
+    suggestions: string[];
+  };
+  // <== SECURITY ==>
+  security: {
+    // <== SCORE ==>
+    score: number;
+    // <== OBSERVATIONS ==>
+    observations: string[];
+    // <== RECOMMENDATIONS ==>
+    recommendations: string[];
+  };
+  // <== IMPROVEMENTS ==>
+  improvements: Array<{
+    // <== CATEGORY ==>
+    category: string;
+    // <== PRIORITY ==>
+    priority: string;
+    // <== SUGGESTION ==>
+    suggestion: string;
+    // <== IMPACT ==>
+    impact: string;
+  }>;
+  // <== HEALTH SCORE ==>
+  healthScore: {
+    // <== OVERALL ==>
+    overall: number;
+    // <== BREAKDOWN ==>
+    breakdown: {
+      // <== CODE QUALITY ==>
+      codeQuality: number;
+      // <== ACTIVITY ==>
+      activity: number;
+      // <== DOCUMENTATION ==>
+      documentation: number;
+      // <== COMMUNITY ==>
+      community: number;
+      // <== SECURITY ==>
+      security: number;
+    };
+  };
+  // <== KEY INSIGHTS ==>
+  keyInsights: string[];
+};
+// <== AI CODE QUALITY SCAN INPUT TYPE ==>
+export type AICodeQualityScanInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== FILES ==>
+  files: Array<{ path: string; type: string; size?: number }>;
+  // <== LANGUAGES ==>
+  languages?: Record<string, number>;
+  // <== RECENT COMMITS ==>
+  recentCommits?: Array<{ message: string }>;
+};
+// <== AI CODE QUALITY SCAN RESPONSE TYPE ==>
+export type AICodeQualityScanResponse = {
+  // <== OVERALL SCORE ==>
+  overallScore: number;
+  // <== ARCHITECTURE ==>
+  architecture: {
+    score: number;
+    // <== PATTERN ==>
+    pattern: string;
+    // <== OBSERVATIONS ==>
+    observations: string[];
+    // <== SUGGESTIONS ==>
+    suggestions: string[];
+  };
+  // <== BEST PRACTICES ==>
+  bestPractices: {
+    // <== SCORE ==>
+    score: number;
+    // <== FOLLOWED ==>
+    followed: string[];
+    // <== MISSING ==>
+    missing: string[];
+    // <== SUGGESTIONS ==>
+    suggestions: string[];
+  };
+  // <== POTENTIAL ISSUES ==>
+  potentialIssues: Array<{
+    // <== SEVERITY ==>
+    severity: string;
+    // <== ISSUE ==>
+    issue: string;
+    // <== LOCATION ==>
+    location: string;
+    // <== SUGGESTION ==>
+    suggestion: string;
+  }>;
+  // <== TESTING ==>
+  testing: {
+    // <== SCORE ==>
+    score: number;
+    // <== HAS TEST DIRECTORY ==>
+    hasTestDirectory: boolean;
+    // <== TESTING FRAMEWORK DETECTED ==>
+    testingFrameworkDetected: string | null;
+    // <== SUGGESTIONS ==>
+    suggestions: string[];
+  };
+  // <== DEPENDENCIES ==>
+  dependencies: {
+    // <== SCORE ==>
+    score: number;
+    // <== HAS PACKAGE MANAGER ==>
+    hasPackageManager: boolean;
+    // <== PACKAGE MANAGER ==>
+    packageManager: string | null;
+    // <== OBSERVATIONS ==>
+    observations: string[];
+  };
+  // <== RECOMMENDATIONS ==>
+  recommendations: Array<{
+    // <== PRIORITY ==>
+    priority: string;
+    // <== CATEGORY ==>
+    category: string;
+    // <== ACTION ==>
+    action: string;
+    // <== BENEFIT ==>
+    benefit: string;
+  }>;
+};
+// <== AI SECURITY SCAN INPUT TYPE ==>
+export type AISecurityScanInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== FILES ==>
+  files?: Array<{ path: string }>;
+  // <== LANGUAGES ==>
+  languages?: Record<string, number>;
+  // <== PACKAGE FILES ==>
+  packageFiles?: string[];
+  // <== IS PUBLIC ==>
+  isPublic?: boolean;
+};
+// <== AI SECURITY SCAN RESPONSE TYPE ==>
+export type AISecurityScanResponse = {
+  // <== OVERALL RISK ==>
+  overallRisk: string;
+  // <== SECURITY SCORE ==>
+  securityScore: number;
+  // <== SENSITIVE FILES ==>
+  sensitiveFiles: {
+    // <== FOUND ==>
+    found: string[];
+    // <== RISK ==>
+    risk: string;
+    // <== RECOMMENDATION ==>
+    recommendation: string;
+  };
+  configurationSecurity: {
+    // <== SCORE ==>
+    score: number;
+    // <== CONCERNS ==>
+    concerns: Array<{
+      // <== FILE ==>
+      file: string;
+      // <== CONCERN ==>
+      concern: string;
+      // <== SEVERITY ==>
+      severity: string;
+      // <== RECOMMENDATION ==>
+      recommendation: string;
+    }>;
+  };
+  dependencyRisks: {
+    // <== SCORE ==>
+    score: number;
+    // <== OBSERVATIONS ==>
+    observations: string[];
+    // <== RECOMMENDATIONS ==>
+    recommendations: string[];
+  };
+  securityBestPractices: {
+    // <== IMPLEMENTED ==>
+    implemented: string[];
+    // <== MISSING ==>
+    missing: string[];
+    // <== RECOMMENDATIONS ==>
+    recommendations: string[];
+  };
+  prioritizedActions: Array<{
+    // <== PRIORITY ==>
+    priority: number;
+    // <== ACTION ==>
+    action: string;
+    // <== SEVERITY ==>
+    severity: string;
+    // <== EFFORT ==>
+    effort: string;
+  }>;
+  // <== SUMMARY ==>
+  summary: string;
+};
+// <== AI GENERATE README INPUT TYPE ==>
+export type AIGenerateReadmeInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== FILES ==>
+  files?: Array<{ path: string }>;
+  // <== LANGUAGES ==>
+  languages?: Record<string, number>;
+  // <== PACKAGE JSON ==>
+  packageJson?: Record<string, unknown>;
+  // <== REPO INFO ==>
+  repoInfo?: {
+    // <== DESCRIPTION ==>
+    description?: string;
+  };
+};
+// <== AI GENERATE README RESPONSE TYPE ==>
+export type AIGenerateReadmeResponse = {
+  // <== CONTENT ==>
+  content: string;
+};
+// <== AI ACTIVITY INSIGHTS INPUT TYPE ==>
+export type AIActivityInsightsInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== COMMITS ==>
+  commits?: Array<{
+    // <== MESSAGE ==>
+    message: string;
+    // <== DATE ==>
+    date: string;
+    // <== AUTHOR ==>
+    author: string;
+  }>;
+  // <== ISSUES ==>
+  issues?: Array<{
+    // <== TITLE ==>
+    title: string;
+    // <== STATE ==>
+    state: string;
+    // <== CREATED AT ==>
+    createdAt: string;
+    // <== LABELS ==>
+    labels?: string[];
+  }>;
+  // <== PULL REQUESTS ==>
+  pullRequests?: Array<{
+    // <== TITLE ==>
+    title: string;
+    // <== STATE ==>
+    state: string;
+    // <== CREATED AT ==>
+    createdAt: string;
+    // <== MERGED ==>
+    merged?: boolean;
+  }>;
+};
+// <== AI ACTIVITY INSIGHTS RESPONSE TYPE ==>
+export type AIActivityInsightsResponse = {
+  // <== ACTIVITY SCORE ==>
+  activityScore: number;
+  // <== PATTERNS ==>
+  patterns: {
+    // <== PEAK DAYS ==>
+    peakDays: string[];
+    // <== PEAK HOURS ==>
+    peakHours: string;
+    // <== AVERAGE COMMITS PER WEEK ==>
+    averageCommitsPerWeek: number;
+    // <== TREND ==>
+    trend: string;
+  };
+  // <== CONTRIBUTORS ==>
+  contributors: {
+    // <== TOTAL ACTIVE ==>
+    totalActive: number;
+    // <== TOP CONTRIBUTORS ==>
+    topContributors: Array<{ name: string; commits: number }>;
+    // <== DIVERSITY SCORE ==>
+    diversityScore: number;
+  };
+  // <== VELOCITY ==>
+  velocity: {
+    // <== SCORE ==>
+    score: number;
+    // <== AVERAGE TIME BETWEEN COMMITS ==>
+    averageTimeBetweenCommits: string;
+    // <== ASSESSMENT ==>
+    assessment: string;
+  };
+  // <== ISSUE RESOLUTION ==>
+  issueResolution: {
+    // <== SCORE ==>
+    score: number;
+    // <== AVERAGE TIME TO CLOSE ==>
+    averageTimeToClose: string;
+    // <== OPEN TO CLOSED RATIO ==>
+    openToClosedRatio: number;
+    // <== COMMON LABELS ==>
+    commonLabels: string[];
+  };
+  // <== PR WORKFLOW ==>
+  prWorkflow: {
+    // <== SCORE ==>
+    score: number;
+    // <== AVERAGE TIME TO MERGE ==>
+    averageTimeToMerge: string;
+    // <== MERGE RATE ==>
+    mergeRate: number;
+    // <== REVIEW EFFICIENCY ==>
+    reviewEfficiency: string;
+  };
+  // <== PREDICTIONS ==>
+  predictions: {
+    // <== NEXT MILESTONE ==>
+    nextMilestone: string;
+    // <== POTENTIAL BOTTLENECKS ==>
+    potentialBottlenecks: string[];
+    // <== RECOMMENDATIONS ==>
+    recommendations: string[];
+  };
+  // <== SUMMARY ==>
+  summary: string;
+};
 
 // <== FETCH AI STATUS ==>
 const fetchAIStatus = async (): Promise<AIStatus> => {
@@ -1509,6 +1917,172 @@ export const useAISuggestWorkflowImprovements = () => {
       toast.error(
         error.response?.data?.message ||
           "Failed to suggest workflow improvements"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== AI REPOSITORY ANALYSIS FUNCTION ==>
+const aiRepositoryAnalysisFn = async (
+  input: AIRepositoryAnalysisInput
+): Promise<AIRepositoryAnalysisResponse> => {
+  // FETCH ANALYSIS
+  const response = await apiClient.post<
+    ApiResponse<AIRepositoryAnalysisResponse>
+  >("/ai/repository-analysis", input);
+  // RETURN ANALYSIS
+  return response.data.data;
+};
+
+// <== AI CODE QUALITY SCAN FUNCTION ==>
+const aiCodeQualityScanFn = async (
+  input: AICodeQualityScanInput
+): Promise<AICodeQualityScanResponse> => {
+  // FETCH SCAN
+  const response = await apiClient.post<ApiResponse<AICodeQualityScanResponse>>(
+    "/ai/code-quality-scan",
+    input
+  );
+  // RETURN SCAN
+  return response.data.data;
+};
+
+// <== AI SECURITY SCAN FUNCTION ==>
+const aiSecurityScanFn = async (
+  input: AISecurityScanInput
+): Promise<AISecurityScanResponse> => {
+  // FETCH SCAN
+  const response = await apiClient.post<ApiResponse<AISecurityScanResponse>>(
+    "/ai/security-scan",
+    input
+  );
+  // RETURN SCAN
+  return response.data.data;
+};
+
+// <== AI GENERATE README FUNCTION ==>
+const aiGenerateReadmeFn = async (
+  input: AIGenerateReadmeInput
+): Promise<AIGenerateReadmeResponse> => {
+  // FETCH README
+  const response = await apiClient.post<ApiResponse<AIGenerateReadmeResponse>>(
+    "/ai/generate-readme",
+    input
+  );
+  // RETURN README
+  return response.data.data;
+};
+
+// <== AI ACTIVITY INSIGHTS FUNCTION ==>
+const aiActivityInsightsFn = async (
+  input: AIActivityInsightsInput
+): Promise<AIActivityInsightsResponse> => {
+  // FETCH INSIGHTS
+  const response = await apiClient.post<
+    ApiResponse<AIActivityInsightsResponse>
+  >("/ai/activity-insights", input);
+  // RETURN INSIGHTS
+  return response.data.data;
+};
+
+// <== USE AI REPOSITORY ANALYSIS HOOK ==>
+export const useAIRepositoryAnalysis = () => {
+  // AI REPOSITORY ANALYSIS MUTATION
+  const mutation = useMutation<
+    AIRepositoryAnalysisResponse,
+    AxiosError<{ message?: string }>,
+    AIRepositoryAnalysisInput
+  >({
+    mutationFn: aiRepositoryAnalysisFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to analyze repository"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE AI CODE QUALITY SCAN HOOK ==>
+export const useAICodeQualityScan = () => {
+  // AI CODE QUALITY SCAN MUTATION
+  const mutation = useMutation<
+    AICodeQualityScanResponse,
+    AxiosError<{ message?: string }>,
+    AICodeQualityScanInput
+  >({
+    mutationFn: aiCodeQualityScanFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to scan code quality"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE AI SECURITY SCAN HOOK ==>
+export const useAISecurityScan = () => {
+  // AI SECURITY SCAN MUTATION
+  const mutation = useMutation<
+    AISecurityScanResponse,
+    AxiosError<{ message?: string }>,
+    AISecurityScanInput
+  >({
+    mutationFn: aiSecurityScanFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to run security scan"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE AI GENERATE README HOOK ==>
+export const useAIGenerateReadme = () => {
+  // AI GENERATE README MUTATION
+  const mutation = useMutation<
+    AIGenerateReadmeResponse,
+    AxiosError<{ message?: string }>,
+    AIGenerateReadmeInput
+  >({
+    mutationFn: aiGenerateReadmeFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to generate README");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE AI ACTIVITY INSIGHTS HOOK ==>
+export const useAIActivityInsights = () => {
+  // AI ACTIVITY INSIGHTS MUTATION
+  const mutation = useMutation<
+    AIActivityInsightsResponse,
+    AxiosError<{ message?: string }>,
+    AIActivityInsightsInput
+  >({
+    mutationFn: aiActivityInsightsFn,
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to generate activity insights"
       );
     },
   });
