@@ -66,6 +66,11 @@ body {
   --chip-bg: #f1f1f1;
   --icon: #6b6b6b;
   --primary-text: #0f172a;
+  /* <== SCROLLBAR VARIABLES ==> */
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: #c4c4c4;
+  --scrollbar-thumb-hover: #a8a8a8;
+  --scrollbar-thumb-active: #8f8f8f;
 }
 html.dark {
   /* <== DARK THEME STYLES ==> */
@@ -121,24 +126,63 @@ html.dark {
   --chip-bg: rgba(255, 255, 255, 0.06);
   --icon: #bbbbbb;
   --primary-text: #f3f4f6;
+  /* <== SCROLLBAR VARIABLES ==> */
+  --scrollbar-track: #3a3a3a;
+  --scrollbar-thumb: #5a5a5a;
+  --scrollbar-thumb-hover: #6a6a6a;
+  --scrollbar-thumb-active: #7a7a7a;
 }
 /* <== SCROLLBAR STYLES ==> */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
-/* <== WEBKIT SCROLLBAR THUMB STYLES ==> */
-::-webkit-scrollbar-thumb {
-  background-color: #a78bfa;
-  border-radius: 9999px;
-}
-/* <== WEBKIT SCROLLBAR TRACK STYLES ==> */
 ::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: var(--scrollbar-track);
+  border-radius: 4px;
 }
-/* <== ALL ELEMENTS SCROLLBAR STYLES ==> */
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+  border: 2px solid var(--scrollbar-track);
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+::-webkit-scrollbar-button:single-button {
+  display: none !important;
+}
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment,
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:end:decrement,
+::-webkit-scrollbar-button:horizontal:start:increment,
+::-webkit-scrollbar-button:horizontal:end:decrement,
+::-webkit-scrollbar-button:vertical:decrement,
+::-webkit-scrollbar-button:vertical:increment,
+::-webkit-scrollbar-button:horizontal:decrement,
+::-webkit-scrollbar-button:horizontal:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
 * {
   scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 /* <== HTML SCROLL BEHAVIOR STYLES ==> */
 html {
