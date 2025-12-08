@@ -128,6 +128,8 @@ type RawApiPagination = {
   perPage: number;
   // <== HAS MORE ==>
   hasMore?: boolean;
+  // <== TOTAL COUNT (OPTIONAL) ==>
+  totalCount?: number;
 };
 // <== RAW API RESPONSE TYPE (FROM BACKEND) ==>
 type RawRepositoriesResponse = {
@@ -148,6 +150,8 @@ type RepositoriesResponse = {
     perPage: number;
     // <== TOTAL COUNT ==>
     totalCount: number;
+    // <== HAS MORE ==>
+    hasMore: boolean;
     // <== HAS NEXT PAGE ==>
     hasNextPage: boolean;
     // <== HAS PREVIOUS PAGE ==>
@@ -2218,6 +2222,220 @@ export type CreateDeploymentStatusInput = {
   // <== AUTO INACTIVE ==>
   autoInactive?: boolean;
 };
+// <== DASHBOARD STATS TYPE ==>
+export type DashboardStats = {
+  // <== REPOSITORIES STATS ==>
+  repositories: {
+    // <== TOTAL ==>
+    total: number;
+    // <== PUBLIC ==>
+    public: number;
+    // <== PRIVATE ==>
+    private: number;
+  };
+  // <== STARS COUNT ==>
+  stars: number;
+  // <== FORKS COUNT ==>
+  forks: number;
+  // <== PULL REQUESTS STATS ==>
+  pullRequests: {
+    // <== OPEN ==>
+    open: number;
+    // <== PENDING REVIEWS ==>
+    pendingReviews: number;
+  };
+  // <== ISSUES STATS ==>
+  issues: {
+    // <== OPEN ==>
+    open: number;
+    // <== ASSIGNED ==>
+    assigned: number;
+  };
+  // <== TOP LANGUAGES ==>
+  topLanguages: {
+    // <== LANGUAGE ==>
+    language: string;
+    // <== COUNT ==>
+    count: number;
+  }[];
+  // <== RECENT REPOS ==>
+  recentRepos: {
+    // <== ID ==>
+    id: number;
+    // <== NAME ==>
+    name: string;
+    // <== FULL NAME ==>
+    fullName: string;
+    // <== DESCRIPTION ==>
+    description: string | null;
+    // <== LANGUAGE ==>
+    language: string | null;
+    // <== STARS ==>
+    stars: number;
+    // <== FORKS ==>
+    forks: number;
+    // <== PRIVATE ==>
+    private: boolean;
+    // <== UPDATED AT ==>
+    updatedAt: string;
+    // <== PUSHED AT ==>
+    pushedAt: string;
+    // <== HTML URL ==>
+    htmlUrl: string;
+  }[];
+};
+// <== DASHBOARD ACTIVITY TYPE ==>
+export type DashboardActivity = {
+  // <== ID ==>
+  id: string;
+  // <== TYPE ==>
+  type: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== REPO ==>
+  repo: {
+    // <== ID ==>
+    id: number;
+    // <== NAME ==>
+    name: string;
+    // <== URL ==>
+    url: string;
+  };
+  // <== ACTOR ==>
+  actor: {
+    id: number;
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+  };
+  // <== DETAILS (VARIES BY TYPE) ==>
+  details?: {
+    // <== REF ==>
+    ref?: string;
+    // <== HEAD ==>
+    head?: string;
+    // <== BEFORE ==>
+    before?: string;
+    // <== ACTION ==>
+    action?: string;
+    // <== NUMBER ==>
+    number?: number;
+    // <== TITLE ==>
+    title?: string;
+    // <== STATE ==>
+    state?: string;
+    // <== MERGED ==>
+    merged?: boolean;
+    // <== ISSUE NUMBER ==>
+    issueNumber?: number;
+    // <== ISSUE TITLE ==>
+    issueTitle?: string;
+    // <== BODY ==>
+    body?: string;
+    // <== REF TYPE ==>
+    refType?: string;
+    // <== DESCRIPTION ==>
+    description?: string;
+    // <== FORK EVENT ==>
+    forkee?: {
+      // <== FULL NAME ==>
+      fullName: string;
+      // <== HTML URL ==>
+      htmlUrl: string;
+    };
+    // <== RELEASE EVENT ==>
+    tagName?: string;
+    // <== NAME ==>
+    name?: string;
+    // <== PR REVIEW EVENT ==>
+    prNumber?: number;
+    // <== PR TITLE ==>
+    prTitle?: string;
+  };
+};
+// <== STARRED REPOSITORY TYPE ==>
+export type StarredRepository = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string;
+  // <== FULL NAME ==>
+  fullName: string;
+  // <== DESCRIPTION ==>
+  description: string | null;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== PRIVATE ==>
+  private: boolean;
+  // <== FORK ==>
+  fork: boolean;
+  // <== LANGUAGE ==>
+  language: string | null;
+  // <== STARS ==>
+  stars: number;
+  // <== FORKS ==>
+  forks: number;
+  // <== OPEN ISSUES ==>
+  openIssues: number;
+  // <== DEFAULT BRANCH ==>
+  defaultBranch: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== PUSHED AT ==>
+  pushedAt: string;
+  // <== OWNER ==>
+  owner: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+    // <== HTML URL ==>
+    htmlUrl: string;
+  };
+};
+// <== PINNED REPOSITORY TYPE ==>
+export type PinnedRepository = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string;
+  // <== FULL NAME ==>
+  fullName: string;
+  // <== DESCRIPTION ==>
+  description: string | null;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== PRIVATE ==>
+  private: boolean;
+  // <== FORK ==>
+  fork: boolean;
+  // <== LANGUAGE ==>
+  language: string | null;
+  // <== LANGUAGE COLOR ==>
+  languageColor: string | null;
+  // <== STARS ==>
+  stars: number;
+  // <== FORKS ==>
+  forks: number;
+  // <== DEFAULT BRANCH ==>
+  defaultBranch: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== PUSHED AT ==>
+  pushedAt: string;
+  // <== OWNER ==>
+  owner: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+  };
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -2293,7 +2511,8 @@ const fetchRepositories = async (
   const mappedPagination = {
     page: rawData.pagination.page,
     perPage: rawData.pagination.perPage,
-    totalCount: rawData.repositories.length,
+    totalCount: rawData.pagination.totalCount || rawData.repositories.length,
+    hasMore: rawData.pagination.hasMore ?? false,
     hasNextPage: rawData.pagination.hasMore ?? false,
     hasPreviousPage: rawData.pagination.page > 1,
   };
@@ -6459,4 +6678,300 @@ export const useEnvironmentDetails = (
   });
   // RETURN ENVIRONMENT DETAILS
   return { environment: data, isLoading, isError, error, refetch };
+};
+
+// <== FETCH DASHBOARD STATS FUNCTION ==>
+const fetchDashboardStats = async (): Promise<DashboardStats> => {
+  // FETCH DASHBOARD STATS
+  const response = await apiClient.get<{ data: DashboardStats }>(
+    "/github/dashboard/stats"
+  );
+  // RETURN DASHBOARD STATS
+  return response.data.data;
+};
+
+// <== FETCH DASHBOARD ACTIVITY FUNCTION ==>
+const fetchDashboardActivity = async (
+  limit: number = 20
+): Promise<{ activity: DashboardActivity[]; count: number }> => {
+  // FETCH DASHBOARD ACTIVITY
+  const response = await apiClient.get<{
+    data: { activity: DashboardActivity[]; count: number };
+  }>("/github/dashboard/activity", { params: { limit } });
+  // RETURN DASHBOARD ACTIVITY
+  return response.data.data;
+};
+
+// <== USE DASHBOARD STATS HOOK ==>
+export const useDashboardStats = (enabled: boolean = true) => {
+  // USE DASHBOARD STATS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    DashboardStats,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-dashboard-stats"],
+    queryFn: fetchDashboardStats,
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled,
+  });
+  // RETURN DASHBOARD STATS
+  return {
+    stats: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE DASHBOARD ACTIVITY HOOK ==>
+export const useDashboardActivity = (
+  limit: number = 20,
+  enabled: boolean = true
+) => {
+  // USE DASHBOARD ACTIVITY QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    { activity: DashboardActivity[]; count: number },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-dashboard-activity", limit],
+    queryFn: () => fetchDashboardActivity(limit),
+    retry: 1,
+    staleTime: 1 * 60 * 1000,
+    enabled,
+  });
+  // RETURN DASHBOARD ACTIVITY
+  return {
+    activity: data?.activity || [],
+    count: data?.count || 0,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== FETCH STARRED REPOSITORIES FUNCTION ==>
+const fetchStarredRepositories = async (
+  page: number = 1,
+  perPage: number = 30,
+  sort: string = "created",
+  direction: string = "desc"
+): Promise<{
+  repositories: StarredRepository[];
+  pagination: { page: number; perPage: number; hasMore: boolean };
+}> => {
+  // FETCH STARRED REPOS
+  const response = await apiClient.get<{
+    data: {
+      repositories: StarredRepository[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    };
+  }>("/github/starred", {
+    params: { page, per_page: perPage, sort, direction },
+  });
+  // RETURN STARRED REPOS
+  return response.data.data;
+};
+
+// <== STAR REPOSITORY FUNCTION ==>
+const starRepositoryFn = async (owner: string, repo: string): Promise<void> => {
+  // STAR REPO
+  await apiClient.put(`/github/starred/${owner}/${repo}`);
+};
+
+// <== UNSTAR REPOSITORY FUNCTION ==>
+const unstarRepositoryFn = async (
+  owner: string,
+  repo: string
+): Promise<void> => {
+  // UNSTAR REPO
+  await apiClient.delete(`/github/starred/${owner}/${repo}`);
+};
+
+// <== CHECK IF STARRED FUNCTION ==>
+const checkIfStarredFn = async (
+  owner: string,
+  repo: string
+): Promise<boolean> => {
+  // CHECK IF STARRED
+  const response = await apiClient.get<{ data: { isStarred: boolean } }>(
+    `/github/starred/${owner}/${repo}`
+  );
+  // RETURN IS STARRED
+  return response.data.data.isStarred;
+};
+
+// <== USE STARRED REPOSITORIES HOOK ==>
+export const useStarredRepositories = (
+  page: number = 1,
+  perPage: number = 30,
+  sort: string = "created",
+  direction: string = "desc",
+  enabled: boolean = true
+) => {
+  // USE STARRED REPOS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    {
+      repositories: StarredRepository[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-starred-repos", page, perPage, sort, direction],
+    queryFn: () => fetchStarredRepositories(page, perPage, sort, direction),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled,
+  });
+  // RETURN STARRED REPOS
+  return {
+    repositories: data?.repositories || [],
+    pagination: data?.pagination,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE CHECK IF STARRED HOOK ==>
+export const useCheckIfStarred = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE CHECK IF STARRED QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    boolean,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-is-starred", owner, repo],
+    queryFn: () => checkIfStarredFn(owner, repo),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN IS STARRED
+  return { isStarred: data ?? false, isLoading, isError, error, refetch };
+};
+
+// <== USE STAR REPOSITORY HOOK ==>
+export const useStarRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // STAR MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string }
+  >({
+    mutationFn: ({ owner, repo }) => starRepositoryFn(owner, repo),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE STARRED CHECK
+      queryClient.invalidateQueries({
+        queryKey: ["github-is-starred", variables.owner, variables.repo],
+      });
+      // INVALIDATE STARRED LIST
+      queryClient.invalidateQueries({
+        queryKey: ["github-starred-repos"],
+      });
+      // INVALIDATE DASHBOARD STATS
+      queryClient.invalidateQueries({
+        queryKey: ["github-dashboard-stats"],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Repository starred!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to star repository");
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE UNSTAR REPOSITORY HOOK ==>
+export const useUnstarRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // UNSTAR MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string }
+  >({
+    mutationFn: ({ owner, repo }) => unstarRepositoryFn(owner, repo),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE STARRED CHECK
+      queryClient.invalidateQueries({
+        queryKey: ["github-is-starred", variables.owner, variables.repo],
+      });
+      // INVALIDATE STARRED LIST
+      queryClient.invalidateQueries({
+        queryKey: ["github-starred-repos"],
+      });
+      // INVALIDATE DASHBOARD STATS
+      queryClient.invalidateQueries({
+        queryKey: ["github-dashboard-stats"],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Repository unstarred!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to unstar repository"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== FETCH PINNED REPOSITORIES FUNCTION ==>
+const fetchPinnedRepositories = async (): Promise<{
+  repositories: PinnedRepository[];
+  count: number;
+}> => {
+  // FETCH PINNED REPOS
+  const response = await apiClient.get<{
+    data: { repositories: PinnedRepository[]; count: number };
+  }>("/github/pinned");
+  // RETURN PINNED REPOS
+  return response.data.data;
+};
+
+// <== USE PINNED REPOSITORIES HOOK ==>
+export const usePinnedRepositories = (enabled: boolean = true) => {
+  // USE PINNED REPOS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    { repositories: PinnedRepository[]; count: number },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-pinned-repos"],
+    queryFn: fetchPinnedRepositories,
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+  // RETURN PINNED REPOS
+  return {
+    repositories: data?.repositories || [],
+    count: data?.count || 0,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
 };
