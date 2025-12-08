@@ -870,6 +870,13 @@ const GitHubRepoPage = (): JSX.Element => {
                   <Globe size={16} />
                 </button>
                 <button
+                  onClick={() => navigate(`/github/${owner}/${repo}/insights`)}
+                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  title="AI Insights"
+                >
+                  <Sparkles size={16} />
+                </button>
+                <button
                   onClick={() => setShowSettings(true)}
                   className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
                   title="Settings"
@@ -995,6 +1002,16 @@ const GitHubRepoPage = (): JSX.Element => {
                       >
                         <Globe size={16} className="text-[var(--accent-color)]" />
                         <span>Deployments</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/github/${owner}/${repo}/insights`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <Sparkles size={16} className="text-[var(--accent-color)]" />
+                        <span>AI Insights</span>
                       </button>
                       <button
                         onClick={() => {
