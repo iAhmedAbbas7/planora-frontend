@@ -2062,6 +2062,162 @@ export type GenerateReleaseNotesInput = {
   // <== PREVIOUS TAG NAME ==>
   previousTagName?: string;
 };
+// <== DEPLOYMENT CREATOR TYPE ==>
+export type DeploymentCreator = {
+  // <== LOGIN ==>
+  login: string;
+  // <== AVATAR URL ==>
+  avatarUrl: string;
+  // <== HTML URL ==>
+  htmlUrl?: string;
+};
+// <== DEPLOYMENT STATUS TYPE ==>
+export type DeploymentStatus = {
+  // <== ID ==>
+  id: number;
+  // <== STATE ==>
+  state:
+    | "error"
+    | "failure"
+    | "inactive"
+    | "in_progress"
+    | "queued"
+    | "pending"
+    | "success";
+  // <== DESCRIPTION ==>
+  description: string | null;
+  // <== ENVIRONMENT URL ==>
+  environmentUrl: string | null;
+  // <== LOG URL ==>
+  logUrl: string | null;
+  // <== CREATOR ==>
+  creator: DeploymentCreator | null;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== NODE ID ==>
+  nodeId?: string;
+};
+// <== DEPLOYMENT TYPE ==>
+export type Deployment = {
+  // <== ID ==>
+  id: number;
+  // <== SHA ==>
+  sha: string;
+  // <== REF ==>
+  ref: string;
+  // <== TASK ==>
+  task: string;
+  // <== ENVIRONMENT ==>
+  environment: string;
+  // <== DESCRIPTION ==>
+  description: string | null;
+  // <== CREATOR ==>
+  creator: DeploymentCreator | null;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== TRANSIENT ENVIRONMENT ==>
+  transientEnvironment?: boolean;
+  // <== PRODUCTION ENVIRONMENT ==>
+  productionEnvironment?: boolean;
+  // <== NODE ID ==>
+  nodeId?: string;
+  // <== STATUSES URL ==>
+  statusesUrl?: string;
+  // <== REPOSITORY URL ==>
+  repositoryUrl?: string;
+  // <== LATEST STATUS ==>
+  latestStatus?: DeploymentStatus | null;
+};
+// <== ENVIRONMENT PROTECTION RULE TYPE ==>
+export type EnvironmentProtectionRule = {
+  // <== ID ==>
+  id: number;
+  // <== TYPE ==>
+  type: string;
+  // <== WAIT TIMER ==>
+  waitTimer?: number;
+  // <== REVIEWERS ==>
+  reviewers?: Array<{
+    type: string;
+    login?: string;
+    avatarUrl?: string;
+  }>;
+};
+// <== ENVIRONMENT TYPE ==>
+export type Environment = {
+  // <== ID ==>
+  id: number;
+  // <== NAME ==>
+  name: string;
+  // <== HTML URL ==>
+  htmlUrl?: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== PROTECTION RULES ==>
+  protectionRules?: EnvironmentProtectionRule[];
+  // <== DEPLOYMENT BRANCH POLICY ==>
+  deploymentBranchPolicy?: {
+    protectedBranches: boolean;
+    customBranchPolicies: boolean;
+  } | null;
+};
+// <== CREATE DEPLOYMENT INPUT TYPE ==>
+export type CreateDeploymentInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== REF ==>
+  ref: string;
+  // <== TASK ==>
+  task?: string;
+  // <== AUTO MERGE ==>
+  autoMerge?: boolean;
+  // <== REQUIRED CONTEXTS ==>
+  requiredContexts?: string[];
+  // <== PAYLOAD ==>
+  payload?: string | Record<string, unknown>;
+  // <== ENVIRONMENT ==>
+  environment?: string;
+  // <== DESCRIPTION ==>
+  description?: string;
+  // <== TRANSIENT ENVIRONMENT ==>
+  transientEnvironment?: boolean;
+  // <== PRODUCTION ENVIRONMENT ==>
+  productionEnvironment?: boolean;
+};
+// <== CREATE DEPLOYMENT STATUS INPUT TYPE ==>
+export type CreateDeploymentStatusInput = {
+  // <== OWNER ==>
+  owner: string;
+  // <== REPO ==>
+  repo: string;
+  // <== DEPLOYMENT ID ==>
+  deploymentId: number;
+  // <== STATE ==>
+  state:
+    | "error"
+    | "failure"
+    | "inactive"
+    | "in_progress"
+    | "queued"
+    | "pending"
+    | "success";
+  // <== LOG URL ==>
+  logUrl?: string;
+  // <== DESCRIPTION ==>
+  description?: string;
+  // <== ENVIRONMENT URL ==>
+  environmentUrl?: string;
+  // <== AUTO INACTIVE ==>
+  autoInactive?: boolean;
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -5879,4 +6035,428 @@ export const useGenerateReleaseNotes = () => {
   });
   // RETURN MUTATION
   return mutation;
+};
+
+// <== FETCH DEPLOYMENTS FUNCTION ==>
+const fetchDeployments = async (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 20,
+  environment?: string
+): Promise<{
+  deployments: Deployment[];
+  pagination: { page: number; perPage: number; hasMore: boolean };
+}> => {
+  // BUILD PARAMS
+  const params: Record<string, string | number> = {
+    page,
+    per_page: perPage,
+  };
+  if (environment) params.environment = environment;
+  // FETCH DEPLOYMENTS
+  const response = await apiClient.get<
+    ApiResponse<{
+      deployments: Deployment[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    }>
+  >(`/github/repositories/${owner}/${repo}/deployments`, { params });
+  // RETURN DEPLOYMENTS
+  return response.data.data;
+};
+
+// <== FETCH DEPLOYMENT DETAILS FUNCTION ==>
+const fetchDeploymentDetails = async (
+  owner: string,
+  repo: string,
+  deploymentId: number
+): Promise<Deployment> => {
+  // FETCH DEPLOYMENT DETAILS
+  const response = await apiClient.get<ApiResponse<Deployment>>(
+    `/github/repositories/${owner}/${repo}/deployments/${deploymentId}`
+  );
+  // RETURN DEPLOYMENT
+  return response.data.data;
+};
+
+// <== FETCH DEPLOYMENT STATUSES FUNCTION ==>
+const fetchDeploymentStatuses = async (
+  owner: string,
+  repo: string,
+  deploymentId: number,
+  page: number = 1,
+  perPage: number = 30
+): Promise<{
+  statuses: DeploymentStatus[];
+  pagination: { page: number; perPage: number; hasMore: boolean };
+}> => {
+  // FETCH DEPLOYMENT STATUSES
+  const response = await apiClient.get<
+    ApiResponse<{
+      statuses: DeploymentStatus[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    }>
+  >(
+    `/github/repositories/${owner}/${repo}/deployments/${deploymentId}/statuses?page=${page}&per_page=${perPage}`
+  );
+  // RETURN STATUSES
+  return response.data.data;
+};
+
+// <== CREATE DEPLOYMENT FUNCTION ==>
+const createDeploymentFn = async (
+  input: CreateDeploymentInput
+): Promise<Deployment | null> => {
+  // CREATE DEPLOYMENT
+  const response = await apiClient.post<ApiResponse<Deployment | null>>(
+    `/github/repositories/${input.owner}/${input.repo}/deployments`,
+    {
+      ref: input.ref,
+      task: input.task,
+      autoMerge: input.autoMerge,
+      requiredContexts: input.requiredContexts,
+      payload: input.payload,
+      environment: input.environment,
+      description: input.description,
+      transientEnvironment: input.transientEnvironment,
+      productionEnvironment: input.productionEnvironment,
+    }
+  );
+  // RETURN DEPLOYMENT
+  return response.data.data;
+};
+
+// <== CREATE DEPLOYMENT STATUS FUNCTION ==>
+const createDeploymentStatusFn = async (
+  input: CreateDeploymentStatusInput
+): Promise<DeploymentStatus> => {
+  // CREATE DEPLOYMENT STATUS
+  const response = await apiClient.post<ApiResponse<DeploymentStatus>>(
+    `/github/repositories/${input.owner}/${input.repo}/deployments/${input.deploymentId}/statuses`,
+    {
+      state: input.state,
+      logUrl: input.logUrl,
+      description: input.description,
+      environmentUrl: input.environmentUrl,
+      autoInactive: input.autoInactive,
+    }
+  );
+  // RETURN STATUS
+  return response.data.data;
+};
+
+// <== DELETE DEPLOYMENT FUNCTION ==>
+const deleteDeploymentFn = async (
+  owner: string,
+  repo: string,
+  deploymentId: number
+): Promise<void> => {
+  // DELETE DEPLOYMENT
+  await apiClient.delete(
+    `/github/repositories/${owner}/${repo}/deployments/${deploymentId}`
+  );
+};
+
+// <== FETCH ENVIRONMENTS FUNCTION ==>
+const fetchEnvironments = async (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 30
+): Promise<{
+  environments: Environment[];
+  totalCount: number;
+  pagination: { page: number; perPage: number; hasMore: boolean };
+}> => {
+  // FETCH ENVIRONMENTS
+  const response = await apiClient.get<
+    ApiResponse<{
+      environments: Environment[];
+      totalCount: number;
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    }>
+  >(
+    `/github/repositories/${owner}/${repo}/environments?page=${page}&per_page=${perPage}`
+  );
+  // RETURN ENVIRONMENTS
+  return response.data.data;
+};
+
+// <== FETCH ENVIRONMENT DETAILS FUNCTION ==>
+const fetchEnvironmentDetails = async (
+  owner: string,
+  repo: string,
+  environmentName: string
+): Promise<Environment> => {
+  // FETCH ENVIRONMENT DETAILS
+  const response = await apiClient.get<ApiResponse<Environment>>(
+    `/github/repositories/${owner}/${repo}/environments/${encodeURIComponent(
+      environmentName
+    )}`
+  );
+  // RETURN ENVIRONMENT
+  return response.data.data;
+};
+
+// <== USE DEPLOYMENTS HOOK ==>
+export const useDeployments = (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 20,
+  environment?: string,
+  enabled: boolean = true
+) => {
+  // USE DEPLOYMENTS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    {
+      deployments: Deployment[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-deployments", owner, repo, page, perPage, environment],
+    queryFn: () => fetchDeployments(owner, repo, page, perPage, environment),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN DEPLOYMENTS
+  return {
+    deployments: data?.deployments || [],
+    pagination: data?.pagination,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE DEPLOYMENT DETAILS HOOK ==>
+export const useDeploymentDetails = (
+  owner: string,
+  repo: string,
+  deploymentId: number,
+  enabled: boolean = true
+) => {
+  // USE DEPLOYMENT DETAILS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    Deployment,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-deployment", owner, repo, deploymentId],
+    queryFn: () => fetchDeploymentDetails(owner, repo, deploymentId),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!owner && !!repo && !!deploymentId,
+  });
+  // RETURN DEPLOYMENT DETAILS
+  return { deployment: data, isLoading, isError, error, refetch };
+};
+
+// <== USE DEPLOYMENT STATUSES HOOK ==>
+export const useDeploymentStatuses = (
+  owner: string,
+  repo: string,
+  deploymentId: number,
+  page: number = 1,
+  perPage: number = 30,
+  enabled: boolean = true
+) => {
+  // USE DEPLOYMENT STATUSES QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    {
+      statuses: DeploymentStatus[];
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: [
+      "github-deployment-statuses",
+      owner,
+      repo,
+      deploymentId,
+      page,
+      perPage,
+    ],
+    queryFn: () =>
+      fetchDeploymentStatuses(owner, repo, deploymentId, page, perPage),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!owner && !!repo && !!deploymentId,
+  });
+  // RETURN DEPLOYMENT STATUSES
+  return {
+    statuses: data?.statuses || [],
+    pagination: data?.pagination,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE CREATE DEPLOYMENT HOOK ==>
+export const useCreateDeployment = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE DEPLOYMENT MUTATION
+  const mutation = useMutation<
+    Deployment | null,
+    AxiosError<{ message?: string }>,
+    CreateDeploymentInput
+  >({
+    mutationFn: createDeploymentFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE DEPLOYMENTS
+      queryClient.invalidateQueries({
+        queryKey: ["github-deployments", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Deployment created successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to create deployment"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE CREATE DEPLOYMENT STATUS HOOK ==>
+export const useCreateDeploymentStatus = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // CREATE DEPLOYMENT STATUS MUTATION
+  const mutation = useMutation<
+    DeploymentStatus,
+    AxiosError<{ message?: string }>,
+    CreateDeploymentStatusInput
+  >({
+    mutationFn: createDeploymentStatusFn,
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE DEPLOYMENT STATUSES
+      queryClient.invalidateQueries({
+        queryKey: [
+          "github-deployment-statuses",
+          variables.owner,
+          variables.repo,
+          variables.deploymentId,
+        ],
+      });
+      // INVALIDATE DEPLOYMENTS
+      queryClient.invalidateQueries({
+        queryKey: ["github-deployments", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Deployment status updated!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to update deployment status"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE DELETE DEPLOYMENT HOOK ==>
+export const useDeleteDeployment = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // DELETE DEPLOYMENT MUTATION
+  const mutation = useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string; deploymentId: number }
+  >({
+    mutationFn: ({ owner, repo, deploymentId }) =>
+      deleteDeploymentFn(owner, repo, deploymentId),
+    // ON SUCCESS
+    onSuccess: (_, variables) => {
+      // INVALIDATE DEPLOYMENTS
+      queryClient.invalidateQueries({
+        queryKey: ["github-deployments", variables.owner, variables.repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Deployment deleted successfully!");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to delete deployment"
+      );
+    },
+  });
+  // RETURN MUTATION
+  return mutation;
+};
+
+// <== USE ENVIRONMENTS HOOK ==>
+export const useEnvironments = (
+  owner: string,
+  repo: string,
+  page: number = 1,
+  perPage: number = 30,
+  enabled: boolean = true
+) => {
+  // USE ENVIRONMENTS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    {
+      environments: Environment[];
+      totalCount: number;
+      pagination: { page: number; perPage: number; hasMore: boolean };
+    },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-environments", owner, repo, page, perPage],
+    queryFn: () => fetchEnvironments(owner, repo, page, perPage),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN ENVIRONMENTS
+  return {
+    environments: data?.environments || [],
+    totalCount: data?.totalCount || 0,
+    pagination: data?.pagination,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE ENVIRONMENT DETAILS HOOK ==>
+export const useEnvironmentDetails = (
+  owner: string,
+  repo: string,
+  environmentName: string,
+  enabled: boolean = true
+) => {
+  // USE ENVIRONMENT DETAILS QUERY
+  const { data, isLoading, isError, error, refetch } = useQuery<
+    Environment,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-environment", owner, repo, environmentName],
+    queryFn: () => fetchEnvironmentDetails(owner, repo, environmentName),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!environmentName,
+  });
+  // RETURN ENVIRONMENT DETAILS
+  return { environment: data, isLoading, isError, error, refetch };
 };
