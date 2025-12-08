@@ -27,6 +27,7 @@ import GitHubReleasesPage from "./pages/GitHubReleasesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import GitHubDeploymentsPage from "./pages/GitHubDeploymentsPage";
 import GitHubPullRequestsPage from "./pages/GitHubPullRequestsPage";
 import GitHubCollaboratorsPage from "./pages/GitHubCollaboratorsPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -183,6 +184,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/releases",
               element: <GitHubReleasesPage />,
+            },
+            // <== GITHUB DEPLOYMENTS ROUTE ==>
+            {
+              path: "/github/:owner/:repo/deployments",
+              element: <GitHubDeploymentsPage />,
             },
             // <== TRASH ROUTE ==>
             {
