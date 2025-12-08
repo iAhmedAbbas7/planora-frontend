@@ -711,198 +711,76 @@ const GitHubRepoPage = (): JSX.Element => {
             Back to Repositories
           </button>
           {/* REPO INFO */}
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            {/* LEFT SIDE */}
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
-                  {repository.name}
-                </h1>
-                {/* VISIBILITY BADGE */}
-                {repository.private ? (
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor:
-                        "color-mix(in srgb, #eab308 15%, var(--cards-bg))",
-                      color: "#eab308",
-                    }}
-                  >
-                    <Lock size={10} />
-                    Private
-                  </span>
-                ) : (
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor:
-                        "color-mix(in srgb, #22c55e 15%, var(--cards-bg))",
-                      color: "var(--accent-green-500)",
-                    }}
-                  >
-                    <Globe size={10} />
-                    Public
-                  </span>
-                )}
-                {repository.archived && (
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: "var(--inside-card-bg)",
-                      color: "var(--light-text)",
-                    }}
-                  >
-                    Archived
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-[var(--light-text)] mb-3">
-                {repository.description || "No description provided"}
-              </p>
-              {/* META INFO */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--light-text)]">
-                {repository.language && (
-                  <span className="flex items-center gap-1.5">
+          <div className="space-y-3">
+            {/* TOP ROW - TITLE AND ACTIONS */}
+            <div className="flex items-start justify-between gap-3">
+              {/* LEFT SIDE - TITLE & BADGES */}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
+                    {repository.name}
+                  </h1>
+                  {/* VISIBILITY BADGE */}
+                  {repository.private ? (
                     <span
-                      className="w-3 h-3 rounded-full"
-                      style={{
-                        backgroundColor: getLanguageColor(repository.language),
-                      }}
-                    />
-                    {repository.language}
-                  </span>
-                )}
-                {repository.license && (
-                  <span className="flex items-center gap-1">
-                    <Scale size={12} />
-                    {repository.license.name}
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Clock size={12} />
-                  Updated {formatDate(repository.updatedAt)}
-                </span>
-              </div>
-              {/* TOPICS */}
-              {repository.topics && repository.topics.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {repository.topics.slice(0, 5).map((topic) => (
-                    <span
-                      key={topic}
-                      className="px-2.5 py-1 text-xs rounded-full"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
                       style={{
                         backgroundColor:
-                          "color-mix(in srgb, var(--accent-color) 15%, var(--cards-bg))",
-                        color: "var(--accent-color)",
+                          "color-mix(in srgb, #eab308 15%, var(--cards-bg))",
+                        color: "#eab308",
                       }}
                     >
-                      {topic}
+                      <Lock size={10} />
+                      Private
                     </span>
-                  ))}
+                  ) : (
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{
+                        backgroundColor:
+                          "color-mix(in srgb, #22c55e 15%, var(--cards-bg))",
+                        color: "var(--accent-green-500)",
+                      }}
+                    >
+                      <Globe size={10} />
+                      Public
+                    </span>
+                  )}
+                  {repository.archived && (
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{
+                        backgroundColor: "var(--inside-card-bg)",
+                        color: "var(--light-text)",
+                      }}
+                    >
+                      Archived
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
-            {/* RIGHT SIDE - ACTIONS */}
-            <div className="flex items-center gap-2">
-              {/* MOBILE: ICON-ONLY BUTTONS */}
-              <div className="flex items-center gap-1.5 md:hidden">
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/files`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Browse Files"
-                >
-                  <FolderTree size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/commits`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Commits"
-                >
-                  <History size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/branches`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Branches"
-                >
-                  <GitBranch size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/pulls`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Pull Requests"
-                >
-                  <GitPullRequest size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/issues`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Issues"
-                >
-                  <CircleDot size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/collaborators`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Collaborators"
-                >
-                  <Users size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/actions`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Actions"
-                >
-                  <Play size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/releases`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Releases"
-                >
-                  <Tag size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/deployments`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Deployments"
-                >
-                  <Globe size={16} />
-                </button>
-                <button
-                  onClick={() => navigate(`/github/${owner}/${repo}/insights`)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="AI Insights"
-                >
-                  <Sparkles size={16} />
-                </button>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="p-2 rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
-                  title="Settings"
-                >
-                  <Settings size={16} />
-                </button>
-                <a
-                  href={repository.htmlUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-lg transition text-white cursor-pointer"
-                  style={{ backgroundColor: "var(--accent-color)" }}
-                  title="View on GitHub"
-                >
-                  <ExternalLink size={16} />
-                </a>
               </div>
-              {/* DESKTOP: ACTIONS DROPDOWN */}
-              <div className="hidden md:block relative">
+              {/* RIGHT SIDE - ACTIONS */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+              {/* VIEW ON GITHUB - ALWAYS VISIBLE */}
+              <a
+                href={repository.htmlUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2.5 rounded-lg transition text-white cursor-pointer flex-shrink-0"
+                style={{ backgroundColor: "var(--accent-color)" }}
+                title="View on GitHub"
+              >
+                <ExternalLink size={18} />
+              </a>
+              {/* ACTIONS DROPDOWN - ALL SCREEN SIZES */}
+              <div className="relative">
                 <button
                   onClick={() => setShowActionsDropdown(!showActionsDropdown)}
-                  className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  className="inline-flex items-center gap-2 px-2.5 py-2.5 sm:px-3 sm:py-2 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
                 >
-                  <Menu size={16} className="text-[var(--accent-color)]" />
-                  <span>Actions</span>
-                  <ChevronDown size={14} className={`transition ${showActionsDropdown ? "rotate-180" : ""}`} />
+                  <Menu size={18} className="sm:w-4 sm:h-4 text-[var(--accent-color)]" />
+                  <span className="hidden sm:inline">Actions</span>
+                  <ChevronDown size={14} className={`hidden sm:block transition ${showActionsDropdown ? "rotate-180" : ""}`} />
                 </button>
                 {showActionsDropdown && (
                   <>
@@ -912,7 +790,7 @@ const GitHubRepoPage = (): JSX.Element => {
                       onClick={() => setShowActionsDropdown(false)}
                     />
                     {/* DROPDOWN MENU */}
-                    <div className="absolute top-full right-0 mt-1 w-56 bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg z-50 py-1">
+                    <div className="absolute top-full right-0 mt-1 w-48 sm:w-56 max-h-[70vh] overflow-y-auto bg-[var(--bg)] border border-[var(--border)] rounded-xl shadow-xl z-50 py-1">
                       <button
                         onClick={() => {
                           navigate(`/github/${owner}/${repo}/files`);
@@ -1039,6 +917,53 @@ const GitHubRepoPage = (): JSX.Element => {
                 )}
               </div>
             </div>
+            </div>
+            {/* DESCRIPTION */}
+            <p className="text-sm text-[var(--light-text)]">
+              {repository.description || "No description provided"}
+            </p>
+            {/* META INFO */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--light-text)]">
+              {repository.language && (
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{
+                      backgroundColor: getLanguageColor(repository.language),
+                    }}
+                  />
+                  {repository.language}
+                </span>
+              )}
+              {repository.license && (
+                <span className="flex items-center gap-1">
+                  <Scale size={12} />
+                  {repository.license.name}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Clock size={12} />
+                Updated {formatDate(repository.updatedAt)}
+              </span>
+            </div>
+            {/* TOPICS */}
+            {repository.topics && repository.topics.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {repository.topics.slice(0, 5).map((topic) => (
+                  <span
+                    key={topic}
+                    className="px-2.5 py-1 text-xs rounded-full"
+                    style={{
+                      backgroundColor:
+                        "color-mix(in srgb, var(--accent-color) 15%, var(--cards-bg))",
+                      color: "var(--accent-color)",
+                    }}
+                  >
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           {/* STATS */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-6">
