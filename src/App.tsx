@@ -30,6 +30,7 @@ import GitHubInsightsPage from "./pages/GitHubInsightsPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import GitHubDeploymentsPage from "./pages/GitHubDeploymentsPage";
 import GitHubPullRequestsPage from "./pages/GitHubPullRequestsPage";
+import GitHubNotificationsPage from "./pages/GitHubNotificationsPage";
 import GitHubCollaboratorsPage from "./pages/GitHubCollaboratorsPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -195,6 +196,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/insights",
               element: <GitHubInsightsPage />,
+            },
+            // <== GITHUB NOTIFICATIONS ROUTE ==>
+            {
+              path: "/github/notifications",
+              element: <GitHubNotificationsPage />,
             },
             // <== TRASH ROUTE ==>
             {
