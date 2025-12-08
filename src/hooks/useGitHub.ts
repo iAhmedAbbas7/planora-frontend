@@ -2436,6 +2436,96 @@ export type PinnedRepository = {
     avatarUrl: string;
   };
 };
+// <== GITHUB NOTIFICATION REASON TYPES ==>
+export type GitHubNotificationReason =
+  | "assign"
+  | "author"
+  | "comment"
+  | "ci_activity"
+  | "invitation"
+  | "manual"
+  | "mention"
+  | "review_requested"
+  | "security_alert"
+  | "state_change"
+  | "subscribed"
+  | "team_mention";
+// <== GITHUB NOTIFICATION SUBJECT TYPE ==>
+export type GitHubNotificationSubjectType =
+  | "Issue"
+  | "PullRequest"
+  | "Commit"
+  | "Release"
+  | "Discussion"
+  | "RepositoryVulnerabilityAlert"
+  | "CheckSuite"
+  | "RepositoryInvitation";
+// <== GITHUB NOTIFICATION TYPE ==>
+export type GitHubNotification = {
+  // <== ID ==>
+  id: string;
+  // <== UNREAD ==>
+  unread: boolean;
+  // <== REASON ==>
+  reason: GitHubNotificationReason;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== LAST READ AT ==>
+  lastReadAt: string | null;
+  // <== SUBJECT ==>
+  subject: {
+    // <== TITLE ==>
+    title: string;
+    // <== URL ==>
+    url: string | null;
+    // <== LATEST COMMENT URL ==>
+    latestCommentUrl: string | null;
+    // <== TYPE ==>
+    type: GitHubNotificationSubjectType;
+  };
+  // <== REPOSITORY ==>
+  repository: {
+    // <== ID ==>
+    id: number;
+    // <== NAME ==>
+    name: string;
+    // <== FULL NAME ==>
+    fullName: string;
+    // <== OWNER ==>
+    owner: {
+      // <== LOGIN ==>
+      login: string;
+      // <== AVATAR URL ==>
+      avatarUrl: string;
+    };
+    // <== PRIVATE ==>
+    private: boolean;
+    // <== HTML URL ==>
+    htmlUrl: string;
+  };
+  // <== URL ==>
+  url: string;
+  // <== SUBSCRIPTION URL ==>
+  subscriptionUrl: string;
+};
+// <== GITHUB NOTIFICATIONS RESPONSE TYPE ==>
+export type GitHubNotificationsResponse = {
+  // <== NOTIFICATIONS ==>
+  notifications: GitHubNotification[];
+  // <== COUNT ==>
+  count: number;
+  // <== PAGINATION ==>
+  pagination: {
+    // <== PAGE ==>
+    page: number;
+    // <== PER PAGE ==>
+    perPage: number;
+    // <== HAS NEXT ==>
+    hasNext: boolean;
+    // <== HAS PREV ==>
+    hasPrev: boolean;
+  };
+};
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -6974,4 +7064,230 @@ export const usePinnedRepositories = (enabled: boolean = true) => {
     error,
     refetch,
   };
+};
+
+// <== FETCH GITHUB NOTIFICATIONS FUNCTION ==>
+const fetchGitHubNotifications = async (
+  page: number = 1,
+  perPage: number = 50,
+  all: boolean = false,
+  participating: boolean = false
+): Promise<GitHubNotificationsResponse> => {
+  // BUILD PARAMS
+  const params: Record<string, string | number | boolean> = {
+    page,
+    per_page: perPage,
+    all,
+    participating,
+  };
+  // FETCH NOTIFICATIONS
+  const response = await apiClient.get<
+    ApiResponse<GitHubNotificationsResponse>
+  >("/github/notifications", { params });
+  // RETURN NOTIFICATIONS DATA
+  return response.data.data;
+};
+
+// <== FETCH GITHUB NOTIFICATION THREAD FUNCTION ==>
+const fetchGitHubNotificationThread = async (
+  threadId: string
+): Promise<GitHubNotification> => {
+  // FETCH NOTIFICATION THREAD
+  const response = await apiClient.get<ApiResponse<GitHubNotification>>(
+    `/github/notifications/${threadId}`
+  );
+  // RETURN NOTIFICATION DATA
+  return response.data.data;
+};
+
+// <== MARK GITHUB NOTIFICATION AS READ FUNCTION ==>
+const markGitHubNotificationAsRead = async (
+  threadId: string
+): Promise<void> => {
+  // MARK NOTIFICATION AS READ
+  await apiClient.patch(`/github/notifications/${threadId}`);
+};
+
+// <== MARK ALL GITHUB NOTIFICATIONS AS READ FUNCTION ==>
+const markAllGitHubNotificationsAsRead = async (): Promise<void> => {
+  // MARK ALL NOTIFICATIONS AS READ
+  await apiClient.put("/github/notifications");
+};
+
+// <== MARK REPO GITHUB NOTIFICATIONS AS READ FUNCTION ==>
+const markRepoGitHubNotificationsAsRead = async (
+  owner: string,
+  repo: string
+): Promise<void> => {
+  // MARK REPO NOTIFICATIONS AS READ
+  await apiClient.put(`/github/repositories/${owner}/${repo}/notifications`);
+};
+
+// <== UNSUBSCRIBE GITHUB NOTIFICATION FUNCTION ==>
+const unsubscribeGitHubNotification = async (
+  threadId: string
+): Promise<void> => {
+  // UNSUBSCRIBE FROM NOTIFICATION
+  await apiClient.delete(`/github/notifications/${threadId}/subscription`);
+};
+
+// <== USE GITHUB NOTIFICATIONS HOOK ==>
+export const useGitHubNotifications = (
+  page: number = 1,
+  perPage: number = 50,
+  all: boolean = false,
+  participating: boolean = false,
+  enabled: boolean = true
+) => {
+  // USE NOTIFICATIONS QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    GitHubNotificationsResponse,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-notifications", page, perPage, all, participating],
+    queryFn: () => fetchGitHubNotifications(page, perPage, all, participating),
+    retry: 1,
+    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: 60 * 1000, // Refetch every minute
+    enabled,
+  });
+  // RETURN NOTIFICATIONS
+  return {
+    notifications: data?.notifications || [],
+    count: data?.count || 0,
+    pagination: data?.pagination || {
+      page: 1,
+      perPage: 50,
+      hasNext: false,
+      hasPrev: false,
+    },
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE GITHUB NOTIFICATION THREAD HOOK ==>
+export const useGitHubNotificationThread = (
+  threadId: string,
+  enabled: boolean = true
+) => {
+  // USE NOTIFICATION THREAD QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    GitHubNotification,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-notification-thread", threadId],
+    queryFn: () => fetchGitHubNotificationThread(threadId),
+    retry: 1,
+    staleTime: 30 * 1000,
+    enabled: enabled && !!threadId,
+  });
+  // RETURN NOTIFICATION
+  return {
+    notification: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE MARK GITHUB NOTIFICATION AS READ HOOK ==>
+export const useMarkGitHubNotificationAsRead = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<void, AxiosError<{ message?: string }>, string>({
+    mutationFn: markGitHubNotificationAsRead,
+    onSuccess: () => {
+      // INVALIDATE NOTIFICATIONS QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-notifications"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Notification marked as read");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to mark notification as read"
+      );
+    },
+  });
+};
+
+// <== USE MARK ALL GITHUB NOTIFICATIONS AS READ HOOK ==>
+export const useMarkAllGitHubNotificationsAsRead = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<void, AxiosError<{ message?: string }>, void>({
+    mutationFn: markAllGitHubNotificationsAsRead,
+    onSuccess: () => {
+      // INVALIDATE NOTIFICATIONS QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-notifications"] });
+      // SHOW SUCCESS TOAST
+      toast.success("All notifications marked as read");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to mark all notifications as read"
+      );
+    },
+  });
+};
+
+// <== USE MARK REPO GITHUB NOTIFICATIONS AS READ HOOK ==>
+export const useMarkRepoGitHubNotificationsAsRead = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<
+    void,
+    AxiosError<{ message?: string }>,
+    { owner: string; repo: string }
+  >({
+    mutationFn: ({ owner, repo }) =>
+      markRepoGitHubNotificationsAsRead(owner, repo),
+    onSuccess: (_, { owner, repo }) => {
+      // INVALIDATE NOTIFICATIONS QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-notifications"] });
+      // SHOW SUCCESS TOAST
+      toast.success(`Notifications for ${owner}/${repo} marked as read`);
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to mark repository notifications as read"
+      );
+    },
+  });
+};
+
+// <== USE UNSUBSCRIBE GITHUB NOTIFICATION HOOK ==>
+export const useUnsubscribeGitHubNotification = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<void, AxiosError<{ message?: string }>, string>({
+    mutationFn: unsubscribeGitHubNotification,
+    onSuccess: () => {
+      // INVALIDATE NOTIFICATIONS QUERY
+      queryClient.invalidateQueries({ queryKey: ["github-notifications"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Unsubscribed from notification");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to unsubscribe from notification"
+      );
+    },
+  });
 };
