@@ -1058,7 +1058,10 @@ const GitHubPage = (): JSX.Element => {
               </div>
             </div>
           ) : profile ? (
-            <div className="flex items-center gap-3">
+            <Link
+              to="/github/profile"
+              className="flex items-center gap-3 hover:bg-[var(--hover-bg)] p-2 -m-2 rounded-xl transition-colors"
+            >
               <img
                 src={profile.avatarUrl}
                 alt={profile.login}
@@ -1069,14 +1072,7 @@ const GitHubPage = (): JSX.Element => {
                   <p className="font-semibold text-[var(--text-primary)]">
                     @{profile.login}
                   </p>
-                  <a
-                    href={profile.htmlUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition"
-                  >
-                    <ExternalLink size={14} />
-                  </a>
+                  <ExternalLink size={14} className="text-[var(--light-text)]" />
                 </div>
                 <div className="flex items-center gap-4 text-xs text-[var(--light-text)]">
                   <span className="flex items-center gap-1">
@@ -1089,7 +1085,7 @@ const GitHubPage = (): JSX.Element => {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ) : null}
           {/* ACTION BUTTONS */}
           <div className="flex items-center gap-2">
