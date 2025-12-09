@@ -18,6 +18,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import GitHubIssuesPage from "./pages/GitHubIssuesPage";
 import GitHubCommitsPage from "./pages/GitHubCommitsPage";
 import GitHubComparePage from "./pages/GitHubComparePage";
+import GitHubProfilePage from "./pages/GitHubProfilePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
@@ -212,6 +213,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/notifications",
               element: <GitHubNotificationsPage />,
+            },
+            // <== GITHUB PROFILE ROUTE ==>
+            {
+              path: "/github/profile",
+              element: <GitHubProfilePage />,
             },
             // <== TRASH ROUTE ==>
             {
