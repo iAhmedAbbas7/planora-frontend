@@ -9,6 +9,7 @@ import {
   Bell,
   X,
   Github,
+  Building2,
 } from "lucide-react";
 import { useLogout } from "../../hooks/useAuth";
 import LOGO_IMAGE from "../../assets/images/LOGO.png";
@@ -73,6 +74,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
     { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
     { path: "/projects", name: "Projects", icon: Folder },
     { path: "/tasks", name: "Tasks", icon: ListTodo },
+    { path: "/workspaces", name: "Workspaces", icon: Building2 },
     { path: "/github", name: "GitHub", icon: Github },
     { path: "/trash", name: "Trash", icon: Trash },
     {
@@ -122,7 +124,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
         {/* SIDEBAR CONTENT CONTAINER */}
         <div className="flex flex-col justify-between h-full p-4">
           {/* LOGO AND CONTROLS CONTAINER */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             {/* LOGO CONTAINER */}
             <div className="flex items-center gap-2">
               {/* LOGO IMAGE */}
@@ -148,13 +150,13 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
           {/* MENU CONTAINER */}
           <div className="flex flex-col flex-1 overflow-y-auto">
             {/* MENU SECTION */}
-            <div className="mb-8 pt-5">
+            <div className="mb-6 pt-3">
               {/* MENU LABEL */}
-              <p className="text-xs font-semibold text-[var(--primary-text)] mb-2 uppercase tracking-widest">
+              <p className="text-xs font-semibold text-[var(--primary-text)] mb-1.5 uppercase tracking-widest">
                 Menu
               </p>
               {/* MENU NAVIGATION */}
-              <nav className="flex flex-col gap-2">
+              <nav className="flex flex-col gap-1">
                 {/* MAPPING THROUGH COLLECTION ITEMS */}
                 {collection.map((item, index) => {
                   const Icon = item.icon;
@@ -173,7 +175,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
                             // CALL CUSTOM ONCLICK HANDLER
                             item.onClick?.();
                           }}
-                          className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                          className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                             isActive
                               ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
                               : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
@@ -181,7 +183,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
                         >
                           {/* MENU ITEM ICON CONTAINER */}
                           <div className="flex justify-center w-8">
-                            <Icon className="h-6 w-6" strokeWidth={2.5} />
+                            <Icon className="h-5 w-5" strokeWidth={2.5} />
                           </div>
                           {/* MENU ITEM TEXT */}
                           <span className="ml-2 transition-all duration-200">
@@ -198,7 +200,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
                       key={index}
                       to={item.path}
                       onClick={closeSidebar}
-                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                         isActive
                           ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
                           : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
@@ -206,7 +208,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
                     >
                       {/* MENU ITEM ICON CONTAINER */}
                       <div className="flex justify-center w-8">
-                        <Icon className="h-6 w-6" strokeWidth={2.5} />
+                        <Icon className="h-5 w-5" strokeWidth={2.5} />
                       </div>
                       {/* MENU ITEM TEXT */}
                       <span className="ml-2 transition-all duration-200">
@@ -221,48 +223,48 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
                           item.onClick?.();
                           closeSidebar();
                         }}
-                        className="sidebar-item flex items-center w-full px-3 py-2 rounded-md text-sm font-medium cursor-pointer text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-[var(--primary-text)] transition-all"
+                        className="sidebar-item flex items-center w-full px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-[var(--primary-text)] transition-all"
                       >
-                        {/* MENU ITEM ICON CONTAINER */}
-                        <div className="flex justify-center w-8">
-                          <Icon className="h-6 w-6" strokeWidth={2.5} />
-                        </div>
-                        {/* MENU ITEM TEXT */}
-                        <span className="ml-2 transition-all duration-200">
-                          {item.name}
-                        </span>
-                      </button>
-                    </div>
-                  );
-                })}
-              </nav>
-            </div>
-            {/* GENERAL SECTION */}
-            <div>
-              {/* GENERAL LABEL */}
-              <p className="text-xs font-semibold text-[var(--primary-text)] mb-2 uppercase tracking-widest">
-                General
-              </p>
-              {/* GENERAL NAVIGATION */}
-              <nav className="flex flex-col gap-1">
-                {/* MAPPING THROUGH GENERAL ITEMS */}
-                {general.map((item) => {
-                  const Icon = item.icon;
-                  // CHECK IF ITEM IS LOGOUT
-                  if (item.name === "Logout") {
-                    return (
-                      // LOGOUT BUTTON
-                      <button
-                        key={item.name}
-                        onClick={() => {
-                          handleLogout();
-                        }}
-                        className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-[var(--sidebar-links-color)] cursor-pointer hover:bg-[var(--accent-hover-color)] hover:text-white transition-all"
-                      >
-                        {/* LOGOUT ICON CONTAINER */}
-                        <div className="flex justify-center w-8">
-                          <Icon className="h-6 w-6" strokeWidth={2.5} />
-                        </div>
+{/* MENU ITEM ICON CONTAINER */}
+                      <div className="flex justify-center w-8">
+                        <Icon className="h-5 w-5" strokeWidth={2.5} />
+                      </div>
+                      {/* MENU ITEM TEXT */}
+                      <span className="ml-2 transition-all duration-200">
+                        {item.name}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
+            </nav>
+          </div>
+          {/* GENERAL SECTION */}
+          <div>
+            {/* GENERAL LABEL */}
+            <p className="text-xs font-semibold text-[var(--primary-text)] mb-1.5 uppercase tracking-widest">
+              General
+            </p>
+            {/* GENERAL NAVIGATION */}
+            <nav className="flex flex-col gap-0.5">
+              {/* MAPPING THROUGH GENERAL ITEMS */}
+              {general.map((item) => {
+                const Icon = item.icon;
+                // CHECK IF ITEM IS LOGOUT
+                if (item.name === "Logout") {
+                  return (
+                    // LOGOUT BUTTON
+                    <button
+                      key={item.name}
+                      onClick={() => {
+                        handleLogout();
+                      }}
+                      className="flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-[var(--sidebar-links-color)] cursor-pointer hover:bg-[var(--accent-hover-color)] hover:text-white transition-all"
+                    >
+                      {/* LOGOUT ICON CONTAINER */}
+                      <div className="flex justify-center w-8">
+                        <Icon className="h-5 w-5" strokeWidth={2.5} />
+                      </div>
                         {/* LOGOUT TEXT */}
                         <span className="ml-2 transition-all duration-200">
                           {item.name}
@@ -277,7 +279,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
                       key={item.path}
                       to={item.path!}
                       onClick={closeSidebar}
-                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
                         location.pathname === item.path
                           ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
                           : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
@@ -285,7 +287,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
                     >
                       {/* GENERAL ITEM ICON CONTAINER */}
                       <div className="flex justify-center w-8">
-                        <Icon className="h-6 w-6" strokeWidth={2.5} />
+                        <Icon className="h-5 w-5" strokeWidth={2.5} />
                       </div>
                       {/* GENERAL ITEM TEXT */}
                       <span className="ml-2 transition-all duration-200">
