@@ -28,6 +28,8 @@ import {
   Facebook,
   Instagram,
   Globe,
+  Pencil,
+  Smile,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -49,6 +51,8 @@ import { format, parseISO } from "date-fns";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, JSX } from "react";
 import DashboardHeader from "../components/layout/DashboardHeader";
+import EditProfileModal from "../components/github/EditProfileModal";
+import UserStatusEditor from "../components/github/UserStatusEditor";
 
 // <== CONTRIBUTION LEVEL COLORS ==>
 const getContributionColor = (
@@ -602,6 +606,10 @@ const GitHubProfilePage = (): JSX.Element => {
   // FETCH PINNED REPOSITORIES
   const { repositories: pinnedRepos, isLoading: isPinnedLoading } =
     usePinnedRepositories(status?.isConnected ?? false);
+  // STATE FOR EDIT PROFILE MODAL
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  // STATE FOR STATUS EDITOR
+  const [isStatusEditorOpen, setIsStatusEditorOpen] = useState(false);
   // HANDLE YEAR CHANGE
   const handleYearChange = (year: number | undefined) => {
     // SET SELECTED YEAR
@@ -778,13 +786,18 @@ const GitHubProfilePage = (): JSX.Element => {
                     alt={profile?.login}
                     className="w-48 h-48 rounded-full border-4 border-[var(--border)] shadow-lg"
                   />
-                  {profile?.status && (
-                    <div className="absolute bottom-2 right-2 w-8 h-8 bg-[var(--bg)] rounded-full border-2 border-[var(--border)] flex items-center justify-center text-lg">
-                      {profile.status.emoji || "😀"}
-                    </div>
-                  )}
+                  {/* STATUS EMOJI BADGE */}
+                  <button
+                    onClick={() => setIsStatusEditorOpen(true)}
+                    className="absolute bottom-2 right-2 w-8 h-8 bg-[var(--bg)] rounded-full border-2 border-[var(--border)] flex items-center justify-center text-lg hover:border-[var(--accent-color)] transition cursor-pointer"
+                    title="Set status"
+                  >
+                    {profile?.status?.emoji || (
+                      <Smile className="w-4 h-4 text-[var(--text-secondary)]" />
+                    )}
+                  </button>
                 </div>
-                <div className="mt-4 text-center lg:text-left">
+                <div className="mt-4 text-center lg:text-left w-full">
                   <h1 className="text-2xl font-bold text-[var(--text-primary)]">
                     {profile?.name || profile?.login}
                   </h1>
@@ -794,14 +807,25 @@ const GitHubProfilePage = (): JSX.Element => {
                       <span className="ml-2 text-sm">({profile.pronouns})</span>
                     )}
                   </p>
+                  {/* EDIT PROFILE BUTTON */}
+                  <button
+                    onClick={() => setIsEditProfileOpen(true)}
+                    className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border border-[var(--border)] rounded-lg text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Edit profile
+                  </button>
                 </div>
               </div>
               {/* STATUS */}
-              {profile?.status?.message && (
-                <div className="p-3 bg-[var(--cards-bg)] rounded-lg border border-[var(--border)]">
+              <button
+                onClick={() => setIsStatusEditorOpen(true)}
+                className="w-full p-3 bg-[var(--cards-bg)] rounded-lg border border-[var(--border)] hover:border-[var(--accent-color)] transition cursor-pointer text-left"
+              >
+                {profile?.status?.message ? (
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{profile.status.emoji}</span>
-                    <span className="text-sm text-[var(--text-secondary)]">
+                    <span className="text-sm text-[var(--text-secondary)] flex-1">
                       {profile.status.message}
                     </span>
                     {profile.status.busy && (
@@ -809,9 +833,15 @@ const GitHubProfilePage = (): JSX.Element => {
                         Busy
                       </span>
                     )}
+                    <Pencil className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                    <Smile className="w-4 h-4" />
+                    <span>Set your status</span>
+                  </div>
+                )}
+              </button>
               {/* BIO */}
               {profile?.bio && (
                 <p className="text-sm text-[var(--text-secondary)] text-center lg:text-left">
@@ -1392,6 +1422,18 @@ const GitHubProfilePage = (): JSX.Element => {
           </div>
         </div>
       </div>
+      {/* EDIT PROFILE MODAL */}
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        profile={profile}
+      />
+      {/* USER STATUS EDITOR */}
+      <UserStatusEditor
+        isOpen={isStatusEditorOpen}
+        onClose={() => setIsStatusEditorOpen(false)}
+        currentStatus={profile?.status}
+      />
     </div>
   );
 };
