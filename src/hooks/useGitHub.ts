@@ -2662,6 +2662,266 @@ export type DiscussionsResponse = {
     endCursor: string | null;
   };
 };
+// <== EXTENDED PROFILE TYPE ==>
+export type ExtendedProfile = {
+  // <== ID ==>
+  id: string;
+  // <== LOGIN ==>
+  login: string;
+  // <== NAME ==>
+  name: string | null;
+  // <== EMAIL ==>
+  email: string | null;
+  // <== BIO ==>
+  bio: string | null;
+  // <== COMPANY ==>
+  company: string | null;
+  // <== LOCATION ==>
+  location: string | null;
+  // <== WEBSITE URL ==>
+  websiteUrl: string | null;
+  // <== TWITTER USERNAME ==>
+  twitterUsername: string | null;
+  // <== AVATAR URL ==>
+  avatarUrl: string;
+  // <== PROFILE URL ==>
+  profileUrl: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== IS HIREABLE ==>
+  isHireable: boolean | null;
+  // <== PRONOUNS ==>
+  pronouns: string | null;
+  // <== FOLLOWERS ==>
+  followers: number;
+  // <== FOLLOWING ==>
+  following: number;
+  // <== PUBLIC REPOS ==>
+  publicRepos: number;
+  // <== PRIVATE REPOS ==>
+  privateRepos: number;
+  // <== TOTAL REPOS ==>
+  totalRepos: number;
+  // <== STARRED REPOS ==>
+  starredRepos: number;
+  // <== WATCHING ==>
+  watching: number;
+  // <== GISTS ==>
+  gists: number;
+  // <== PUBLIC GISTS ==>
+  publicGists: number;
+  // <== SPONSORING ==>
+  sponsoring: number;
+  // <== SPONSORS ==>
+  sponsors: number;
+  // <== STATUS ==>
+  status: {
+    // <== EMOJI ==>
+    emoji: string | null;
+    // <== MESSAGE ==>
+    message: string | null;
+    // <== BUSY ==>
+    busy: boolean;
+  } | null;
+  // <== SOCIAL ACCOUNTS ==>
+  socialAccounts: {
+    // <== PROVIDER ==>
+    provider: string;
+    // <== URL ==>
+    url: string;
+    // <== DISPLAY NAME ==>
+    displayName: string | null;
+  }[];
+};
+// <== CONTRIBUTION DAY TYPE ==>
+export type ContributionDay = {
+  // <== COUNT ==>
+  count: number;
+  // <== LEVEL ==>
+  level:
+    | "NONE"
+    | "FIRST_QUARTILE"
+    | "SECOND_QUARTILE"
+    | "THIRD_QUARTILE"
+    | "FOURTH_QUARTILE";
+  // <== DATE ==>
+  date: string;
+  // <== WEEKDAY ==>
+  weekday: number;
+};
+// <== CONTRIBUTION WEEK TYPE ==>
+export type ContributionWeek = {
+  // <== FIRST DAY ==>
+  firstDay: string;
+  // <== DAYS ==>
+  days: ContributionDay[];
+};
+// <== CONTRIBUTION MONTH TYPE ==>
+export type ContributionMonth = {
+  // <== NAME ==>
+  name: string;
+  // <== YEAR ==>
+  year: number;
+  // <== FIRST DAY ==>
+  firstDay: string;
+  // <== TOTAL WEEKS ==>
+  totalWeeks: number;
+};
+// <== TOP REPOSITORY TYPE ==>
+export type TopContributionRepository = {
+  // <== NAME ==>
+  name: string;
+  // <== FULL NAME ==>
+  fullName: string;
+  // <== URL ==>
+  url: string;
+  // <== IS PRIVATE ==>
+  isPrivate: boolean;
+  // <== LANGUAGE ==>
+  language: {
+    // <== NAME ==>
+    name: string;
+    // <== COLOR ==>
+    color: string;
+  } | null;
+  // <== COMMITS ==>
+  commits: number;
+};
+// <== CONTRIBUTION STATS TYPE ==>
+export type ContributionStats = {
+  // <== TOTAL CONTRIBUTIONS ==>
+  totalContributions: number;
+  // <== COMMITS ==>
+  commits: number;
+  // <== ISSUES ==>
+  issues: number;
+  // <== PULL REQUESTS ==>
+  pullRequests: number;
+  // <== PULL REQUEST REVIEWS ==>
+  pullRequestReviews: number;
+  // <== REPOSITORIES CONTRIBUTED TO ==>
+  repositoriesContributedTo: {
+    // <== COMMITS ==>
+    commits: number;
+    // <== ISSUES ==>
+    issues: number;
+    // <== PULL REQUESTS ==>
+    pullRequests: number;
+    // <== REVIEWS ==>
+    reviews: number;
+  };
+  // <== PRIVATE CONTRIBUTIONS ==>
+  privateContributions: number;
+  // <== STREAKS ==>
+  streaks: {
+    // <== CURRENT STREAK ==>
+    current: {
+      // <== COUNT ==>
+      count: number;
+      // <== START ==>
+      start: string | null;
+      // <== END ==>
+      end: string | null;
+    };
+    // <== LONGEST STREAK ==>
+    longest: {
+      // <== COUNT ==>
+      count: number;
+      // <== START ==>
+      start: string | null;
+      // <== END ==>
+      end: string | null;
+    };
+  };
+  // <== CALENDAR ==>
+  calendar: {
+    // <== TOTAL CONTRIBUTIONS ==>
+    totalContributions: number;
+    // <== WEEKS ==>
+    weeks: ContributionWeek[];
+    // <== MONTHS ==>
+    months: ContributionMonth[];
+  };
+  // <== TOP REPOSITORIES ==>
+  topRepositories: TopContributionRepository[];
+  // <== AVAILABLE YEARS ==>
+  availableYears: number[];
+  // <== DATE RANGE ==>
+  dateRange: {
+    // <== FROM ==>
+    from: string;
+    // <== TO ==>
+    to: string;
+  };
+};
+// <== PROFILE README TYPE ==>
+export type ProfileReadme = {
+  // <== CONTENT ==>
+  content: string;
+  // <== HTML URL ==>
+  htmlUrl: string;
+  // <== PATH ==>
+  path: string;
+  // <== SHA ==>
+  sha: string;
+  // <== SIZE ==>
+  size: number;
+} | null;
+// <== CONTRIBUTION ACTIVITY REPOSITORY TYPE ==>
+export type ContributionActivityRepository = {
+  // <== NAME ==>
+  name: string;
+  // <== FULL NAME ==>
+  fullName: string;
+  // <== URL ==>
+  url: string;
+  // <== IS PRIVATE ==>
+  isPrivate: boolean;
+  // <== COUNT ==>
+  count: number;
+  // <== OWNER (FOR COMMITS) ==>
+  owner?: {
+    // <== LOGIN ==>
+    login: string;
+    // <== AVATAR URL ==>
+    avatarUrl: string;
+  };
+};
+// <== CONTRIBUTION CREATED REPOSITORY TYPE ==>
+export type ContributionCreatedRepository = {
+  // <== NAME ==>
+  name: string;
+  // <== FULL NAME ==>
+  fullName: string;
+  // <== URL ==>
+  url: string;
+  // <== IS PRIVATE ==>
+  isPrivate: boolean;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== LANGUAGE ==>
+  language: {
+    // <== NAME ==>
+    name: string;
+    // <== COLOR ==>
+    color: string;
+  } | null;
+};
+// <== CONTRIBUTION MILESTONE TYPE ==>
+export type ContributionMilestone = {
+  // <== TITLE ==>
+  title: string;
+  // <== NUMBER ==>
+  number: number;
+  // <== URL ==>
+  url: string;
+  // <== REPOSITORY ==>
+  repository: string;
+  // <== OCCURRED AT ==>
+  occurredAt: string;
+} | null;
 // <== GITHUB NOTIFICATION REASON TYPES ==>
 export type GitHubNotificationReason =
   | "assign"
@@ -7847,4 +8107,212 @@ export const useUnmarkDiscussionCommentAsAnswer = (
       );
     },
   });
+};
+
+// <== CONTRIBUTION ACTIVITY TYPE ==>
+export type ContributionActivity = {
+  // <== COMMITS ==>
+  commits: {
+    // <== TOTAL ==>
+    total: number;
+    // <== REPOSITORIES ==>
+    repositories: ContributionActivityRepository[];
+  };
+  // <== ISSUES ==>
+  issues: {
+    // <== TOTAL ==>
+    total: number;
+    // <== REPOSITORIES ==>
+    repositories: ContributionActivityRepository[];
+  };
+  // <== PULL REQUESTS ==>
+  pullRequests: {
+    // <== TOTAL ==>
+    total: number;
+    // <== REPOSITORIES ==>
+    repositories: ContributionActivityRepository[];
+  };
+  // <== REVIEWS ==>
+  reviews: {
+    // <== TOTAL ==>
+    total: number;
+    // <== REPOSITORIES ==>
+    repositories: ContributionActivityRepository[];
+  };
+  // <== REPOSITORIES CREATED ==>
+  repositoriesCreated: ContributionCreatedRepository[];
+  // <== MILESTONES ==>
+  milestones: {
+    // <== FIRST ISSUE ==>
+    firstIssue: ContributionMilestone;
+    // <== FIRST PULL REQUEST ==>
+    firstPullRequest: ContributionMilestone;
+  };
+  // <== DATE RANGE ==>
+  dateRange: {
+    // <== FROM ==>
+    from: string;
+    // <== TO ==>
+    to: string;
+  };
+};
+
+// <== FETCH EXTENDED PROFILE ==>
+const fetchExtendedProfile = async (): Promise<ExtendedProfile> => {
+  // FETCH EXTENDED PROFILE
+  const response = await apiClient.get("/github/profile/extended");
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== FETCH CONTRIBUTION STATS ==>
+const fetchContributionStats = async (
+  year?: number
+): Promise<ContributionStats> => {
+  // BUILD QUERY STRING
+  const queryParams = new URLSearchParams();
+  // SET YEAR IF PROVIDED
+  if (year) queryParams.set("year", year.toString());
+  // FETCH CONTRIBUTION STATS
+  const response = await apiClient.get(
+    `/github/profile/contributions${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== FETCH PROFILE README ==>
+const fetchProfileReadme = async (): Promise<ProfileReadme> => {
+  // FETCH PROFILE README
+  const response = await apiClient.get("/github/profile/readme");
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== FETCH CONTRIBUTION ACTIVITY ==>
+const fetchContributionActivity = async (params?: {
+  year?: number;
+  month?: number;
+}): Promise<ContributionActivity> => {
+  // BUILD QUERY STRING
+  const queryParams = new URLSearchParams();
+  // SET YEAR IF PROVIDED
+  if (params?.year) queryParams.set("year", params.year.toString());
+  // SET MONTH IF PROVIDED
+  if (params?.month) queryParams.set("month", params.month.toString());
+  // FETCH CONTRIBUTION ACTIVITY
+  const response = await apiClient.get(
+    `/github/profile/activity${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== USE EXTENDED PROFILE HOOK ==>
+export const useExtendedProfile = (enabled: boolean = true) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    ExtendedProfile,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-extended-profile"],
+    queryFn: fetchExtendedProfile,
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+  // RETURN PROFILE
+  return {
+    profile: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE CONTRIBUTION STATS HOOK ==>
+export const useContributionStats = (
+  year?: number,
+  enabled: boolean = true
+) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    ContributionStats,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-contribution-stats", year],
+    queryFn: () => fetchContributionStats(year),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+  // RETURN STATS
+  return {
+    stats: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE PROFILE README HOOK ==>
+export const useProfileReadme = (enabled: boolean = true) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    ProfileReadme,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-profile-readme"],
+    queryFn: fetchProfileReadme,
+    retry: 1,
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  });
+  // RETURN README
+  return {
+    readme: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE CONTRIBUTION ACTIVITY HOOK ==>
+export const useContributionActivity = (
+  params?: {
+    year?: number;
+    month?: number;
+  },
+  enabled: boolean = true
+) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    ContributionActivity,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-contribution-activity", params?.year, params?.month],
+    queryFn: () => fetchContributionActivity(params),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });
+  // RETURN ACTIVITY
+  return {
+    activity: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
 };
