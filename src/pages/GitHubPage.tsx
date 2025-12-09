@@ -57,7 +57,9 @@ import type { LucideIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { JSX, useState, useMemo, useRef, useEffect } from "react";
 import DashboardHeader from "../components/layout/DashboardHeader";
-import GitHubSkeleton from "../components/skeletons/GitHubSkeleton";
+import GitHubSkeleton, {
+  GitHubPageSkeleton,
+} from "../components/skeletons/GitHubSkeleton";
 import CreateRepositoryModal from "../components/github/CreateRepositoryModal";
 
 // <== DROPDOWN OPTION TYPE ==>
@@ -970,7 +972,14 @@ const GitHubPage = (): JSX.Element => {
     activeTab === "starred" ? starredPagination : pagination;
   const currentPage = activeTab === "starred" ? starredPage : page;
   // IF LOADING STATUS, SHOW SKELETON
-  if (isStatusLoading) {
+  if (
+    isStatusLoading ||
+    isProfileLoading ||
+    isStatsLoading ||
+    isReposLoading ||
+    isStarredLoading ||
+    isPinnedLoading
+  ) {
     return (
       <div
         className="min-h-screen pb-0.5"
@@ -984,9 +993,8 @@ const GitHubPage = (): JSX.Element => {
           subtitle="Your GitHub command center"
           showSearch={false}
         />
-        <div className="m-4 space-y-4">
-          <StatsSkeleton />
-          <GitHubSkeleton />
+        <div className="m-4">
+          <GitHubPageSkeleton />
         </div>
       </div>
     );
@@ -1072,7 +1080,10 @@ const GitHubPage = (): JSX.Element => {
                   <p className="font-semibold text-[var(--text-primary)]">
                     @{profile.login}
                   </p>
-                  <ExternalLink size={14} className="text-[var(--light-text)]" />
+                  <ExternalLink
+                    size={14}
+                    className="text-[var(--light-text)]"
+                  />
                 </div>
                 <div className="flex items-center gap-4 text-xs text-[var(--light-text)]">
                   <span className="flex items-center gap-1">
