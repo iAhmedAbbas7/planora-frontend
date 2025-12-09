@@ -28,6 +28,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import GitHubInsightsPage from "./pages/GitHubInsightsPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import GitHubDiscussionsPage from "./pages/GitHubDiscussionsPage";
 import GitHubDeploymentsPage from "./pages/GitHubDeploymentsPage";
 import GitHubPullRequestsPage from "./pages/GitHubPullRequestsPage";
 import GitHubNotificationsPage from "./pages/GitHubNotificationsPage";
@@ -196,6 +197,16 @@ const appRouter = createBrowserRouter(
             {
               path: "/github/:owner/:repo/insights",
               element: <GitHubInsightsPage />,
+            },
+            // <== GITHUB DISCUSSIONS ROUTE ==>
+            {
+              path: "/github/:owner/:repo/discussions",
+              element: <GitHubDiscussionsPage />,
+            },
+            // <== GITHUB DISCUSSIONS DETAIL ROUTE ==>
+            {
+              path: "/github/:owner/:repo/discussions/:number",
+              element: <GitHubDiscussionsPage />,
             },
             // <== GITHUB NOTIFICATIONS ROUTE ==>
             {
