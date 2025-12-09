@@ -2436,30 +2436,6 @@ export type PinnedRepository = {
     avatarUrl: string;
   };
 };
-// <== GITHUB NOTIFICATION REASON TYPES ==>
-export type GitHubNotificationReason =
-  | "assign"
-  | "author"
-  | "comment"
-  | "ci_activity"
-  | "invitation"
-  | "manual"
-  | "mention"
-  | "review_requested"
-  | "security_alert"
-  | "state_change"
-  | "subscribed"
-  | "team_mention";
-// <== GITHUB NOTIFICATION SUBJECT TYPE ==>
-export type GitHubNotificationSubjectType =
-  | "Issue"
-  | "PullRequest"
-  | "Commit"
-  | "Release"
-  | "Discussion"
-  | "RepositoryVulnerabilityAlert"
-  | "CheckSuite"
-  | "RepositoryInvitation";
 // <== GITHUB NOTIFICATION TYPE ==>
 export type GitHubNotification = {
   // <== ID ==>
@@ -2526,6 +2502,190 @@ export type GitHubNotificationsResponse = {
     hasPrev: boolean;
   };
 };
+// <== GITHUB DISCUSSION CATEGORY TYPE ==>
+export type DiscussionCategory = {
+  // <== ID ==>
+  id: string;
+  // <== NAME ==>
+  name: string;
+  // <== EMOJI ==>
+  emoji: string;
+  // <== EMOJI HTML ==>
+  emojiHTML: string;
+  // <== DESCRIPTION ==>
+  description: string;
+  // <== IS ANSWERABLE ==>
+  isAnswerable: boolean;
+  // <== SLUG ==>
+  slug: string;
+};
+// <== GITHUB DISCUSSION AUTHOR TYPE ==>
+export type DiscussionAuthor = {
+  // <== LOGIN ==>
+  login: string;
+  // <== AVATAR URL ==>
+  avatarUrl: string;
+};
+// <== GITHUB DISCUSSION COMMENT REPLY TYPE ==>
+export type DiscussionCommentReply = {
+  // <== ID ==>
+  id: string;
+  // <== BODY ==>
+  body: string;
+  // <== BODY HTML ==>
+  bodyHTML: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== AUTHOR ==>
+  author: DiscussionAuthor | null;
+  // <== REACTIONS COUNT ==>
+  reactionsCount: number;
+};
+// <== GITHUB DISCUSSION COMMENT TYPE ==>
+export type DiscussionComment = {
+  // <== ID ==>
+  id: string;
+  // <== BODY ==>
+  body: string;
+  // <== BODY HTML ==>
+  bodyHTML: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== IS ANSWER ==>
+  isAnswer: boolean;
+  // <== AUTHOR ==>
+  author: DiscussionAuthor | null;
+  // <== REACTIONS COUNT ==>
+  reactionsCount: number;
+  // <== REPLIES COUNT ==>
+  repliesCount: number;
+  // <== REPLIES ==>
+  replies: DiscussionCommentReply[];
+};
+// <== GITHUB DISCUSSION ANSWER TYPE ==>
+export type DiscussionAnswer = {
+  // <== ID ==>
+  id: string;
+  // <== BODY ==>
+  body: string;
+  // <== BODY HTML ==>
+  bodyHTML?: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt?: string;
+  // <== IS ANSWER ==>
+  isAnswer?: boolean;
+  // <== AUTHOR ==>
+  author: DiscussionAuthor | null;
+  // <== REACTIONS COUNT ==>
+  reactionsCount?: number;
+  // <== REPLIES COUNT ==>
+  repliesCount?: number;
+  // <== REPLIES ==>
+  replies?: DiscussionCommentReply[];
+};
+// <== GITHUB DISCUSSION TYPE ==>
+export type Discussion = {
+  // <== ID ==>
+  id: string;
+  // <== NUMBER ==>
+  number: number;
+  // <== TITLE ==>
+  title: string;
+  // <== BODY ==>
+  body: string;
+  // <== BODY HTML ==>
+  bodyHTML?: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+  // <== URL ==>
+  url: string;
+  // <== LOCKED ==>
+  locked: boolean;
+  // <== ACTIVE LOCK REASON ==>
+  activeLockReason: string | null;
+  // <== ANSWER CHOSEN AT ==>
+  answerChosenAt: string | null;
+  // <== ANSWER CHOSEN BY ==>
+  answerChosenBy: DiscussionAuthor | null;
+  // <== AUTHOR ==>
+  author: DiscussionAuthor | null;
+  // <== CATEGORY ==>
+  category: DiscussionCategory | null;
+  // <== ANSWER ==>
+  answer: DiscussionAnswer | null;
+  // <== COMMENTS COUNT ==>
+  commentsCount: number;
+  // <== REACTIONS COUNT ==>
+  reactionsCount: number;
+  // <== UPVOTE COUNT ==>
+  upvoteCount: number;
+};
+// <== GITHUB DISCUSSION DETAILS TYPE ==>
+export type DiscussionDetails = Discussion & {
+  // <== COMMENTS ==>
+  comments: DiscussionComment[];
+  // <== COMMENTS PAGE INFO ==>
+  commentsPageInfo: {
+    // <== HAS NEXT PAGE ==>
+    hasNextPage: boolean;
+    // <== HAS PREVIOUS PAGE ==>
+    hasPreviousPage: boolean;
+    // <== START CURSOR ==>
+    startCursor: string | null;
+    // <== END CURSOR ==>
+    endCursor: string | null;
+  };
+};
+// <== GITHUB DISCUSSIONS RESPONSE TYPE ==>
+export type DiscussionsResponse = {
+  // <== DISCUSSIONS ==>
+  discussions: Discussion[];
+  // <== CATEGORIES ==>
+  categories: DiscussionCategory[];
+  // <== TOTAL COUNT ==>
+  totalCount: number;
+  // <== PAGE INFO ==>
+  pageInfo: {
+    // <== HAS NEXT PAGE ==>
+    hasNextPage: boolean;
+    // <== HAS PREVIOUS PAGE ==>
+    hasPreviousPage: boolean;
+    // <== START CURSOR ==>
+    startCursor: string | null;
+    // <== END CURSOR ==>
+    endCursor: string | null;
+  };
+};
+// <== GITHUB NOTIFICATION REASON TYPES ==>
+export type GitHubNotificationReason =
+  | "assign"
+  | "author"
+  | "comment"
+  | "ci_activity"
+  | "invitation"
+  | "manual"
+  | "mention"
+  | "review_requested"
+  | "security_alert"
+  | "state_change"
+  | "subscribed"
+  | "team_mention";
+// <== GITHUB NOTIFICATION SUBJECT TYPE ==>
+export type GitHubNotificationSubjectType =
+  | "Issue"
+  | "PullRequest"
+  | "Commit"
+  | "Release"
+  | "Discussion"
+  | "RepositoryVulnerabilityAlert"
+  | "CheckSuite"
+  | "RepositoryInvitation";
 
 // <== FETCH GITHUB STATUS FUNCTION ==>
 const fetchGitHubStatus = async (): Promise<GitHubStatus> => {
@@ -7287,6 +7447,403 @@ export const useUnsubscribeGitHubNotification = () => {
       toast.error(
         error.response?.data?.message ||
           "Failed to unsubscribe from notification"
+      );
+    },
+  });
+};
+
+// <=== GITHUB DISCUSSIONS API ===>
+
+// <== FETCH REPOSITORY DISCUSSIONS FUNCTION ==>
+const fetchRepositoryDiscussions = async (
+  owner: string,
+  repo: string,
+  params?: {
+    first?: number;
+    after?: string;
+    categoryId?: string;
+    orderBy?: "CREATED_AT" | "UPDATED_AT";
+    answered?: boolean;
+  }
+): Promise<DiscussionsResponse> => {
+  // BUILD QUERY STRING
+  const queryParams = new URLSearchParams();
+  // SET FIRST IF PROVIDED
+  if (params?.first) queryParams.set("first", params.first.toString());
+  // SET AFTER IF PROVIDED
+  if (params?.after) queryParams.set("after", params.after);
+  // SET CATEGORY ID IF PROVIDED
+  if (params?.categoryId) queryParams.set("categoryId", params.categoryId);
+  // SET ORDER BY IF PROVIDED
+  if (params?.orderBy) queryParams.set("orderBy", params.orderBy);
+  // SET ANSWERED IF PROVIDED
+  if (params?.answered !== undefined)
+    queryParams.set("answered", params.answered.toString());
+  // FETCH DISCUSSIONS
+  const response = await apiClient.get(
+    `/github/repositories/${owner}/${repo}/discussions?${queryParams.toString()}`
+  );
+  // RETURN DISCUSSIONS DATA
+  return response.data.data;
+};
+
+// <== FETCH DISCUSSION DETAILS FUNCTION ==>
+const fetchDiscussionDetails = async (
+  owner: string,
+  repo: string,
+  discussionNumber: number,
+  params?: {
+    commentsFirst?: number;
+    commentsAfter?: string;
+  }
+): Promise<DiscussionDetails> => {
+  // BUILD QUERY STRING
+  const queryParams = new URLSearchParams();
+  // SET COMMENTS FIRST IF PROVIDED
+  if (params?.commentsFirst)
+    queryParams.set("commentsFirst", params.commentsFirst.toString());
+  // SET COMMENTS AFTER IF PROVIDED
+  if (params?.commentsAfter)
+    queryParams.set("commentsAfter", params.commentsAfter);
+  // FETCH DISCUSSION DETAILS
+  const response = await apiClient.get(
+    `/github/repositories/${owner}/${repo}/discussions/${discussionNumber}?${queryParams.toString()}`
+  );
+  // RETURN DISCUSSION DETAILS DATA
+  return response.data.data;
+};
+
+// <== FETCH DISCUSSION CATEGORIES FUNCTION ==>
+const fetchDiscussionCategories = async (
+  owner: string,
+  repo: string
+): Promise<{ categories: DiscussionCategory[]; count: number }> => {
+  // FETCHING CATEGORIES
+  const response = await apiClient.get(
+    `/github/repositories/${owner}/${repo}/discussions/categories`
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== CREATE DISCUSSION FUNCTION ==>
+const createDiscussion = async (
+  owner: string,
+  repo: string,
+  data: {
+    title: string;
+    body?: string;
+    categoryId: string;
+  }
+): Promise<Discussion> => {
+  // CREATING DISCUSSION
+  const response = await apiClient.post(
+    `/github/repositories/${owner}/${repo}/discussions`,
+    data
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== ADD DISCUSSION COMMENT FUNCTION ==>
+const addDiscussionComment = async (
+  owner: string,
+  repo: string,
+  discussionNumber: number,
+  data: {
+    body: string;
+    replyToId?: string;
+  }
+): Promise<DiscussionComment> => {
+  // ADDING COMMENT
+  const response = await apiClient.post(
+    `/github/repositories/${owner}/${repo}/discussions/${discussionNumber}/comments`,
+    data
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== MARK DISCUSSION COMMENT AS ANSWER FUNCTION ==>
+const markDiscussionCommentAsAnswer = async (
+  owner: string,
+  repo: string,
+  commentId: string
+): Promise<{
+  discussionId: string;
+  discussionNumber: number;
+  answerChosenAt: string;
+}> => {
+  // MARKING AS ANSWER
+  const response = await apiClient.put(
+    `/github/repositories/${owner}/${repo}/discussions/comments/${commentId}/answer`
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== UNMARK DISCUSSION COMMENT AS ANSWER FUNCTION ==>
+const unmarkDiscussionCommentAsAnswer = async (
+  owner: string,
+  repo: string,
+  commentId: string
+): Promise<{ discussionId: string; discussionNumber: number }> => {
+  // UNMARKING AS ANSWER
+  const response = await apiClient.delete(
+    `/github/repositories/${owner}/${repo}/discussions/comments/${commentId}/answer`
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== USE REPOSITORY DISCUSSIONS HOOK ==>
+export const useRepositoryDiscussions = (
+  owner: string,
+  repo: string,
+  params?: {
+    first?: number;
+    after?: string;
+    categoryId?: string;
+    orderBy?: "CREATED_AT" | "UPDATED_AT";
+    answered?: boolean;
+  },
+  enabled: boolean = true
+) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    DiscussionsResponse,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: [
+      "github-discussions",
+      owner,
+      repo,
+      params?.first,
+      params?.after,
+      params?.categoryId,
+      params?.orderBy,
+      params?.answered,
+    ],
+    queryFn: () => fetchRepositoryDiscussions(owner, repo, params),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN DISCUSSIONS
+  return {
+    discussions: data?.discussions || [],
+    categories: data?.categories || [],
+    totalCount: data?.totalCount || 0,
+    pageInfo: data?.pageInfo || {
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: null,
+      endCursor: null,
+    },
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE DISCUSSION DETAILS HOOK ==>
+export const useDiscussionDetails = (
+  owner: string,
+  repo: string,
+  discussionNumber: number,
+  params?: {
+    commentsFirst?: number;
+    commentsAfter?: string;
+  },
+  enabled: boolean = true
+) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    DiscussionDetails,
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: [
+      "github-discussion-details",
+      owner,
+      repo,
+      discussionNumber,
+      params?.commentsFirst,
+      params?.commentsAfter,
+    ],
+    queryFn: () =>
+      fetchDiscussionDetails(owner, repo, discussionNumber, params),
+    retry: 1,
+    staleTime: 2 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo && !!discussionNumber,
+  });
+  // RETURN DISCUSSION
+  return {
+    discussion: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE DISCUSSION CATEGORIES HOOK ==>
+export const useDiscussionCategories = (
+  owner: string,
+  repo: string,
+  enabled: boolean = true
+) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    { categories: DiscussionCategory[]; count: number },
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-discussion-categories", owner, repo],
+    queryFn: () => fetchDiscussionCategories(owner, repo),
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    enabled: enabled && !!owner && !!repo,
+  });
+  // RETURN CATEGORIES
+  return {
+    categories: data?.categories || [],
+    count: data?.count || 0,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== USE CREATE DISCUSSION HOOK ==>
+export const useCreateDiscussion = (owner: string, repo: string) => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<
+    Discussion,
+    AxiosError<{ message?: string }>,
+    { title: string; body?: string; categoryId: string }
+  >({
+    mutationFn: (data) => createDiscussion(owner, repo, data),
+    onSuccess: () => {
+      // INVALIDATE DISCUSSIONS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-discussions", owner, repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Discussion created successfully");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to create discussion"
+      );
+    },
+  });
+};
+
+// <== USE ADD DISCUSSION COMMENT HOOK ==>
+export const useAddDiscussionComment = (
+  owner: string,
+  repo: string,
+  discussionNumber: number
+) => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<
+    DiscussionComment,
+    AxiosError<{ message?: string }>,
+    { body: string; replyToId?: string }
+  >({
+    mutationFn: (data) =>
+      addDiscussionComment(owner, repo, discussionNumber, data),
+    onSuccess: () => {
+      // INVALIDATE DISCUSSION DETAILS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-discussion-details", owner, repo, discussionNumber],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Comment added successfully");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to add comment");
+    },
+  });
+};
+
+// <== USE MARK DISCUSSION COMMENT AS ANSWER HOOK ==>
+export const useMarkDiscussionCommentAsAnswer = (
+  owner: string,
+  repo: string
+) => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<
+    { discussionId: string; discussionNumber: number; answerChosenAt: string },
+    AxiosError<{ message?: string }>,
+    { commentId: string; discussionNumber: number }
+  >({
+    mutationFn: ({ commentId }) =>
+      markDiscussionCommentAsAnswer(owner, repo, commentId),
+    onSuccess: (_, { discussionNumber }) => {
+      // INVALIDATE DISCUSSION DETAILS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-discussion-details", owner, repo, discussionNumber],
+      });
+      // INVALIDATE DISCUSSIONS LIST
+      queryClient.invalidateQueries({
+        queryKey: ["github-discussions", owner, repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Comment marked as answer");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to mark comment as answer"
+      );
+    },
+  });
+};
+
+// <== USE UNMARK DISCUSSION COMMENT AS ANSWER HOOK ==>
+export const useUnmarkDiscussionCommentAsAnswer = (
+  owner: string,
+  repo: string
+) => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<
+    { discussionId: string; discussionNumber: number },
+    AxiosError<{ message?: string }>,
+    { commentId: string; discussionNumber: number }
+  >({
+    mutationFn: ({ commentId }) =>
+      unmarkDiscussionCommentAsAnswer(owner, repo, commentId),
+    onSuccess: (_, { discussionNumber }) => {
+      // INVALIDATE DISCUSSION DETAILS QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["github-discussion-details", owner, repo, discussionNumber],
+      });
+      // INVALIDATE DISCUSSIONS LIST
+      queryClient.invalidateQueries({
+        queryKey: ["github-discussions", owner, repo],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Answer status removed");
+    },
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(
+        error.response?.data?.message || "Failed to remove answer status"
       );
     },
   });
