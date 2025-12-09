@@ -893,6 +893,16 @@ const GitHubRepoPage = (): JSX.Element => {
                       </button>
                       <button
                         onClick={() => {
+                          navigate(`/github/${owner}/${repo}/discussions`);
+                          setShowActionsDropdown(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                      >
+                        <MessageSquare size={16} className="text-[var(--accent-color)]" />
+                        <span>Discussions</span>
+                      </button>
+                      <button
+                        onClick={() => {
                           setShowSettings(true);
                           setShowActionsDropdown(false);
                         }}
@@ -1001,6 +1011,31 @@ const GitHubRepoPage = (): JSX.Element => {
             <LanguagesBar languages={languages} />
           </div>
         )}
+        {/* DISCUSSIONS QUICK ACCESS */}
+        <button
+          onClick={() => navigate(`/github/${owner}/${repo}/discussions`)}
+          className="w-full bg-[var(--cards-bg)] rounded-2xl border border-[var(--border)] p-4 sm:p-6 hover:border-[var(--accent-color)]/30 transition group"
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+              }}
+            >
+              <MessageSquare size={20} className="text-[var(--accent-color)]" />
+            </div>
+            <div className="text-left">
+              <h3 className="text-sm sm:text-base font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-color)] transition">
+                Discussions
+              </h3>
+              <p className="text-xs text-[var(--light-text)]">
+                Ask questions, share ideas & collaborate with the community
+              </p>
+            </div>
+          </div>
+        </button>
         {/* AI INSIGHTS SECTION */}
         <div className="bg-[var(--cards-bg)] rounded-2xl border border-[var(--border)] overflow-hidden">
           {/* AI INSIGHTS HEADER */}
