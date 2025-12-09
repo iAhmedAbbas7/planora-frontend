@@ -11,7 +11,9 @@ import LandingPage from "./pages/LandingPage";
 import RootLayout from "./layouts/RootLayout";
 import SettingsPage from "./pages/SettingsPage";
 import AccessDenied from "./pages/AccessDenied";
+import WorkspacePage from "./pages/WorkspacePage";
 import GitHubRepoPage from "./pages/GitHubRepoPage";
+import WorkspacesPage from "./pages/WorkspacesPage";
 import GitHubFilesPage from "./pages/GitHubFilesPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -233,6 +235,16 @@ const appRouter = createBrowserRouter(
             {
               path: "/notifications",
               element: <NotificationsPage />,
+            },
+            // <== WORKSPACES ROUTE ==>
+            {
+              path: "/workspaces",
+              element: <WorkspacesPage />,
+            },
+            // <== WORKSPACE DETAILS ROUTE ==>
+            {
+              path: "/workspaces/:id",
+              element: <WorkspacePage />,
             },
           ],
         },
