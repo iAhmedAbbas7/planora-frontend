@@ -2922,6 +2922,83 @@ export type ContributionMilestone = {
   // <== OCCURRED AT ==>
   occurredAt: string;
 } | null;
+// <== PROFILE UPDATE INPUT TYPE ==>
+export type ProfileUpdateInput = {
+  // <== NAME ==>
+  name?: string;
+  // <== BIO ==>
+  bio?: string;
+  // <== COMPANY ==>
+  company?: string;
+  // <== LOCATION ==>
+  location?: string;
+  // <== BLOG ==>
+  blog?: string;
+  // <== TWITTER USERNAME ==>
+  twitterUsername?: string;
+  // <== HIREABLE ==>
+  hireable?: boolean;
+};
+// <== PROFILE UPDATE RESPONSE TYPE ==>
+export type ProfileUpdateResponse = {
+  // <== LOGIN ==>
+  login: string;
+  // <== NAME ==>
+  name: string | null;
+  // <== BIO ==>
+  bio: string | null;
+  // <== COMPANY ==>
+  company: string | null;
+  // <== LOCATION ==>
+  location: string | null;
+  // <== BLOG ==>
+  blog: string | null;
+  // <== TWITTER USERNAME ==>
+  twitterUsername: string | null;
+  // <== HIREABLE ==>
+  hireable: boolean | null;
+  // <== AVATAR URL ==>
+  avatarUrl: string;
+  // <== EMAIL ==>
+  email: string | null;
+};
+// <== USER STATUS INPUT TYPE ==>
+export type UserStatusInput = {
+  // <== EMOJI ==>
+  emoji?: string | null;
+  // <== MESSAGE ==>
+  message?: string | null;
+  // <== LIMITED AVAILABILITY ==>
+  limitedAvailability?: boolean;
+  // <== EXPIRES AT ==>
+  expiresAt?: string | null;
+};
+// <== USER STATUS RESPONSE TYPE ==>
+export type UserStatusResponse = {
+  // <== EMOJI ==>
+  emoji: string | null;
+  // <== MESSAGE ==>
+  message: string | null;
+  // <== BUSY ==>
+  busy: boolean;
+  // <== EXPIRES AT ==>
+  expiresAt: string | null;
+  // <== CREATED AT ==>
+  createdAt: string;
+  // <== UPDATED AT ==>
+  updatedAt: string;
+};
+// <== USER EMAIL TYPE ==>
+export type UserEmail = {
+  // <== EMAIL ==>
+  email: string;
+  // <== PRIMARY ==>
+  primary: boolean;
+  // <== VERIFIED ==>
+  verified: boolean;
+  // <== VISIBILITY ==>
+  visibility: string | null;
+};
 // <== GITHUB NOTIFICATION REASON TYPES ==>
 export type GitHubNotificationReason =
   | "assign"
@@ -8309,6 +8386,139 @@ export const useContributionActivity = (
   // RETURN ACTIVITY
   return {
     activity: data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// <== UPDATE PROFILE ==>
+const updateProfileApi = async (
+  input: ProfileUpdateInput
+): Promise<ProfileUpdateResponse> => {
+  // UPDATE PROFILE
+  const response = await apiClient.patch("/github/profile", input);
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== UPDATE USER STATUS ==>
+const updateUserStatusApi = async (
+  input: UserStatusInput
+): Promise<UserStatusResponse> => {
+  // UPDATE USER STATUS
+  const response = await apiClient.put("/github/profile/status", input);
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== CLEAR USER STATUS ==>
+const clearUserStatusApi = async (): Promise<void> => {
+  // CLEAR USER STATUS
+  await apiClient.delete("/github/profile/status");
+};
+
+// <== FETCH USER EMAILS ==>
+const fetchUserEmails = async (): Promise<UserEmail[]> => {
+  // FETCH USER EMAILS
+  const response = await apiClient.get("/github/profile/emails");
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== USE UPDATE PROFILE HOOK ==>
+export const useUpdateProfile = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<
+    ProfileUpdateResponse,
+    AxiosError<{ message?: string }>,
+    ProfileUpdateInput
+  >({
+    mutationFn: updateProfileApi,
+    // ON SUCCESS
+    onSuccess: () => {
+      // INVALIDATE PROFILE QUERIES
+      queryClient.invalidateQueries({ queryKey: ["github-extended-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["github-profile"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Profile updated successfully");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    },
+  });
+};
+
+// <== USE UPDATE USER STATUS HOOK ==>
+export const useUpdateUserStatus = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<
+    UserStatusResponse,
+    AxiosError<{ message?: string }>,
+    UserStatusInput
+  >({
+    mutationFn: updateUserStatusApi,
+    // ON SUCCESS
+    onSuccess: () => {
+      // INVALIDATE PROFILE QUERIES
+      queryClient.invalidateQueries({ queryKey: ["github-extended-profile"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Status updated successfully");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to update status");
+    },
+  });
+};
+
+// <== USE CLEAR USER STATUS HOOK ==>
+export const useClearUserStatus = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // USE MUTATION
+  return useMutation<void, AxiosError<{ message?: string }>>({
+    mutationFn: clearUserStatusApi,
+    // ON SUCCESS
+    onSuccess: () => {
+      // INVALIDATE PROFILE QUERIES
+      queryClient.invalidateQueries({ queryKey: ["github-extended-profile"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Status cleared successfully");
+    },
+    // ON ERROR
+    onError: (error) => {
+      // SHOW ERROR TOAST
+      toast.error(error.response?.data?.message || "Failed to clear status");
+    },
+  });
+};
+
+// <== USE USER EMAILS HOOK ==>
+export const useUserEmails = (enabled: boolean = true) => {
+  // USE QUERY
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery<
+    UserEmail[],
+    AxiosError<{ message?: string }>
+  >({
+    queryKey: ["github-user-emails"],
+    queryFn: fetchUserEmails,
+    retry: 1,
+    staleTime: 10 * 60 * 1000,
+    enabled,
+  });
+  // RETURN EMAILS
+  return {
+    emails: data || [],
     isLoading,
     isFetching,
     isError,
