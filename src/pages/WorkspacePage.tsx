@@ -19,6 +19,7 @@ import {
   Lock,
   Globe,
   BarChart2,
+  Bot,
 } from "lucide-react";
 import {
   useWorkspaceById,
@@ -36,7 +37,10 @@ import { AxiosError } from "axios";
 import { JSX, useState } from "react";
 import useTitle from "../hooks/useTitle";
 import { useParams, useNavigate } from "react-router-dom";
+import NLTaskInput from "../components/workspace/ai/NLTaskInput";
 import DashboardHeader from "../components/layout/DashboardHeader";
+import StandupModal from "../components/workspace/ai/StandupModal";
+import AIAssistantPanel from "../components/workspace/ai/AIAssistantPanel";
 import { WorkspaceDetailSkeleton } from "../components/skeletons/WorkspaceSkeleton";
 import DORAMetricsDashboard from "../components/workspace/analytics/DORAMetricsDashboard";
 
@@ -381,10 +385,14 @@ const WorkspacePage = (): JSX.Element => {
   useTitle("PlanOra - Workspace");
   // ACTIVE TAB STATE
   const [activeTab, setActiveTab] = useState<
-    "overview" | "members" | "repos" | "analytics"
+    "overview" | "members" | "repos" | "analytics" | "ai"
   >("overview");
   // SHOW INVITE MODAL STATE
   const [showInviteModal, setShowInviteModal] = useState(false);
+  // SHOW STANDUP MODAL STATE
+  const [showStandupModal, setShowStandupModal] = useState(false);
+  // SHOW NL TASK INPUT STATE
+  const [showNLTaskInput, setShowNLTaskInput] = useState(false);
   // FETCH DATA
   const { workspace, isLoading, isError, error } = useWorkspaceById(
     workspaceId || null
@@ -524,12 +532,18 @@ const WorkspacePage = (): JSX.Element => {
               count: workspace.linkedRepositories?.length || 0,
             },
             { id: "analytics", label: "Analytics", icon: BarChart2 },
+            { id: "ai", label: "AI Copilot", icon: Bot },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() =>
                 setActiveTab(
-                  tab.id as "overview" | "members" | "repos" | "analytics"
+                  tab.id as
+                    | "overview"
+                    | "members"
+                    | "repos"
+                    | "analytics"
+                    | "ai"
                 )
               }
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -746,6 +760,14 @@ const WorkspacePage = (): JSX.Element => {
         {activeTab === "analytics" && (
           <DORAMetricsDashboard workspaceId={workspaceId!} />
         )}
+        {/* AI COPILOT TAB */}
+        {activeTab === "ai" && (
+          <AIAssistantPanel
+            workspaceId={workspaceId!}
+            onOpenStandup={() => setShowStandupModal(true)}
+            onOpenNLTasks={() => setShowNLTaskInput(true)}
+          />
+        )}
       </div>
       {/* INVITE MODAL */}
       {showInviteModal && (
@@ -754,6 +776,18 @@ const WorkspacePage = (): JSX.Element => {
           onClose={() => setShowInviteModal(false)}
         />
       )}
+      {/* STANDUP MODAL */}
+      <StandupModal
+        isOpen={showStandupModal}
+        onClose={() => setShowStandupModal(false)}
+        workspaceId={workspaceId!}
+      />
+      {/* NL TASK INPUT MODAL */}
+      <NLTaskInput
+        isOpen={showNLTaskInput}
+        onClose={() => setShowNLTaskInput(false)}
+        workspaceId={workspaceId!}
+      />
     </div>
   );
 };
