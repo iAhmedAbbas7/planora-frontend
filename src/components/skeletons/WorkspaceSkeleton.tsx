@@ -30,7 +30,11 @@ export const DORAMetricCardSkeleton = (): JSX.Element => {
       {/* MINI CHART (FAKE WAVE SHAPE) */}
       <div className="h-12 relative overflow-hidden rounded">
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--light-text)]/5 to-transparent" />
-        <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+        <svg
+          className="w-full h-full"
+          viewBox="0 0 100 40"
+          preserveAspectRatio="none"
+        >
           <path
             d="M0,35 Q10,30 20,32 T40,28 T60,25 T80,20 T100,15 L100,40 L0,40 Z"
             fill="var(--light-text)"
@@ -290,10 +294,7 @@ export const PresenceIndicatorSkeleton = (): JSX.Element => {
       {/* MEMBER LIST */}
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 p-2 rounded-lg"
-          >
+          <div key={i} className="flex items-center gap-3 p-2 rounded-lg">
             <div className="relative">
               <div className="w-9 h-9 rounded-full bg-[var(--light-text)]/10" />
               <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--cards-bg)] flex items-center justify-center">
@@ -403,6 +404,63 @@ export const LiveTabSkeleton = (): JSX.Element => {
       </div>
       {/* QUICK HUDDLE CARD */}
       <HuddleButtonSkeleton />
+    </div>
+  );
+};
+
+// <== CODE LINKING TASK CARD SKELETON ==>
+export const CodeLinkingTaskCardSkeleton = (): JSX.Element => {
+  return (
+    <div className="p-4 rounded-lg border border-[var(--border)] bg-[var(--cards-bg)] animate-pulse">
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="h-5 w-16 bg-[var(--hover-bg)] rounded" />
+            <div className="h-5 w-20 bg-[var(--hover-bg)] rounded-full" />
+          </div>
+          <div className="h-4 w-3/4 bg-[var(--hover-bg)] rounded" />
+        </div>
+        <div className="w-2 h-2 rounded-full bg-[var(--hover-bg)] mt-2" />
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-3 w-8 bg-[var(--hover-bg)] rounded" />
+          <div className="h-3 w-6 bg-[var(--hover-bg)] rounded" />
+        </div>
+        <div className="h-3 w-16 bg-[var(--hover-bg)] rounded" />
+      </div>
+    </div>
+  );
+};
+
+// <== CODE LINKING PANEL SKELETON ==>
+export const CodeLinkingPanelSkeleton = (): JSX.Element => {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-pulse">
+      {/* TASKS LIST */}
+      <div className="flex flex-col min-h-[400px]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-4 w-24 bg-[var(--hover-bg)] rounded" />
+          {/* REFRESH ICON SKELETON */}
+          <div className="h-7 w-7 bg-[var(--hover-bg)] rounded-lg" />
+        </div>
+        <div className="flex-1 flex items-center justify-center rounded-lg border border-dashed border-[var(--border)]">
+          <div className="text-center py-8 px-4">
+            <div className="w-12 h-12 rounded-full bg-[var(--hover-bg)] mx-auto mb-3" />
+            <div className="h-4 w-48 bg-[var(--hover-bg)] rounded mx-auto" />
+          </div>
+        </div>
+      </div>
+      {/* TASK DETAILS */}
+      <div className="border border-[var(--border)] rounded-lg bg-[var(--cards-bg)] p-4 min-h-[400px] flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-[var(--hover-bg)] mx-auto mb-3" />
+            <div className="h-4 w-28 bg-[var(--hover-bg)] rounded mx-auto mb-1" />
+            <div className="h-3 w-48 bg-[var(--hover-bg)] rounded mx-auto" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
