@@ -98,23 +98,74 @@ const SprintPredictionCard = ({
   isLoading: boolean;
   onRefresh: () => void;
 }): JSX.Element => {
-  // IF LOADING, SHOW SKELETON
+  // IF LOADING, SHOW PIXEL-PERFECT SKELETON
   if (isLoading) {
     // RETURN LOADING SKELETON
     return (
       <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 animate-pulse">
+        {/* HEADER */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--hover-bg)]" />
-            <div className="h-4 w-32 bg-[var(--hover-bg)] rounded" />
+            <div className="w-8 h-8 rounded-lg bg-[var(--light-text)]/10" />
+            <div className="h-4 w-28 bg-[var(--light-text)]/10 rounded" />
           </div>
-          <div className="h-5 w-24 bg-[var(--hover-bg)] rounded-full" />
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-24 bg-[var(--light-text)]/10 rounded-full" />
+            <div className="w-7 h-7 bg-[var(--light-text)]/10 rounded-lg" />
+          </div>
         </div>
-        <div className="space-y-3">
-          <div className="h-6 w-40 bg-[var(--hover-bg)] rounded" />
-          <div className="grid grid-cols-2 gap-2">
-            <div className="h-16 bg-[var(--hover-bg)] rounded-lg" />
-            <div className="h-16 bg-[var(--hover-bg)] rounded-lg" />
+        {/* PREDICTED DATE */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded" />
+            <div className="h-3 w-28 bg-[var(--light-text)]/10 rounded" />
+          </div>
+          <div className="h-6 w-36 bg-[var(--light-text)]/10 rounded mb-1" />
+          <div className="h-3 w-24 bg-[var(--light-text)]/10 rounded" />
+        </div>
+        {/* STATS */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="bg-[var(--hover-bg)] rounded-lg p-2 sm:p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded" />
+              <div className="h-3 w-14 bg-[var(--light-text)]/10 rounded" />
+            </div>
+            <div className="h-5 w-20 bg-[var(--light-text)]/10 rounded" />
+          </div>
+          <div className="bg-[var(--hover-bg)] rounded-lg p-2 sm:p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded" />
+              <div className="h-3 w-14 bg-[var(--light-text)]/10 rounded" />
+            </div>
+            <div className="h-5 w-16 bg-[var(--light-text)]/10 rounded" />
+          </div>
+        </div>
+        {/* RISK FACTORS */}
+        <div className="mb-3">
+          <div className="h-3 w-20 bg-[var(--light-text)]/10 rounded mb-2" />
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded mt-0.5" />
+              <div className="h-3 w-full bg-[var(--light-text)]/10 rounded" />
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded mt-0.5" />
+              <div className="h-3 w-3/4 bg-[var(--light-text)]/10 rounded" />
+            </div>
+          </div>
+        </div>
+        {/* RECOMMENDATIONS */}
+        <div>
+          <div className="h-3 w-28 bg-[var(--light-text)]/10 rounded mb-2" />
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded mt-0.5" />
+              <div className="h-3 w-full bg-[var(--light-text)]/10 rounded" />
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded mt-0.5" />
+              <div className="h-3 w-5/6 bg-[var(--light-text)]/10 rounded" />
+            </div>
           </div>
         </div>
       </div>
@@ -255,22 +306,64 @@ const CodeReviewInsightsCard = ({
   isLoading: boolean;
   onRefresh: () => void;
 }): JSX.Element => {
-  // IF LOADING, SHOW SKELETON
+  // IF LOADING, SHOW PIXEL-PERFECT SKELETON
   if (isLoading) {
     // RETURN LOADING SKELETON
     return (
       <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 animate-pulse">
+        {/* HEADER */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--hover-bg)]" />
-            <div className="h-4 w-32 bg-[var(--hover-bg)] rounded" />
+            <div className="w-8 h-8 rounded-lg bg-[var(--light-text)]/10" />
+            <div className="h-4 w-32 bg-[var(--light-text)]/10 rounded" />
           </div>
-          <div className="h-5 w-16 bg-[var(--hover-bg)] rounded-full" />
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-16 bg-[var(--light-text)]/10 rounded-full" />
+            <div className="w-7 h-7 bg-[var(--light-text)]/10 rounded-lg" />
+          </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {/* PR STATS */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-16 bg-[var(--hover-bg)] rounded-lg" />
+            <div key={i} className="bg-[var(--hover-bg)] rounded-lg p-2 sm:p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded" />
+                <div className="h-3 w-10 bg-[var(--light-text)]/10 rounded" />
+              </div>
+              <div className="h-5 w-8 bg-[var(--light-text)]/10 rounded" />
+            </div>
           ))}
+        </div>
+        {/* INSIGHTS */}
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-3 bg-[var(--hover-bg)] rounded-lg">
+            <div className="w-6 h-6 bg-[var(--light-text)]/10 rounded-lg flex-shrink-0" />
+            <div className="flex-1">
+              <div className="h-4 w-24 bg-[var(--light-text)]/10 rounded mb-1" />
+              <div className="h-3 w-full bg-[var(--light-text)]/10 rounded" />
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-[var(--hover-bg)] rounded-lg">
+            <div className="w-6 h-6 bg-[var(--light-text)]/10 rounded-lg flex-shrink-0" />
+            <div className="flex-1">
+              <div className="h-4 w-28 bg-[var(--light-text)]/10 rounded mb-1" />
+              <div className="h-3 w-5/6 bg-[var(--light-text)]/10 rounded" />
+            </div>
+          </div>
+        </div>
+        {/* SUGGESTIONS */}
+        <div className="mt-4 pt-3 border-t border-[var(--border)]">
+          <div className="h-3 w-24 bg-[var(--light-text)]/10 rounded mb-2" />
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded" />
+              <div className="h-3 w-full bg-[var(--light-text)]/10 rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-[var(--light-text)]/10 rounded" />
+              <div className="h-3 w-4/5 bg-[var(--light-text)]/10 rounded" />
+            </div>
+          </div>
         </div>
       </div>
     );
