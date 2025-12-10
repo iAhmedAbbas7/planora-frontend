@@ -20,6 +20,7 @@ import {
   Globe,
   BarChart2,
   Bot,
+  Radio,
 } from "lucide-react";
 import {
   useWorkspaceById,
@@ -38,9 +39,13 @@ import { JSX, useState } from "react";
 import useTitle from "../hooks/useTitle";
 import { useParams, useNavigate } from "react-router-dom";
 import NLTaskInput from "../components/workspace/ai/NLTaskInput";
+import { useWorkspaceSocket } from "../hooks/useWorkspaceSocket";
 import DashboardHeader from "../components/layout/DashboardHeader";
 import StandupModal from "../components/workspace/ai/StandupModal";
+import HuddleButton from "../components/workspace/realtime/HuddleButton";
 import AIAssistantPanel from "../components/workspace/ai/AIAssistantPanel";
+import ActivityStream from "../components/workspace/realtime/ActivityStream";
+import PresenceIndicator from "../components/workspace/realtime/PresenceIndicator";
 import { WorkspaceDetailSkeleton } from "../components/skeletons/WorkspaceSkeleton";
 import DORAMetricsDashboard from "../components/workspace/analytics/DORAMetricsDashboard";
 
@@ -385,8 +390,12 @@ const WorkspacePage = (): JSX.Element => {
   useTitle("PlanOra - Workspace");
   // ACTIVE TAB STATE
   const [activeTab, setActiveTab] = useState<
-    "overview" | "members" | "repos" | "analytics" | "ai"
+    "overview" | "members" | "repos" | "analytics" | "ai" | "collaboration"
   >("overview");
+  // GET WORKSPACE SOCKET
+  const { presence, activities, isConnected, sendMessage } = useWorkspaceSocket(
+    workspaceId || null
+  );
   // SHOW INVITE MODAL STATE
   const [showInviteModal, setShowInviteModal] = useState(false);
   // SHOW STANDUP MODAL STATE
@@ -533,6 +542,12 @@ const WorkspacePage = (): JSX.Element => {
             },
             { id: "analytics", label: "Analytics", icon: BarChart2 },
             { id: "ai", label: "AI Copilot", icon: Bot },
+            {
+              id: "collaboration",
+              label: "Live",
+              icon: Radio,
+              count: presence.length > 0 ? presence.length : undefined,
+            },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -544,6 +559,7 @@ const WorkspacePage = (): JSX.Element => {
                     | "repos"
                     | "analytics"
                     | "ai"
+                    | "collaboration"
                 )
               }
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -767,6 +783,60 @@ const WorkspacePage = (): JSX.Element => {
             onOpenStandup={() => setShowStandupModal(true)}
             onOpenNLTasks={() => setShowNLTaskInput(true)}
           />
+        )}
+        {/* COLLABORATION TAB */}
+        {activeTab === "collaboration" && (
+          <div className="space-y-6">
+            {/* HEADER */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--primary-text)]">
+                  Real-Time Collaboration
+                </h2>
+                <p className="text-sm text-[var(--light-text)]">
+                  See who's online and stay connected with your team
+                </p>
+              </div>
+              {/* COMPACT PRESENCE */}
+              <div className="flex items-center gap-3">
+                <PresenceIndicator
+                  presence={presence}
+                  isConnected={isConnected}
+                  compact
+                />
+                <HuddleButton
+                  workspaceId={workspaceId!}
+                  workspaceName={workspace.name}
+                  onlineCount={presence.length}
+                  compact
+                />
+              </div>
+            </div>
+            {/* MAIN CONTENT */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* PRESENCE PANEL */}
+              <div className="lg:col-span-1">
+                <PresenceIndicator
+                  presence={presence}
+                  isConnected={isConnected}
+                />
+              </div>
+              {/* ACTIVITY STREAM */}
+              <div className="lg:col-span-2">
+                <ActivityStream
+                  activities={activities}
+                  isConnected={isConnected}
+                  onSendMessage={sendMessage}
+                />
+              </div>
+            </div>
+            {/* QUICK HUDDLE CARD */}
+            <HuddleButton
+              workspaceId={workspaceId!}
+              workspaceName={workspace.name}
+              onlineCount={presence.length}
+            />
+          </div>
         )}
       </div>
       {/* INVITE MODAL */}
