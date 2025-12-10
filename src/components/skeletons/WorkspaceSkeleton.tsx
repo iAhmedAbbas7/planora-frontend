@@ -556,6 +556,236 @@ const WorkspaceSkeleton = (): JSX.Element => {
   );
 };
 
+// <== DX SCORE CARD SKELETON ==>
+const DXScoreCardSkeleton = (): JSX.Element => {
+  return (
+    <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 sm:p-6 animate-pulse">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <div className="h-4 w-20 bg-[var(--light-text)]/10 rounded mb-2" />
+          <div className="flex items-baseline gap-2">
+            <div className="h-10 w-16 bg-[var(--light-text)]/10 rounded" />
+            <div className="h-4 w-8 bg-[var(--light-text)]/10 rounded" />
+          </div>
+        </div>
+        <div className="h-6 w-20 bg-[var(--light-text)]/10 rounded-full" />
+      </div>
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-4 h-4 bg-[var(--light-text)]/10 rounded" />
+        <div className="h-4 w-28 bg-[var(--light-text)]/10 rounded" />
+      </div>
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i}>
+            <div className="flex items-center justify-between text-sm mb-1">
+              <div className="h-3 w-20 bg-[var(--light-text)]/10 rounded" />
+              <div className="h-3 w-8 bg-[var(--light-text)]/10 rounded" />
+            </div>
+            <div className="h-2 bg-[var(--light-text)]/10 rounded-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// <== RADAR CHART SKELETON ==>
+const RadarChartSkeleton = (): JSX.Element => {
+  return (
+    <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 sm:p-6 animate-pulse">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-4 h-4 bg-[var(--light-text)]/10 rounded" />
+        <div className="h-4 w-40 bg-[var(--light-text)]/10 rounded" />
+      </div>
+      <div className="h-64 flex items-center justify-center">
+        <div className="w-48 h-48 rounded-full border-2 border-dashed border-[var(--light-text)]/10 relative">
+          <div className="absolute inset-4 rounded-full border border-[var(--light-text)]/5" />
+          <div className="absolute inset-8 rounded-full border border-[var(--light-text)]/5" />
+          <div className="absolute inset-12 rounded-full border border-[var(--light-text)]/5" />
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: "conic-gradient(from 0deg, var(--light-text) 0%, transparent 25%, transparent 75%, var(--light-text) 100%)",
+              opacity: 0.05,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// <== RECOMMENDATIONS SKELETON ==>
+const RecommendationsSkeleton = (): JSX.Element => {
+  return (
+    <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 sm:p-6 animate-pulse">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-4 h-4 bg-[var(--light-text)]/10 rounded" />
+        <div className="h-4 w-36 bg-[var(--light-text)]/10 rounded" />
+      </div>
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-3 rounded-lg bg-[var(--hover-bg)]/30 border border-[var(--border)]">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[var(--light-text)]/10 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-4 w-32 bg-[var(--light-text)]/10 rounded" />
+                  <div className="h-4 w-12 bg-[var(--light-text)]/10 rounded" />
+                </div>
+                <div className="h-3 w-full bg-[var(--light-text)]/10 rounded mb-1" />
+                <div className="h-3 w-3/4 bg-[var(--light-text)]/10 rounded" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// <== LEADERBOARD SKELETON ==>
+const LeaderboardSkeleton = (): JSX.Element => {
+  return (
+    <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 sm:p-6 animate-pulse">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 bg-[var(--light-text)]/10 rounded" />
+          <div className="h-4 w-24 bg-[var(--light-text)]/10 rounded" />
+        </div>
+        <div className="h-3 w-20 bg-[var(--light-text)]/10 rounded" />
+      </div>
+      <div className="space-y-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-[var(--hover-bg)]/30">
+            <div className="w-8 h-8 rounded-full bg-[var(--light-text)]/10" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-8 h-8 rounded-full bg-[var(--light-text)]/10" />
+                <div className="flex-1">
+                  <div className="h-4 w-24 bg-[var(--light-text)]/10 rounded mb-1" />
+                  <div className="h-3 w-32 bg-[var(--light-text)]/10 rounded" />
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="h-6 w-12 bg-[var(--light-text)]/10 rounded mb-1" />
+              <div className="h-3 w-8 bg-[var(--light-text)]/10 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// <== ACHIEVEMENTS SKELETON ==>
+const AchievementsSkeleton = (): JSX.Element => {
+  return (
+    <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 sm:p-6 animate-pulse">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 bg-[var(--light-text)]/10 rounded" />
+          <div className="h-4 w-24 bg-[var(--light-text)]/10 rounded" />
+        </div>
+        <div className="h-3 w-16 bg-[var(--light-text)]/10 rounded" />
+      </div>
+      <div className="mb-4">
+        <div className="h-3 w-16 bg-[var(--light-text)]/10 rounded mb-3" />
+        <div className="flex flex-wrap gap-2">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="w-12 h-12 rounded-xl bg-[var(--light-text)]/10" />
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="h-3 w-20 bg-[var(--light-text)]/10 rounded mb-3" />
+        <div className="flex flex-wrap gap-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="w-12 h-12 rounded-xl bg-[var(--light-text)]/10" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// <== DX SCORE TAB SKELETON ==>
+export const DXScoreTabSkeleton = (): JSX.Element => {
+  return (
+    <div className="space-y-4 sm:space-y-6 animate-pulse">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-5 h-5 bg-[var(--light-text)]/10 rounded" />
+            <div className="h-5 w-44 bg-[var(--light-text)]/10 rounded" />
+          </div>
+          <div className="h-4 w-56 bg-[var(--light-text)]/10 rounded" />
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* PERIOD DROPDOWN SKELETON */}
+          <div className="h-8 sm:h-9 w-20 sm:w-28 bg-[var(--cards-bg)] border border-[var(--border)] rounded-lg" />
+          {/* SYNC BUTTON SKELETON */}
+          <div className="h-8 sm:h-9 w-10 sm:w-16 bg-[var(--accent-color)]/30 rounded-lg" />
+        </div>
+      </div>
+      {/* MAIN GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <DXScoreCardSkeleton />
+        <RadarChartSkeleton />
+        <RecommendationsSkeleton />
+      </div>
+      {/* STATS GRID */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 animate-pulse">
+            <div className="flex items-center justify-between mb-2">
+              <div className="w-8 h-8 rounded-lg bg-[var(--light-text)]/10" />
+              <div className="h-3 w-8 bg-[var(--light-text)]/10 rounded" />
+            </div>
+            <div className="h-7 w-12 bg-[var(--light-text)]/10 rounded mb-1" />
+            <div className="h-3 w-16 bg-[var(--light-text)]/10 rounded" />
+          </div>
+        ))}
+      </div>
+      {/* ACTIVITY TREND */}
+      <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4 sm:p-6 animate-pulse">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-4 h-4 bg-[var(--light-text)]/10 rounded" />
+          <div className="h-4 w-28 bg-[var(--light-text)]/10 rounded" />
+        </div>
+        <div className="h-48 relative">
+          <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--light-text)" stopOpacity={0.1} />
+                <stop offset="95%" stopColor="var(--light-text)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0,35 Q10,30 20,28 T40,22 T60,18 T80,15 T100,12 L100,40 L0,40 Z"
+              fill="url(#areaGradient)"
+            />
+            <path
+              d="M0,35 Q10,30 20,28 T40,22 T60,18 T80,15 T100,12"
+              fill="none"
+              stroke="var(--light-text)"
+              strokeOpacity="0.15"
+              strokeWidth="2"
+            />
+          </svg>
+        </div>
+      </div>
+      {/* LEADERBOARD AND ACHIEVEMENTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <LeaderboardSkeleton />
+        <AchievementsSkeleton />
+      </div>
+    </div>
+  );
+};
+
 // <== WORKSPACE DETAIL SKELETON COMPONENT ==>
 export const WorkspaceDetailSkeleton = (): JSX.Element => {
   return (
