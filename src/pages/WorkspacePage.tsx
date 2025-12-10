@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Lock,
   Globe,
+  BarChart2,
 } from "lucide-react";
 import {
   useWorkspaceById,
@@ -37,6 +38,7 @@ import useTitle from "../hooks/useTitle";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardHeader from "../components/layout/DashboardHeader";
 import { WorkspaceDetailSkeleton } from "../components/skeletons/WorkspaceSkeleton";
+import DORAMetricsDashboard from "../components/workspace/analytics/DORAMetricsDashboard";
 
 // <== ROLE BADGE COMPONENT ==>
 const RoleBadge = ({
@@ -377,11 +379,11 @@ const WorkspacePage = (): JSX.Element => {
   const navigate = useNavigate();
   // SET PAGE TITLE
   useTitle("PlanOra - Workspace");
-  // STATE
-  const [activeTab, setActiveTab] = useState<"overview" | "members" | "repos">(
-    "overview"
-  );
-  // STATE
+  // ACTIVE TAB STATE
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "members" | "repos" | "analytics"
+  >("overview");
+  // SHOW INVITE MODAL STATE
   const [showInviteModal, setShowInviteModal] = useState(false);
   // FETCH DATA
   const { workspace, isLoading, isError, error } = useWorkspaceById(
@@ -400,11 +402,11 @@ const WorkspacePage = (): JSX.Element => {
   // UNLINK REPOSITORY MUTATION
   const unlinkRepository = useUnlinkRepository();
   // LOADING STATE
-  // IF LOADING, SHOW SKELETON
   if (isLoading) {
+    // RETURN WORKSPACE DETAIL SKELETON
     return <WorkspaceDetailSkeleton />;
   }
-  // ERROR STATE
+  // IF ERROR OR NO WORKSPACE, SHOW ERROR MESSAGE
   if (isError || !workspace) {
     // GET AXIOS ERROR
     const axiosError = error as AxiosError<{ message?: string }>;
@@ -521,11 +523,14 @@ const WorkspacePage = (): JSX.Element => {
               icon: GitBranch,
               count: workspace.linkedRepositories?.length || 0,
             },
+            { id: "analytics", label: "Analytics", icon: BarChart2 },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() =>
-                setActiveTab(tab.id as "overview" | "members" | "repos")
+                setActiveTab(
+                  tab.id as "overview" | "members" | "repos" | "analytics"
+                )
               }
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.id
@@ -736,6 +741,10 @@ const WorkspacePage = (): JSX.Element => {
               </div>
             )}
           </div>
+        )}
+        {/* ANALYTICS TAB */}
+        {activeTab === "analytics" && (
+          <DORAMetricsDashboard workspaceId={workspaceId!} />
         )}
       </div>
       {/* INVITE MODAL */}
