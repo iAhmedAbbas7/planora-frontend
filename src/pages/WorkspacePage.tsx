@@ -21,6 +21,7 @@ import {
   BarChart2,
   Bot,
   Radio,
+  Code2,
 } from "lucide-react";
 import {
   useWorkspaceById,
@@ -42,6 +43,7 @@ import { AxiosError } from "axios";
 import { JSX, useState } from "react";
 import useTitle from "../hooks/useTitle";
 import { useParams, useNavigate } from "react-router-dom";
+import { CodeLinkingPanel } from "../components/workspace/code";
 import NLTaskInput from "../components/workspace/ai/NLTaskInput";
 import { useWorkspaceSocket } from "../hooks/useWorkspaceSocket";
 import DashboardHeader from "../components/layout/DashboardHeader";
@@ -393,7 +395,13 @@ const WorkspacePage = (): JSX.Element => {
   useTitle("PlanOra - Workspace");
   // ACTIVE TAB STATE
   const [activeTab, setActiveTab] = useState<
-    "overview" | "members" | "repos" | "analytics" | "ai" | "collaboration"
+    | "overview"
+    | "members"
+    | "repos"
+    | "analytics"
+    | "ai"
+    | "code"
+    | "collaboration"
   >("overview");
   // GET WORKSPACE SOCKET
   const { presence, activities, isConnected, sendMessage } = useWorkspaceSocket(
@@ -545,6 +553,7 @@ const WorkspacePage = (): JSX.Element => {
             },
             { id: "analytics", label: "Analytics", icon: BarChart2 },
             { id: "ai", label: "AI Copilot", icon: Bot },
+            { id: "code", label: "Code", icon: Code2 },
             {
               id: "collaboration",
               label: "Live",
@@ -785,6 +794,13 @@ const WorkspacePage = (): JSX.Element => {
             workspaceId={workspaceId!}
             onOpenStandup={() => setShowStandupModal(true)}
             onOpenNLTasks={() => setShowNLTaskInput(true)}
+          />
+        )}
+        {/* CODE LINKING TAB */}
+        {activeTab === "code" && (
+          <CodeLinkingPanel
+            workspaceId={workspaceId!}
+            repositories={workspace.linkedRepositories || []}
           />
         )}
         {/* COLLABORATION TAB */}
