@@ -306,29 +306,90 @@ const BenchmarkInfo = (): JSX.Element => {
 
 // <== LOADING SKELETON COMPONENT ==>
 const LoadingSkeleton = (): JSX.Element => {
-  // RETURN LOADING SKELETON
+  // RETURN PIXEL-PERFECT LOADING SKELETON
   return (
     <div className="space-y-4 animate-pulse">
+      {/* HEADER */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-28 bg-[var(--light-text)]/10 rounded" />
+          <div className="h-6 w-16 bg-[var(--light-text)]/10 rounded-full" />
+        </div>
+        <div className="w-9 h-9 bg-[var(--light-text)]/10 rounded-lg" />
+      </div>
+      {/* METRIC CARDS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4"
           >
+            {/* HEADER */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg bg-[var(--hover-bg)]" />
+                {/* ICON */}
+                <div className="w-9 h-9 rounded-lg bg-[var(--light-text)]/10" />
                 <div>
-                  <div className="h-4 w-32 bg-[var(--hover-bg)] rounded mb-1" />
-                  <div className="h-3 w-40 bg-[var(--hover-bg)] rounded" />
+                  {/* TITLE */}
+                  <div className="h-4 w-32 bg-[var(--light-text)]/10 rounded mb-1" />
+                  {/* DESCRIPTION */}
+                  <div className="h-3 w-40 bg-[var(--light-text)]/10 rounded" />
                 </div>
               </div>
-              <div className="h-5 w-14 bg-[var(--hover-bg)] rounded-full" />
+              {/* RATING BADGE */}
+              <div className="h-5 w-14 bg-[var(--light-text)]/10 rounded-full" />
             </div>
-            <div className="h-8 w-20 bg-[var(--hover-bg)] rounded mb-3" />
-            <div className="h-12 bg-[var(--hover-bg)] rounded" />
+            {/* VALUE */}
+            <div className="flex items-end justify-between mb-3">
+              <div className="flex items-baseline gap-2">
+                <div className="h-7 w-16 bg-[var(--light-text)]/10 rounded" />
+                <div className="h-4 w-4 bg-[var(--light-text)]/10 rounded" />
+              </div>
+            </div>
+            {/* MINI CHART (FAKE WAVE SHAPE) */}
+            <div className="h-12 relative overflow-hidden rounded">
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--light-text)]/5 to-transparent" />
+              <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+                <path
+                  d="M0,35 Q10,30 20,32 T40,28 T60,25 T80,20 T100,15 L100,40 L0,40 Z"
+                  fill="var(--light-text)"
+                  fillOpacity="0.08"
+                />
+                <path
+                  d="M0,35 Q10,30 20,32 T40,28 T60,25 T80,20 T100,15"
+                  fill="none"
+                  stroke="var(--light-text)"
+                  strokeOpacity="0.15"
+                  strokeWidth="2"
+                />
+              </svg>
+            </div>
           </div>
         ))}
+      </div>
+      {/* BENCHMARK GUIDE SKELETON */}
+      <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-4 h-4 bg-[var(--light-text)]/10 rounded" />
+          <div className="h-4 w-36 bg-[var(--light-text)]/10 rounded" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="p-3 bg-[var(--hover-bg)] rounded-lg">
+              <div className="h-5 w-16 bg-[var(--light-text)]/10 rounded mb-2" />
+              <div className="space-y-1.5">
+                <div className="h-3 w-full bg-[var(--light-text)]/10 rounded" />
+                <div className="h-3 w-full bg-[var(--light-text)]/10 rounded" />
+                <div className="h-3 w-full bg-[var(--light-text)]/10 rounded" />
+                <div className="h-3 w-3/4 bg-[var(--light-text)]/10 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* LAST UPDATED SKELETON */}
+      <div className="flex justify-end">
+        <div className="h-3 w-40 bg-[var(--light-text)]/10 rounded" />
       </div>
     </div>
   );
