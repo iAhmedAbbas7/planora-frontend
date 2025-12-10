@@ -22,6 +22,7 @@ import {
   Bot,
   Radio,
   Code2,
+  Award,
 } from "lucide-react";
 import {
   useWorkspaceById,
@@ -35,6 +36,11 @@ import {
   WorkspaceMember,
   WorkspaceInvitation,
 } from "../hooks/useWorkspace";
+import {
+  MemberPerformanceDashboard,
+  LeaderboardCard,
+  AchievementBadges,
+} from "../components/workspace/dx";
 import {
   WorkspaceDetailSkeleton,
   LiveTabSkeleton,
@@ -402,6 +408,7 @@ const WorkspacePage = (): JSX.Element => {
     | "ai"
     | "code"
     | "collaboration"
+    | "dx"
   >("overview");
   // GET WORKSPACE SOCKET
   const { presence, activities, isConnected, sendMessage } = useWorkspaceSocket(
@@ -560,6 +567,7 @@ const WorkspacePage = (): JSX.Element => {
               icon: Radio,
               count: presence.length > 0 ? presence.length : undefined,
             },
+            { id: "dx", label: "DX Score", icon: Award },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -571,7 +579,9 @@ const WorkspacePage = (): JSX.Element => {
                     | "repos"
                     | "analytics"
                     | "ai"
+                    | "code"
                     | "collaboration"
+                    | "dx"
                 )
               }
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -860,6 +870,18 @@ const WorkspacePage = (): JSX.Element => {
               />
             </div>
           ))}
+        {/* DX SCORE TAB */}
+        {activeTab === "dx" && (
+          <div className="space-y-6">
+            {/* MEMBER PERFORMANCE DASHBOARD */}
+            <MemberPerformanceDashboard workspaceId={workspaceId!} />
+            {/* LEADERBOARD AND ACHIEVEMENTS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <LeaderboardCard workspaceId={workspaceId!} />
+              <AchievementBadges workspaceId={workspaceId!} />
+            </div>
+          </div>
+        )}
       </div>
       {/* INVITE MODAL */}
       {showInviteModal && (
