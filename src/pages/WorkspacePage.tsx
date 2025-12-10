@@ -34,6 +34,10 @@ import {
   WorkspaceMember,
   WorkspaceInvitation,
 } from "../hooks/useWorkspace";
+import {
+  WorkspaceDetailSkeleton,
+  LiveTabSkeleton,
+} from "../components/skeletons/WorkspaceSkeleton";
 import { AxiosError } from "axios";
 import { JSX, useState } from "react";
 import useTitle from "../hooks/useTitle";
@@ -46,7 +50,6 @@ import HuddleButton from "../components/workspace/realtime/HuddleButton";
 import AIAssistantPanel from "../components/workspace/ai/AIAssistantPanel";
 import ActivityStream from "../components/workspace/realtime/ActivityStream";
 import PresenceIndicator from "../components/workspace/realtime/PresenceIndicator";
-import { WorkspaceDetailSkeleton } from "../components/skeletons/WorkspaceSkeleton";
 import DORAMetricsDashboard from "../components/workspace/analytics/DORAMetricsDashboard";
 
 // <== ROLE BADGE COMPONENT ==>
@@ -785,59 +788,62 @@ const WorkspacePage = (): JSX.Element => {
           />
         )}
         {/* COLLABORATION TAB */}
-        {activeTab === "collaboration" && (
-          <div className="space-y-6">
-            {/* HEADER */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-[var(--primary-text)]">
-                  Real-Time Collaboration
-                </h2>
-                <p className="text-sm text-[var(--light-text)]">
-                  See who's online and stay connected with your team
-                </p>
+        {activeTab === "collaboration" &&
+          (!isConnected && presence.length === 0 && activities.length === 0 ? (
+            <LiveTabSkeleton />
+          ) : (
+            <div className="space-y-6">
+              {/* HEADER */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--primary-text)]">
+                    Real-Time Collaboration
+                  </h2>
+                  <p className="text-sm text-[var(--light-text)]">
+                    See who's online and stay connected with your team
+                  </p>
+                </div>
+                {/* COMPACT PRESENCE */}
+                <div className="flex items-center gap-3">
+                  <PresenceIndicator
+                    presence={presence}
+                    isConnected={isConnected}
+                    compact
+                  />
+                  <HuddleButton
+                    workspaceId={workspaceId!}
+                    workspaceName={workspace.name}
+                    onlineCount={presence.length}
+                    compact
+                  />
+                </div>
               </div>
-              {/* COMPACT PRESENCE */}
-              <div className="flex items-center gap-3">
-                <PresenceIndicator
-                  presence={presence}
-                  isConnected={isConnected}
-                  compact
-                />
-                <HuddleButton
-                  workspaceId={workspaceId!}
-                  workspaceName={workspace.name}
-                  onlineCount={presence.length}
-                  compact
-                />
+              {/* MAIN CONTENT */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* PRESENCE PANEL */}
+                <div className="lg:col-span-1">
+                  <PresenceIndicator
+                    presence={presence}
+                    isConnected={isConnected}
+                  />
+                </div>
+                {/* ACTIVITY STREAM */}
+                <div className="lg:col-span-2">
+                  <ActivityStream
+                    activities={activities}
+                    isConnected={isConnected}
+                    onSendMessage={sendMessage}
+                  />
+                </div>
               </div>
+              {/* QUICK HUDDLE CARD */}
+              <HuddleButton
+                workspaceId={workspaceId!}
+                workspaceName={workspace.name}
+                onlineCount={presence.length}
+              />
             </div>
-            {/* MAIN CONTENT */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* PRESENCE PANEL */}
-              <div className="lg:col-span-1">
-                <PresenceIndicator
-                  presence={presence}
-                  isConnected={isConnected}
-                />
-              </div>
-              {/* ACTIVITY STREAM */}
-              <div className="lg:col-span-2">
-                <ActivityStream
-                  activities={activities}
-                  isConnected={isConnected}
-                  onSendMessage={sendMessage}
-                />
-              </div>
-            </div>
-            {/* QUICK HUDDLE CARD */}
-            <HuddleButton
-              workspaceId={workspaceId!}
-              workspaceName={workspace.name}
-              onlineCount={presence.length}
-            />
-          </div>
-        )}
+          ))}
       </div>
       {/* INVITE MODAL */}
       {showInviteModal && (
