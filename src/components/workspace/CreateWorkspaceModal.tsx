@@ -1,18 +1,12 @@
 // <== IMPORTS ==>
+import { toast } from "@/lib/toast";
 import { JSX, useState, FormEvent } from "react";
 import { useCreateWorkspace } from "../../hooks/useWorkspace";
-import { toast } from "@/lib/toast";
-import {
-  X,
-  Building2,
-  FileText,
-  Lock,
-  Globe,
-  Loader2,
-} from "lucide-react";
+import { X, Building2, FileText, Lock, Globe, Loader2 } from "lucide-react";
 
 // <== PROPS TYPE ==>
 type Props = {
+  // <== ON CLOSE ==>
   onClose: () => void;
 };
 
@@ -20,16 +14,21 @@ type Props = {
 const CreateWorkspaceModal = ({ onClose }: Props): JSX.Element => {
   // CREATE WORKSPACE MUTATION
   const createWorkspace = useCreateWorkspace();
-  // FORM STATE
+  // WORKSPACE NAME STATE
   const [name, setName] = useState("");
+  // WORKSPACE DESCRIPTION STATE
   const [description, setDescription] = useState("");
+  // WORKSPACE VISIBILITY STATE
   const [visibility, setVisibility] = useState<"private" | "public">("private");
   // HANDLE SUBMIT
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    // PREVENT DEFAULT FORM SUBMISSION
     e.preventDefault();
     // VALIDATE NAME
     if (!name.trim()) {
+      // SHOW ERROR TOAST
       toast.error("Workspace name is required!");
+      // RETURN
       return;
     }
     // CREATE WORKSPACE
@@ -40,7 +39,9 @@ const CreateWorkspaceModal = ({ onClose }: Props): JSX.Element => {
         visibility,
       },
       {
+        // <== ON SUCCESS ==>
         onSuccess: () => {
+          // CLOSE MODAL
           onClose();
         },
       }
@@ -241,4 +242,3 @@ const CreateWorkspaceModal = ({ onClose }: Props): JSX.Element => {
 };
 
 export default CreateWorkspaceModal;
-
