@@ -610,7 +610,6 @@ const GitHubRepoPage = (): JSX.Element => {
         <DashboardHeader
           title="Repository"
           subtitle="View repository details"
-          showSearch={false}
         />
         <div className="m-4 flex flex-col items-center justify-center py-16 px-4">
           <div className="w-20 h-20 rounded-full bg-[var(--inside-card-bg)] flex items-center justify-center mb-6">
@@ -643,7 +642,6 @@ const GitHubRepoPage = (): JSX.Element => {
         <DashboardHeader
           title="Repository"
           subtitle="Loading repository details..."
-          showSearch={false}
         />
         <div className="m-4">
           <LoadingSkeleton />
@@ -661,7 +659,6 @@ const GitHubRepoPage = (): JSX.Element => {
         <DashboardHeader
           title="Repository"
           subtitle="Repository not found"
-          showSearch={false}
         />
         <div className="m-4 flex flex-col items-center justify-center py-16 px-4">
           <div className="w-20 h-20 rounded-full bg-[var(--inside-card-bg)] flex items-center justify-center mb-6">
@@ -696,7 +693,6 @@ const GitHubRepoPage = (): JSX.Element => {
       <DashboardHeader
         title="Repository"
         subtitle={repository.fullName}
-        showSearch={false}
       />
       {/* CONTENT */}
       <div className="m-4 space-y-4">
