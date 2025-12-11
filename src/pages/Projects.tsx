@@ -58,7 +58,6 @@ const Projects = (): JSX.Element => {
       <DashboardHeader
         title="Projects"
         subtitle="Track and organize all your projects at one place"
-        showSearch={false}
       />
       {/* OVERVIEW SECTION */}
       <div className="">
