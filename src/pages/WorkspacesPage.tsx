@@ -348,7 +348,6 @@ const WorkspacesPage = (): JSX.Element => {
       <DashboardHeader
         title="Workspaces"
         subtitle="Collaborate with your team in shared workspaces"
-        showSearch={false}
       />
       {/* MAIN CONTENT */}
       <div className="p-4 md:p-6">
