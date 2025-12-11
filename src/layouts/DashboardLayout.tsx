@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/layout/Sidebar";
 import { CommandPalette } from "../components/command";
 import MobileSidebar from "../components/layout/MobileSidebar";
+import { FloatingTimerWidget } from "../components/time-tracking";
 import SessionExpiredModal from "../components/common/SessionExpiredModal";
 
 // <== DASHBOARD LAYOUT COMPONENT ==>
@@ -24,6 +25,8 @@ const DashboardLayout = (): JSX.Element => {
       <SessionExpiredModal />
       {/* GLOBAL COMMAND PALETTE (CTRL+K / CMD+K) */}
       <CommandPalette />
+      {/* FLOATING TIMER WIDGET (SHOWS WHEN TIMER IS ACTIVE) */}
+      <FloatingTimerWidget />
     </div>
   );
 };
