@@ -11,8 +11,18 @@ import {
   X,
   Edit,
   Trash2,
+  Play,
+  Square,
+  Clock,
 } from "lucide-react";
+import {
+  useActiveTimer,
+  useStartTimer,
+  useStopTimer,
+  formatElapsedTime,
+} from "../../hooks/useTimeTracking";
 import type { Task } from "../../types/task";
+import { TimeLogModal } from "../time-tracking";
 import { useEffect, useState, JSX, Dispatch, SetStateAction } from "react";
 
 // <== LIST VIEW PROPS TYPE INTERFACE ==>
@@ -65,6 +75,7 @@ type ColumnProps = {
   // <== ON SECTION SEARCH CHANGE ==>
   onSectionSearchChange?: (term: string) => void;
 };
+
 // <== TASK COLUMN COMPONENT ==>
 function TaskColumn({
   title,
@@ -85,6 +96,15 @@ function TaskColumn({
   const [isOpen, setIsOpen] = useState<boolean>(true);
   // SELECTED ITEMS STATE
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  // TIME LOG MODAL STATE
+  const [timeLogTask, setTimeLogTask] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  // TIME TRACKING HOOKS
+  const { data: activeTimer } = useActiveTimer();
+  const startTimer = useStartTimer();
+  const stopTimer = useStopTimer();
   // DOT COLOR BASED ON TITLE
   const dotColor =
     title === "To Do"
@@ -379,6 +399,53 @@ function TaskColumn({
                       >
                         {/* ACTION BUTTONS */}
                         <div className="flex items-center gap-2">
+                          {/* TIMER BUTTON */}
+                          {activeTimer?.taskId === task._id ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                stopTimer.mutate({ taskId: task._id });
+                              }}
+                              disabled={stopTimer.isPending}
+                              className="text-white bg-[var(--accent-color)] transition-colors p-1 rounded-md cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                              title="Stop Timer"
+                            >
+                              <Square size={14} />
+                              <span className="text-xs font-mono">
+                                {formatElapsedTime(activeTimer.startedAt)}
+                              </span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startTimer.mutate({ taskId: task._id });
+                              }}
+                              disabled={startTimer.isPending || !!activeTimer}
+                              className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] disabled:opacity-50 disabled:cursor-not-allowed"
+                              title={
+                                activeTimer
+                                  ? "Stop current timer first"
+                                  : "Start Timer"
+                              }
+                            >
+                              <Play size={18} />
+                            </button>
+                          )}
+                          {/* LOG TIME BUTTON */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTimeLogTask({
+                                id: task._id,
+                                title: task.title,
+                              });
+                            }}
+                            className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                            title="Log Time"
+                          >
+                            <Clock size={18} />
+                          </button>
                           {/* EDIT BUTTON */}
                           <button
                             className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
@@ -555,6 +622,50 @@ function TaskColumn({
                   </div>
                   {/* ACTION BUTTONS */}
                   <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                    {/* TIMER BUTTON */}
+                    {activeTimer?.taskId === task._id ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          stopTimer.mutate({ taskId: task._id });
+                        }}
+                        disabled={stopTimer.isPending}
+                        className="text-white bg-[var(--accent-color)] transition-colors p-1.5 rounded-md cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                        title="Stop Timer"
+                      >
+                        <Square size={14} />
+                        <span className="text-xs font-mono">
+                          {formatElapsedTime(activeTimer.startedAt)}
+                        </span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startTimer.mutate({ taskId: task._id });
+                        }}
+                        disabled={startTimer.isPending || !!activeTimer}
+                        className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={
+                          activeTimer
+                            ? "Stop current timer first"
+                            : "Start Timer"
+                        }
+                      >
+                        <Play size={18} />
+                      </button>
+                    )}
+                    {/* LOG TIME BUTTON */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTimeLogTask({ id: task._id, title: task.title });
+                      }}
+                      className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
+                      title="Log Time"
+                    >
+                      <Clock size={18} />
+                    </button>
                     {/* EDIT BUTTON */}
                     <button
                       className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
@@ -583,6 +694,15 @@ function TaskColumn({
             ) : null}
           </div>
         </main>
+      )}
+      {/* TIME LOG MODAL */}
+      {timeLogTask && (
+        <TimeLogModal
+          taskId={timeLogTask.id}
+          taskTitle={timeLogTask.title}
+          isOpen={!!timeLogTask}
+          onClose={() => setTimeLogTask(null)}
+        />
       )}
       {/* SELECTED TASKS MODAL */}
       {selectedItems.length > 0 && (
@@ -633,14 +753,14 @@ function TaskColumn({
                       {/* TASK DETAILS */}
                       <div className="flex flex-col gap-2 text-sm">
                         {/* STATUS */}
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <CircleDot
                             size={14}
                             className="text-[var(--light-text)] flex-shrink-0"
                           />
-                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
-                              Status:
-                            </span>
+                          <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                            Status:
+                          </span>
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
                             <span
                               className="absolute inset-0 rounded-full"
@@ -655,8 +775,8 @@ function TaskColumn({
                             >
                               {task.status || "N/A"}
                             </span>
-                            </span>
-                          </div>
+                          </span>
+                        </div>
                         {/* PRIORITY */}
                         {task.priority && (
                           <div className="flex items-center gap-2">
@@ -780,14 +900,27 @@ const ListView = ({
     "in progress": "",
     completed: "",
   });
+  // TIME LOG MODAL STATE (FOR SEARCH RESULTS)
+  const [timeLogTask, setTimeLogTask] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  // TIME TRACKING HOOKS (FOR SEARCH RESULTS)
+  const { data: activeTimer } = useActiveTimer();
+  // START TIMER MUTATION
+  const startTimer = useStartTimer();
+  // STOP TIMER MUTATION
+  const stopTimer = useStopTimer();
   // HANDLE SELECT FUNCTION (FOR SEARCH RESULTS)
   const handleSelect = (taskId: string, checked: boolean): void => {
+    // UPDATE SELECTED ITEMS
     setSelectedItems((prev) =>
       checked ? [...prev, taskId] : prev.filter((id) => id !== taskId)
     );
   };
   // HANDLE CANCEL SELECTION FUNCTION (FOR SEARCH RESULTS)
   const handleCancelSelection = (): void => {
+    // CLEAR SELECTED ITEMS
     setSelectedItems([]);
   };
   // FILTER TASKS BY SECTION SEARCH TERM
@@ -1010,6 +1143,55 @@ const ListView = ({
                           >
                             {/* ACTION BUTTONS */}
                             <div className="flex items-center gap-2">
+                              {/* TIMER BUTTON */}
+                              {activeTimer?.taskId === task._id ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    stopTimer.mutate({ taskId: task._id });
+                                  }}
+                                  disabled={stopTimer.isPending}
+                                  className="text-white bg-[var(--accent-color)] transition-colors p-1 rounded-md cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                  title="Stop Timer"
+                                >
+                                  <Square size={14} />
+                                  <span className="text-xs font-mono">
+                                    {formatElapsedTime(activeTimer.startedAt)}
+                                  </span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startTimer.mutate({ taskId: task._id });
+                                  }}
+                                  disabled={
+                                    startTimer.isPending || !!activeTimer
+                                  }
+                                  className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title={
+                                    activeTimer
+                                      ? "Stop current timer first"
+                                      : "Start Timer"
+                                  }
+                                >
+                                  <Play size={18} />
+                                </button>
+                              )}
+                              {/* LOG TIME BUTTON */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTimeLogTask({
+                                    id: task._id,
+                                    title: task.title,
+                                  });
+                                }}
+                                className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
+                                title="Log Time"
+                              >
+                                <Clock size={18} />
+                              </button>
                               {/* EDIT BUTTON */}
                               <button
                                 className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1 rounded-md hover:bg-[var(--hover-bg)]"
@@ -1148,6 +1330,50 @@ const ListView = ({
                       </div>
                       {/* ACTION BUTTONS */}
                       <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                        {/* TIMER BUTTON */}
+                        {activeTimer?.taskId === task._id ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              stopTimer.mutate({ taskId: task._id });
+                            }}
+                            disabled={stopTimer.isPending}
+                            className="text-white bg-[var(--accent-color)] transition-colors p-1.5 rounded-md cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                            title="Stop Timer"
+                          >
+                            <Square size={14} />
+                            <span className="text-xs font-mono">
+                              {formatElapsedTime(activeTimer.startedAt)}
+                            </span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startTimer.mutate({ taskId: task._id });
+                            }}
+                            disabled={startTimer.isPending || !!activeTimer}
+                            className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={
+                              activeTimer
+                                ? "Stop current timer first"
+                                : "Start Timer"
+                            }
+                          >
+                            <Play size={18} />
+                          </button>
+                        )}
+                        {/* LOG TIME BUTTON */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTimeLogTask({ id: task._id, title: task.title });
+                          }}
+                          className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
+                          title="Log Time"
+                        >
+                          <Clock size={18} />
+                        </button>
                         {/* EDIT BUTTON */}
                         <button
                           className="cursor-pointer text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)]"
@@ -1305,14 +1531,14 @@ const ListView = ({
                       {/* TASK DETAILS */}
                       <div className="flex flex-col gap-2 text-sm">
                         {/* STATUS */}
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <CircleDot
                             size={14}
                             className="text-[var(--light-text)] flex-shrink-0"
                           />
-                            <span className="text-xs text-[var(--light-text)] min-w-[80px]">
-                              Status:
-                            </span>
+                          <span className="text-xs text-[var(--light-text)] min-w-[80px]">
+                            Status:
+                          </span>
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold relative capitalize">
                             <span
                               className="absolute inset-0 rounded-full"
@@ -1327,8 +1553,8 @@ const ListView = ({
                             >
                               {task.status || "N/A"}
                             </span>
-                            </span>
-                          </div>
+                          </span>
+                        </div>
                         {/* PRIORITY */}
                         {task.priority && (
                           <div className="flex items-center gap-2">
@@ -1424,6 +1650,15 @@ const ListView = ({
             </div>
           </div>
         </div>
+      )}
+      {/* TIME LOG MODAL (FOR SEARCH RESULTS) */}
+      {timeLogTask && (
+        <TimeLogModal
+          taskId={timeLogTask.id}
+          taskTitle={timeLogTask.title}
+          isOpen={!!timeLogTask}
+          onClose={() => setTimeLogTask(null)}
+        />
       )}
     </div>
   );
