@@ -62,7 +62,6 @@ const Dashboard = (): JSX.Element => {
         <DashboardHeader
           title="Dashboard"
           subtitle="Monitor all of your projects and tasks here"
-          showSearch={false}
         />
         {/* DASHBOARD CONTENT CONTAINER */}
         <div className="p-4 space-y-4">
