@@ -2,9 +2,10 @@
 import Dropdown from "../common/Dropdown";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
-import { Sun, Moon, Menu, Search, User } from "lucide-react";
+import { Sun, Moon, Menu, User } from "lucide-react";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import { useEffect, useRef, useState, JSX, useMemo } from "react";
+import { CommandBarTrigger } from "../command";
 import GitHubNotificationsDropdown from "../github/GitHubNotificationsDropdown";
 
 // <== DASHBOARD HEADER PROPS TYPE INTERFACE ==>
@@ -98,24 +99,16 @@ const DashboardHeader = ({
       </div>
       {/* RIGHT SECTION - SEARCH, THEME, USER */}
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* SEARCH CONTAINER */}
+        {/* COMMAND PALETTE TRIGGER */}
         {showSearch && (
-          <div
-            className="hidden sm:flex items-center px-3 py-1.5 rounded-xl"
-            style={{ backgroundColor: "var(--chip-bg)" }}
-          >
-            {/* SEARCH ICON */}
-            <Search
-              className="h-4 w-4 mr-2"
-              style={{ color: "var(--text-secondary)" }}
-            />
-            {/* SEARCH INPUT */}
-            <input
-              type="text"
-              placeholder="Search anything"
-              className="bg-transparent outline-none text-sm w-40"
-              style={{ color: "var(--text-primary)" }}
-            />
+          <div className="hidden sm:block">
+            <CommandBarTrigger variant="input" />
+          </div>
+        )}
+        {/* MOBILE SEARCH BUTTON */}
+        {showSearch && (
+          <div className="sm:hidden">
+            <CommandBarTrigger variant="button" />
           </div>
         )}
         {/* GITHUB NOTIFICATIONS - ONLY ON GITHUB PAGES */}
