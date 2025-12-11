@@ -353,7 +353,6 @@ const GitHubComparePage = (): JSX.Element => {
         <DashboardHeader
           title="Compare Changes"
           subtitle={`${owner}/${repo}`}
-          showSearch={false}
         />
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="animate-pulse space-y-6">
@@ -369,7 +368,6 @@ const GitHubComparePage = (): JSX.Element => {
       <DashboardHeader
         title="Compare Changes"
         subtitle={`${owner}/${repo}`}
-        showSearch={false}
       />
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* BACK BUTTON */}
