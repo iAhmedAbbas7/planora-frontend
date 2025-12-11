@@ -11,9 +11,19 @@ import {
   Edit,
   Trash2,
   CircleDot,
+  Play,
+  Square,
+  Clock,
 } from "lucide-react";
+import {
+  useActiveTimer,
+  useStartTimer,
+  useStopTimer,
+  formatElapsedTime,
+} from "../../hooks/useTimeTracking";
 import AddNewTask from "./AddNewTask";
 import type { Task } from "../../types/task";
+import { TimeLogModal } from "../time-tracking";
 import { useEffect, useState, JSX, Dispatch, SetStateAction } from "react";
 
 // <== BOARD VIEW PROPS TYPE INTERFACE ==>
@@ -72,6 +82,15 @@ const BoardView = ({
   const [newTaskStatus, setNewTaskStatus] = useState<Task["status"] | null>(
     null
   );
+  // TIME LOG MODAL STATE
+  const [timeLogTask, setTimeLogTask] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  // TIME TRACKING HOOKS
+  const { data: activeTimer } = useActiveTimer();
+  const startTimer = useStartTimer();
+  const stopTimer = useStopTimer();
   // PREVENT BACKGROUND SCROLLING WHEN TASKS ARE SELECTED
   useEffect(() => {
     // CHECK IF SELECTED ITEMS ARE GREATER THAN 0
@@ -381,6 +400,53 @@ const BoardView = ({
                         </section>
                         {/* ACTION BUTTONS */}
                         <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                          {/* TIMER BUTTON */}
+                          {activeTimer?.taskId === task._id ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                stopTimer.mutate({ taskId: task._id });
+                              }}
+                              disabled={stopTimer.isPending}
+                              className="text-white bg-[var(--accent-color)] transition-colors p-1.5 rounded-md cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                              title="Stop Timer"
+                            >
+                              <Square size={14} />
+                              <span className="text-xs font-mono">
+                                {formatElapsedTime(activeTimer.startedAt)}
+                              </span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startTimer.mutate({ taskId: task._id });
+                              }}
+                              disabled={startTimer.isPending || !!activeTimer}
+                              className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              title={
+                                activeTimer
+                                  ? "Stop current timer first"
+                                  : "Start Timer"
+                              }
+                            >
+                              <Play size={18} />
+                            </button>
+                          )}
+                          {/* LOG TIME BUTTON */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTimeLogTask({
+                                id: task._id,
+                                title: task.title,
+                              });
+                            }}
+                            className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                            title="Log Time"
+                          >
+                            <Clock size={18} />
+                          </button>
                           {/* EDIT BUTTON */}
                           <button
                             onClick={(e) => {
@@ -702,6 +768,55 @@ const BoardView = ({
                             </section>
                             {/* ACTION BUTTONS */}
                             <div className="flex items-center gap-2 pt-2 mt-3 border-t border-[var(--border)]">
+                              {/* TIMER BUTTON */}
+                              {activeTimer?.taskId === task._id ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    stopTimer.mutate({ taskId: task._id });
+                                  }}
+                                  disabled={stopTimer.isPending}
+                                  className="text-white bg-[var(--accent-color)] transition-colors p-1.5 rounded-md cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                  title="Stop Timer"
+                                >
+                                  <Square size={14} />
+                                  <span className="text-xs font-mono">
+                                    {formatElapsedTime(activeTimer.startedAt)}
+                                  </span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startTimer.mutate({ taskId: task._id });
+                                  }}
+                                  disabled={
+                                    startTimer.isPending || !!activeTimer
+                                  }
+                                  className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title={
+                                    activeTimer
+                                      ? "Stop current timer first"
+                                      : "Start Timer"
+                                  }
+                                >
+                                  <Play size={18} />
+                                </button>
+                              )}
+                              {/* LOG TIME BUTTON */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTimeLogTask({
+                                    id: task._id,
+                                    title: task.title,
+                                  });
+                                }}
+                                className="text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors p-1.5 rounded-md hover:bg-[var(--hover-bg)] cursor-pointer"
+                                title="Log Time"
+                              >
+                                <Clock size={18} />
+                              </button>
                               {/* EDIT BUTTON */}
                               <button
                                 onClick={(e) => {
@@ -1068,6 +1183,15 @@ const BoardView = ({
             </div>
           </div>
         </div>
+      )}
+      {/* TIME LOG MODAL */}
+      {timeLogTask && (
+        <TimeLogModal
+          taskId={timeLogTask.id}
+          taskTitle={timeLogTask.title}
+          isOpen={!!timeLogTask}
+          onClose={() => setTimeLogTask(null)}
+        />
       )}
     </>
   );
