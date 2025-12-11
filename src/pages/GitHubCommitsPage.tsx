@@ -655,7 +655,6 @@ const GitHubCommitsPage = (): JSX.Element => {
         <DashboardHeader
           title="Commit History"
           subtitle={`${owner}/${repo}`}
-          showSearch={false}
         />
         <div className="max-w-5xl mx-auto px-4 py-6">
           {/* COMMITS SKELETON */}
@@ -674,7 +673,6 @@ const GitHubCommitsPage = (): JSX.Element => {
       <DashboardHeader
         title="Commit History"
         subtitle={`${owner}/${repo}`}
-        showSearch={false}
       />
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* TOOLBAR */}
