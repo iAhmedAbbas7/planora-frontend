@@ -2,7 +2,7 @@
 import { create } from "zustand";
 
 // <== COMMAND PALETTE PAGE TYPE ==>
-export type CommandPalettePage = "home" | "create-task" | "search";
+export type CommandPalettePage = "home" | "create-task" | "search" | "shortcuts";
 
 // <== COMMAND PALETTE STATE INTERFACE ==>
 interface CommandPaletteState {
