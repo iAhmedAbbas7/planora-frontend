@@ -508,7 +508,6 @@ const ProfileSkeleton = (): JSX.Element => {
       <DashboardHeader
         title="Profile"
         subtitle="Loading your GitHub profile..."
-        showSearch={false}
       />
       {/* CONTENT */}
       <div className="p-4 sm:p-6 lg:p-8">
@@ -653,7 +652,6 @@ const GitHubProfilePage = (): JSX.Element => {
         <DashboardHeader
           title="GitHub Profile"
           subtitle="View your GitHub profile"
-          showSearch={false}
         />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="max-w-3xl mx-auto">
@@ -690,7 +688,6 @@ const GitHubProfilePage = (): JSX.Element => {
       <DashboardHeader
         title="GitHub Profile"
         subtitle={profile?.login ? `@${profile.login}` : "Your GitHub Profile"}
-        showSearch={false}
       />
       {/* CONTENT */}
       <div className="p-4 sm:p-6 lg:p-8">
