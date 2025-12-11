@@ -216,7 +216,6 @@ const NotificationsPage = (): JSX.Element => {
       <DashboardHeader
         title="Notifications"
         subtitle="Stay updated with all your activities and updates"
-        showSearch={false}
       />
       {/* NOTIFICATIONS CONTENT CONTAINER */}
       <div className="p-4">
