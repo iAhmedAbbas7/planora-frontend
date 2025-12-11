@@ -516,7 +516,6 @@ const GitHubNotificationsPage = (): JSX.Element => {
         <DashboardHeader
           title="GitHub Notifications"
           subtitle="Stay updated with your GitHub activity"
-          showSearch={false}
         />
         <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col items-center justify-center py-16 bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl">
@@ -549,7 +548,6 @@ const GitHubNotificationsPage = (): JSX.Element => {
       <DashboardHeader
         title="GitHub Notifications"
         subtitle="Stay updated with your GitHub activity"
-        showSearch={false}
       />
       {/* MAIN CONTENT */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
