@@ -12,6 +12,8 @@ import {
   Github,
   Lock,
   Globe,
+  Keyboard,
+  ArrowLeft,
 } from "lucide-react";
 import {
   useGitHubStatus,
@@ -53,10 +55,38 @@ type UnifiedSearchResult = {
   extra?: Record<string, unknown>;
 };
 
+// <== SHORTCUT ITEM TYPE ==>
+type ShortcutItem = {
+  // KEY COMBINATION
+  keys: string[];
+  // DESCRIPTION
+  description: string;
+  // CATEGORY
+  category: string;
+};
+
+// <== SHORTCUTS DATA ==>
+const SHORTCUTS: ShortcutItem[] = [
+  // GENERAL SHORTCUTS
+  { keys: ["⌘/Ctrl", "K"], description: "Open Command Palette", category: "General" },
+  { keys: ["Esc"], description: "Close Command Palette", category: "General" },
+  { keys: ["↑", "↓"], description: "Navigate through results", category: "General" },
+  { keys: ["Enter"], description: "Select highlighted item", category: "General" },
+  // NAVIGATION SHORTCUTS
+  { keys: ["⌘/Ctrl", "1"], description: "Go to Dashboard", category: "Navigation" },
+  { keys: ["⌘/Ctrl", "2"], description: "Go to Projects", category: "Navigation" },
+  { keys: ["⌘/Ctrl", "3"], description: "Go to Tasks", category: "Navigation" },
+  { keys: ["⌘/Ctrl", "4"], description: "Go to GitHub", category: "Navigation" },
+  { keys: ["⌘/Ctrl", "5"], description: "Go to Workspaces", category: "Navigation" },
+  // TASK SHORTCUTS
+  { keys: ["⌘/Ctrl", "N"], description: "Create new task (coming soon)", category: "Tasks" },
+  { keys: ["⌘/Ctrl", "Shift", "N"], description: "Create new project (coming soon)", category: "Projects" },
+];
+
 // <== COMMAND PALETTE COMPONENT ==>
 const CommandPalette = (): JSX.Element | null => {
   // COMMAND PALETTE STORE HOOKS
-  const { isOpen, closeCommandPalette, setSearchQuery } =
+  const { isOpen, closeCommandPalette, setSearchQuery, currentPage, setCurrentPage } =
     useCommandPaletteStore();
   // NAVIGATION HOOK
   const navigate = useNavigate();
@@ -78,6 +108,8 @@ const CommandPalette = (): JSX.Element | null => {
   );
   // LOCAL STATE
   const [inputValue, setInputValue] = useState<string>("");
+  // SHOWING SHORTCUTS STATE
+  const showingShortcuts = currentPage === "shortcuts";
   // STATIC SEARCHABLE ITEMS
   const staticItems = useMemo(() => getAllStaticSearchableItems(), []);
   // REGISTER GLOBAL KEYBOARD SHORTCUT (CTRL+K / CMD+K)
@@ -116,8 +148,29 @@ const CommandPalette = (): JSX.Element | null => {
       setInputValue("");
       // RESET SEARCH QUERY
       setSearchQuery("");
+      // RESET PAGE TO HOME
+      setCurrentPage("home");
     }
-  }, [isOpen, setSearchQuery]);
+  }, [isOpen, setSearchQuery, setCurrentPage]);
+  // GROUP SHORTCUTS BY CATEGORY
+  const groupedShortcuts = useMemo(() => {
+    // GROUP SHORTCUTS BY CATEGORY
+    const groups: Record<string, ShortcutItem[]> = {};
+    // ADD SHORTCUT TO GROUP
+    SHORTCUTS.forEach((shortcut) => {
+      // GET CATEGORY
+      const key = shortcut.category;
+      // ADD SHORTCUT TO GROUP
+      if (!groups[key]) {
+        // ADD CATEGORY TO GROUPS
+        groups[key] = [];
+      }
+      // ADD SHORTCUT TO GROUP
+      groups[key].push(shortcut);
+    });
+    // RETURN GROUPS
+    return groups;
+  }, []);
   // HANDLE ESCAPE KEY
   useEffect(() => {
     // HANDLE ESCAPE KEY
@@ -486,19 +539,39 @@ const CommandPalette = (): JSX.Element | null => {
       >
         {/* HEADER */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)]">
-          {/* SEARCH ICON */}
-          <Search
-            size={20}
-            className="text-[var(--light-text)] flex-shrink-0"
-          />
-          {/* INPUT */}
-          <Command.Input
-            autoFocus
-            value={inputValue}
-            onValueChange={handleInputChange}
-            placeholder="Search tasks, projects, settings, repos..."
-            className="flex-1 bg-transparent text-[var(--text-primary)] placeholder:text-[var(--light-text)] outline-none text-sm"
-          />
+          {/* BACK BUTTON FOR SHORTCUTS VIEW */}
+          {showingShortcuts ? (
+            <>
+              <button
+                onClick={() => setCurrentPage("home")}
+                className="p-1 hover:bg-[var(--hover-bg)] rounded-md transition-colors"
+              >
+                <ArrowLeft size={20} className="text-[var(--light-text)]" />
+              </button>
+              <div className="flex-1 flex items-center gap-2">
+                <Keyboard size={20} className="text-[var(--accent-color)]" />
+                <span className="text-sm font-medium text-[var(--text-primary)]">
+                  Keyboard Shortcuts
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* SEARCH ICON */}
+              <Search
+                size={20}
+                className="text-[var(--light-text)] flex-shrink-0"
+              />
+              {/* INPUT */}
+              <Command.Input
+                autoFocus
+                value={inputValue}
+                onValueChange={handleInputChange}
+                placeholder="Search tasks, projects, settings, repos..."
+                className="flex-1 bg-transparent text-[var(--text-primary)] placeholder:text-[var(--light-text)] outline-none text-sm"
+              />
+            </>
+          )}
           {/* SHORTCUT BADGE */}
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-[var(--light-text)]">
             <kbd className="px-1.5 py-0.5 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded text-[10px] font-medium">
@@ -513,105 +586,165 @@ const CommandPalette = (): JSX.Element | null => {
             <X size={16} className="text-[var(--light-text)]" />
           </button>
         </div>
-        {/* RESULTS LIST */}
-        <Command.List className="max-h-[420px] overflow-y-auto p-2">
-          {/* EMPTY STATE */}
-          <Command.Empty className="py-12 text-center">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[var(--inside-card-bg)] flex items-center justify-center">
-                <Search size={24} className="text-[var(--light-text)]" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-[var(--text-primary)]">
-                  No results found
-                </p>
-                <p className="text-xs text-[var(--light-text)] mt-1">
-                  Try searching for tasks, projects, settings, or repos
-                </p>
-              </div>
-            </div>
-          </Command.Empty>
-          {/* RENDER GROUPS IN ORDER */}
-          {groupOrder.map((categoryKey) => {
-            // GET ITEMS
-            const items = groupedResults[categoryKey];
-            // CHECK IF ITEMS ARE PROVIDED
-            if (!items || items.length === 0) return null;
-            // RETURN GROUP
-            return (
-              <Command.Group
-                key={categoryKey}
-                heading={
-                  <span className="text-xs font-semibold text-[var(--light-text)] uppercase tracking-wider px-2 py-1 block">
-                    {getDisplayName(categoryKey)}
-                  </span>
-                }
-              >
-                {items.map((result) => (
-                  <Command.Item
-                    key={result.id}
-                    value={`${result.category} ${result.title} ${
-                      result.subtitle || ""
-                    }`}
-                    onSelect={() => handleSelect(result)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-[var(--text-primary)] data-[selected=true]:bg-[var(--accent-color)] data-[selected=true]:text-white transition-colors group"
-                  >
-                    {/* ICON */}
-                    <span className="flex-shrink-0 [&_svg]:transition-colors group-data-[selected=true]:[&_svg]:text-white">
-                      {result.icon}
-                    </span>
-                    {/* CONTENT */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {result.title}
-                      </p>
-                      {result.subtitle && (
-                        <p className="text-xs text-[var(--light-text)] group-data-[selected=true]:text-white/70 truncate">
-                          {result.subtitle}
-                        </p>
-                      )}
+        {/* CONTENT AREA */}
+        {showingShortcuts ? (
+          /* SHORTCUTS VIEW */
+          <div className="max-h-[420px] overflow-y-auto p-4">
+            {Object.entries(groupedShortcuts).map(([category, shortcuts]) => (
+              <div key={category} className="mb-4 last:mb-0">
+                {/* CATEGORY HEADING */}
+                <h3 className="text-xs font-semibold text-[var(--light-text)] uppercase tracking-wider mb-2 px-2">
+                  {category}
+                </h3>
+                {/* SHORTCUTS LIST */}
+                <div className="space-y-1">
+                  {shortcuts.map((shortcut, index) => (
+                    <div
+                      key={`${category}-${index}`}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-[var(--inside-card-bg)] hover:bg-[var(--hover-bg)] transition-colors"
+                    >
+                      {/* DESCRIPTION */}
+                      <span className="text-sm text-[var(--text-primary)]">
+                        {shortcut.description}
+                      </span>
+                      {/* KEY COMBINATION */}
+                      <div className="flex items-center gap-1">
+                        {shortcut.keys.map((key, keyIndex) => (
+                          <kbd
+                            key={keyIndex}
+                            className="px-2 py-1 bg-[var(--bg)] border border-[var(--border)] rounded text-xs font-medium text-[var(--text-primary)] min-w-[24px] text-center"
+                          >
+                            {key}
+                          </kbd>
+                        ))}
+                      </div>
                     </div>
-                    {/* EXTRA INFO */}
-                    {renderExtra(result)}
-                    {/* ARROW */}
-                    <ArrowRight
-                      size={14}
-                      className="opacity-0 group-data-[selected=true]:opacity-100 transition-opacity flex-shrink-0"
-                    />
-                  </Command.Item>
-                ))}
-              </Command.Group>
-            );
-          })}
-        </Command.List>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* SEARCH RESULTS LIST */
+          <Command.List className="max-h-[420px] overflow-y-auto p-2">
+            {/* EMPTY STATE */}
+            <Command.Empty className="py-12 text-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[var(--inside-card-bg)] flex items-center justify-center">
+                  <Search size={24} className="text-[var(--light-text)]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">
+                    No results found
+                  </p>
+                  <p className="text-xs text-[var(--light-text)] mt-1">
+                    Try searching for tasks, projects, settings, or repos
+                  </p>
+                </div>
+              </div>
+            </Command.Empty>
+            {/* RENDER GROUPS IN ORDER */}
+            {groupOrder.map((categoryKey) => {
+              // GET ITEMS
+              const items = groupedResults[categoryKey];
+              // CHECK IF ITEMS ARE PROVIDED
+              if (!items || items.length === 0) return null;
+              // RETURN GROUP
+              return (
+                <Command.Group
+                  key={categoryKey}
+                  heading={
+                    <span className="text-xs font-semibold text-[var(--light-text)] uppercase tracking-wider px-2 py-1 block">
+                      {getDisplayName(categoryKey)}
+                    </span>
+                  }
+                >
+                  {items.map((result) => (
+                    <Command.Item
+                      key={result.id}
+                      value={`${result.category} ${result.title} ${
+                        result.subtitle || ""
+                      }`}
+                      onSelect={() => handleSelect(result)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-[var(--text-primary)] data-[selected=true]:bg-[var(--accent-color)] data-[selected=true]:text-white transition-colors group"
+                    >
+                      {/* ICON */}
+                      <span className="flex-shrink-0 [&_svg]:transition-colors group-data-[selected=true]:[&_svg]:text-white">
+                        {result.icon}
+                      </span>
+                      {/* CONTENT */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {result.title}
+                        </p>
+                        {result.subtitle && (
+                          <p className="text-xs text-[var(--light-text)] group-data-[selected=true]:text-white/70 truncate">
+                            {result.subtitle}
+                          </p>
+                        )}
+                      </div>
+                      {/* EXTRA INFO */}
+                      {renderExtra(result)}
+                      {/* ARROW */}
+                      <ArrowRight
+                        size={14}
+                        className="opacity-0 group-data-[selected=true]:opacity-100 transition-opacity flex-shrink-0"
+                      />
+                    </Command.Item>
+                  ))}
+                </Command.Group>
+              );
+            })}
+          </Command.List>
+        )}
         {/* FOOTER */}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-[var(--border)] bg-[var(--inside-card-bg)]">
-          {/* LEFT SIDE - HINTS */}
-          <div className="flex items-center gap-3 sm:gap-4 text-xs text-[var(--light-text)]">
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--border)] rounded text-[10px]">
-                ↑↓
-              </kbd>
-              <span className="hidden sm:inline">Navigate</span>
+          {/* LEFT SIDE - HINTS OR BACK BUTTON */}
+          {showingShortcuts ? (
+            <button
+              onClick={() => setCurrentPage("home")}
+              className="flex items-center gap-2 text-xs text-[var(--light-text)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to search</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-3 sm:gap-4 text-xs text-[var(--light-text)]">
+              <div className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--border)] rounded text-[10px]">
+                  ↑↓
+                </kbd>
+                <span className="hidden sm:inline">Navigate</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--border)] rounded text-[10px]">
+                  ↵
+                </kbd>
+                <span className="hidden sm:inline">Select</span>
+              </div>
+              <div className="hidden md:flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--border)] rounded text-[10px]">
+                  ⌘1-5
+                </kbd>
+                <span>Quick Nav</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--border)] rounded text-[10px]">
-                ↵
-              </kbd>
-              <span className="hidden sm:inline">Select</span>
+          )}
+          {/* RIGHT SIDE - VIEW SHORTCUTS OR BRANDING */}
+          {showingShortcuts ? (
+            <div className="flex items-center gap-2 text-xs text-[var(--light-text)]">
+              <CommandIcon size={12} />
+              <span>PlanOra</span>
             </div>
-            <div className="hidden md:flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-[var(--bg)] border border-[var(--border)] rounded text-[10px]">
-                ⌘1-5
-              </kbd>
-              <span>Quick Nav</span>
-            </div>
-          </div>
-          {/* RIGHT SIDE - BRANDING */}
-          <div className="flex items-center gap-2 text-xs text-[var(--light-text)]">
-            <CommandIcon size={12} />
-            <span>PlanOra</span>
-          </div>
+          ) : (
+            <button
+              onClick={() => setCurrentPage("shortcuts")}
+              className="flex items-center gap-2 text-xs text-[var(--light-text)] hover:text-[var(--accent-color)] transition-colors"
+            >
+              <Keyboard size={14} />
+              <span className="hidden sm:inline">View Shortcuts</span>
+            </button>
+          )}
         </div>
       </Command>
     </div>
