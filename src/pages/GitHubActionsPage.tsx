@@ -1267,7 +1267,6 @@ const GitHubActionsPage = (): JSX.Element => {
       <DashboardHeader
         title="GitHub Actions"
         subtitle={`${owner}/${repo}`}
-        showSearch={false}
       />
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
