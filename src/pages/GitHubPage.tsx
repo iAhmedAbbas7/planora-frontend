@@ -991,7 +991,6 @@ const GitHubPage = (): JSX.Element => {
         <DashboardHeader
           title="GitHub"
           subtitle="Your GitHub command center"
-          showSearch={false}
         />
         <div className="m-4">
           <GitHubPageSkeleton />
@@ -1012,7 +1011,6 @@ const GitHubPage = (): JSX.Element => {
         <DashboardHeader
           title="GitHub"
           subtitle="Your GitHub command center"
-          showSearch={false}
         />
         <div className="m-4 flex flex-col items-center justify-center py-16 px-4">
           <div className="w-20 h-20 rounded-full bg-[var(--inside-card-bg)] flex items-center justify-center mb-6">
@@ -1050,7 +1048,6 @@ const GitHubPage = (): JSX.Element => {
       <DashboardHeader
         title="GitHub"
         subtitle="Your GitHub command center"
-        showSearch={false}
       />
       {/* CONTENT CONTAINER */}
       <div className="m-4 space-y-4">
