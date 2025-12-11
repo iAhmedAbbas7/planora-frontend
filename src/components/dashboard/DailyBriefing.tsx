@@ -184,13 +184,20 @@ const StatCard = ({
   );
 };
 
+// <== HELPER TO CHECK IF BRIEFING IS EMPTY ==>
+const isBriefingEmpty = (briefing: {
+  greeting: string;
+  focusSuggestions: unknown[];
+}): boolean => {
+  return !briefing.greeting && briefing.focusSuggestions.length === 0;
+};
+
 // <== DAILY BRIEFING COMPONENT ==>
 const DailyBriefing = (): JSX.Element => {
   // FETCH DAILY BRIEFING WITH CACHING
   const {
     data: briefing,
     isLoading,
-    isError,
     forceRefresh,
     isFetching,
   } = useDailyBriefing();
@@ -218,8 +225,8 @@ const DailyBriefing = (): JSX.Element => {
       </div>
     );
   }
-  // IF ERROR, SHOW ERROR STATE
-  if (isError || !briefing) {
+  // IF NO DATA OR EMPTY BRIEFING, SHOW EMPTY STATE
+  if (!briefing || isBriefingEmpty(briefing)) {
     return (
       <div className="bg-[var(--cards-bg)] border border-[var(--border)] rounded-xl p-6">
         {/* HEADER */}
@@ -237,23 +244,27 @@ const DailyBriefing = (): JSX.Element => {
               </p>
             </div>
           </div>
-        </div>
-        {/* ERROR MESSAGE */}
-        <div className="text-center py-8">
-          <XCircle size={40} className="mx-auto text-red-400 mb-3" />
-          <p className="text-sm text-[var(--text-primary)] mb-2">
-            Unable to generate briefing
-          </p>
-          <p className="text-xs text-[var(--light-text)] mb-4">
-            Please check your AI configuration and try again
-          </p>
+          {/* REFRESH BUTTON - TOP RIGHT */}
           <button
             onClick={() => forceRefresh()}
-            className="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2 mx-auto"
+            disabled={isFetching}
+            className="p-2 hover:bg-[var(--inside-card-bg)] rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh briefing"
           >
-            <RefreshCw size={14} />
-            Retry
+            <RefreshCw
+              size={16}
+              className={`text-[var(--light-text)] ${
+                isFetching ? "animate-spin" : ""
+              }`}
+            />
           </button>
+        </div>
+        {/* EMPTY STATE - LIKE OTHER DASHBOARD COMPONENTS */}
+        <div className="flex flex-col items-center justify-center py-8">
+          <Sparkles size={40} className="text-[var(--light-text)] mb-3" />
+          <p className="text-sm text-[var(--light-text)]">
+            No briefing available
+          </p>
         </div>
       </div>
     );
