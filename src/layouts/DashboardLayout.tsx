@@ -2,6 +2,7 @@
 import { JSX } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/layout/Sidebar";
+import { CommandPalette } from "../components/command";
 import MobileSidebar from "../components/layout/MobileSidebar";
 import SessionExpiredModal from "../components/common/SessionExpiredModal";
 
@@ -21,9 +22,10 @@ const DashboardLayout = (): JSX.Element => {
       </main>
       {/* SESSION EXPIRED MODAL (ONLY ON PROTECTED ROUTES) */}
       <SessionExpiredModal />
+      {/* GLOBAL COMMAND PALETTE (CTRL+K / CMD+K) */}
+      <CommandPalette />
     </div>
   );
 };
 
 export default DashboardLayout;
-
