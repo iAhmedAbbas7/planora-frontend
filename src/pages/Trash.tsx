@@ -57,7 +57,6 @@ const Trash = (): JSX.Element => {
       <DashboardHeader
         title="Trash"
         subtitle="View, restore, or permanently delete items."
-        showSearch={false}
       />
       {/* TRASH SECTION */}
       <div className="p-4">
