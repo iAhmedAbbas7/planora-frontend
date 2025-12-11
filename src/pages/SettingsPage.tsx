@@ -60,7 +60,6 @@ const SettingsPage = (): JSX.Element => {
       <DashboardHeader
         title="Settings"
         subtitle="Manage your profile, preferences, and application settings"
-        showSearch={false}
       />
       {/* TABS CONTAINER */}
       <div className="m-4 border border-[var(--border)] rounded-2xl p-2 bg-[var(--cards-bg)]">
