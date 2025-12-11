@@ -58,7 +58,6 @@ const TasksPage = (): JSX.Element => {
       <DashboardHeader
         title="Tasks"
         subtitle="Create, track, and manage all your tasks easily"
-        showSearch={false}
       />
       {/* TASKS OVERVIEW SECTION */}
       <TasksOverview />
