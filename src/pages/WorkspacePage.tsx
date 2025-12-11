@@ -480,7 +480,6 @@ const WorkspacePage = (): JSX.Element => {
       <DashboardHeader
         title={workspace.name}
         subtitle={workspace.description || "Workspace"}
-        showSearch={false}
       />
       {/* BACK BUTTON AND HEADER INFO */}
       <div className="p-4 md:p-6 border-b border-[var(--border)]">
