@@ -1262,7 +1262,6 @@ const GitHubDiscussionsPage = (): JSX.Element => {
         <DashboardHeader
           title="Discussions"
           subtitle={`${owner}/${repo}`}
-          showSearch={false}
         />
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="space-y-3">
@@ -1280,7 +1279,6 @@ const GitHubDiscussionsPage = (): JSX.Element => {
       <DashboardHeader
         title="Discussions"
         subtitle={`${owner}/${repo}`}
-        showSearch={false}
       />
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* TOOLBAR */}
