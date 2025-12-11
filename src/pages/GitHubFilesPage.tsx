@@ -403,7 +403,6 @@ const GitHubFilesPage = (): JSX.Element => {
         <DashboardHeader
           title="File Explorer"
           subtitle="Loading repository..."
-          showSearch={false}
         />
         <div className="flex-1 flex flex-col m-4 gap-4">
           {/* TOP BAR SKELETON */}
@@ -506,7 +505,6 @@ const GitHubFilesPage = (): JSX.Element => {
         <DashboardHeader
           title="Files"
           subtitle="Connect your GitHub account"
-          showSearch={false}
         />
         <div className="flex flex-col items-center justify-center py-16 px-4">
           <AlertCircle size={48} className="text-[var(--light-text)] mb-4" />
@@ -536,7 +534,6 @@ const GitHubFilesPage = (): JSX.Element => {
       <DashboardHeader
         title="File Explorer"
         subtitle={`${owner}/${repo}`}
-        showSearch={false}
       />
       {/* CONTENT */}
       <div className="flex-1 flex flex-col m-4 gap-4 overflow-hidden">
