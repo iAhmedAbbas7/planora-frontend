@@ -7,6 +7,7 @@ import { useDashboard } from "../hooks/useDashboard";
 import AddThings from "../components/cards/AddThings";
 import AssignedTasks from "../components/cards/AssignedTasks";
 import ProgressTrends from "../components/cards/ProgressTrends";
+import DailyBriefing from "../components/dashboard/DailyBriefing";
 import DashboardHeader from "../components/layout/DashboardHeader";
 import TasksCreatedToday from "../components/cards/TasksCreatedToday";
 import WeeklyProjectsChart from "../components/cards/WeeklyProjectsChart";
@@ -65,6 +66,8 @@ const Dashboard = (): JSX.Element => {
         />
         {/* DASHBOARD CONTENT CONTAINER */}
         <div className="p-4 space-y-4">
+          {/* AI DAILY BRIEFING */}
+          <DailyBriefing />
           {/* ADD THINGS CARD */}
           <AddThings />
           {/* CARDS GRID */}
