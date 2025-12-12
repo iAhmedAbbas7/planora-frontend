@@ -30,6 +30,7 @@ import GitHubReleasesPage from "./pages/GitHubReleasesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import GitHubInsightsPage from "./pages/GitHubInsightsPage";
+import DependencyGraphPage from "./pages/DependencyGraphPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import GitHubDiscussionsPage from "./pages/GitHubDiscussionsPage";
 import GitHubDeploymentsPage from "./pages/GitHubDeploymentsPage";
@@ -135,6 +136,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/tasks",
               element: <TasksPage />,
+            },
+            // <== DEPENDENCY GRAPH ROUTE ==>
+            {
+              path: "/dependencies",
+              element: <DependencyGraphPage />,
             },
             // <== GITHUB ROUTE ==>
             {
