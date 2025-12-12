@@ -1,11 +1,12 @@
 // <== IMPORTS ==>
 import Dropdown from "../common/Dropdown";
+import QuickActions from "./QuickActions";
+import { CommandBarTrigger } from "../command";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 import { Sun, Moon, Menu, User } from "lucide-react";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import { useEffect, useRef, useState, JSX, useMemo } from "react";
-import { CommandBarTrigger } from "../command";
 import GitHubNotificationsDropdown from "../github/GitHubNotificationsDropdown";
 
 // <== DASHBOARD HEADER PROPS TYPE INTERFACE ==>
@@ -97,58 +98,50 @@ const DashboardHeader = ({
           </p>
         </div>
       </div>
-      {/* RIGHT SECTION - SEARCH, THEME, USER */}
-      <div className="flex items-center gap-3 sm:gap-4">
-        {/* COMMAND PALETTE TRIGGER */}
-        {showSearch && (
-          <div className="hidden sm:block">
-            <CommandBarTrigger variant="input" />
-          </div>
-        )}
-        {/* MOBILE SEARCH BUTTON */}
-        {showSearch && (
-          <div className="sm:hidden">
-            <CommandBarTrigger variant="button" />
-          </div>
-        )}
+      {/* RIGHT SECTION - SEARCH, QUICK ACTIONS, THEME, USER */}
+      <div className="flex items-center gap-1">
+        {/* COMMAND PALETTE TRIGGER - ICON ONLY */}
+        {showSearch && <CommandBarTrigger variant="button" />}
+        {/* QUICK ACTIONS - HIDDEN ON SMALL DEVICES */}
+        <div className="hidden sm:block">
+          <QuickActions />
+        </div>
         {/* GITHUB NOTIFICATIONS - ONLY ON GITHUB PAGES */}
         {isGitHubPage && (
           <div className="hidden sm:block">
             <GitHubNotificationsDropdown />
           </div>
         )}
-        {/* THEME TOGGLE BUTTON */}
-        <div className="hidden sm:block">
-          <button
-            className="relative p-2 rounded-full transition cursor-pointer text-[var(--light-text)] hover:text-[var(--primary-text)]"
-            style={{ backgroundColor: "transparent" }}
-            onClick={() => {
-              setTheme(isDark ? "light" : "dark");
-            }}
-          >
-            {/* THEME ICON */}
-            {isDark ? (
-              <Sun className="h-5 w-5" style={{ color: "var(--icon)" }} />
-            ) : (
-              <Moon className="h-5 w-5" style={{ color: "var(--icon)" }} />
-            )}
-          </button>
-        </div>
+        {/* THEME TOGGLE BUTTON - HIDDEN ON SMALL DEVICES */}
+        <button
+          className="hidden sm:block p-2.5 rounded-full transition cursor-pointer text-[var(--light-text)] hover:text-[var(--primary-text)] hover:bg-[var(--hover-bg)]"
+          onClick={() => {
+            setTheme(isDark ? "light" : "dark");
+          }}
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {/* THEME ICON */}
+          {isDark ? (
+            <Sun className="h-6 w-6" style={{ color: "var(--icon)" }} />
+          ) : (
+            <Moon className="h-6 w-6" style={{ color: "var(--icon)" }} />
+          )}
+        </button>
         {/* USER DROPDOWN CONTAINER */}
         <div className="relative" ref={dropdownRef}>
           {/* USER BUTTON */}
           <button
-            className="p-2 rounded-full flex items-center justify-center cursor-pointer transition text-[var(--light-text)] hover:text-[var(--primary-text)]"
-            style={{ backgroundColor: "var(--chip-bg)" }}
+            className="p-2.5 rounded-full flex items-center justify-center cursor-pointer transition text-[var(--light-text)] hover:text-[var(--primary-text)] hover:bg-[var(--hover-bg)]"
             onClick={() => setIsOpen(!isOpen)}
+            title="Account menu"
           >
             {/* USER ICON */}
-            <User className="h-5 w-5" style={{ color: "var(--icon)" }} />
+            <User className="h-6 w-6" style={{ color: "var(--icon)" }} />
           </button>
           {/* DROPDOWN MENU */}
           {isOpen && (
-            <div className="absolute top-10 right-0 w-56 sm:w-64">
-              <Dropdown />
+            <div className="absolute top-12 right-0">
+              <Dropdown onClose={() => setIsOpen(false)} />
             </div>
           )}
         </div>
