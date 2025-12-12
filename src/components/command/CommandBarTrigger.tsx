@@ -50,15 +50,15 @@ const CommandBarTrigger = ({
       </button>
     );
   }
-  // BUTTON VARIANT (DEFAULT)
+  // BUTTON VARIANT (DEFAULT) - ICON ONLY, NO BORDERS
   return (
     <button
       onClick={handleClick}
-      className={`flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--inside-card-bg)] border border-[var(--border)] text-[var(--light-text)] hover:bg-[var(--hover-bg)] hover:text-[var(--text-primary)] hover:border-[var(--accent-color)] transition-all cursor-pointer ${className}`}
+      className={`p-2.5 rounded-full transition cursor-pointer text-[var(--light-text)] hover:text-[var(--primary-text)] hover:bg-[var(--hover-bg)] ${className}`}
       title={`Search (${shortcutKey}+K)`}
     >
       {/* SEARCH ICON */}
-      <Search size={18} />
+      <Search className="h-6 w-6" style={{ color: "var(--icon)" }} />
     </button>
   );
 };
