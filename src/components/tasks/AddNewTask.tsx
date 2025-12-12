@@ -6,6 +6,10 @@ import {
   Circle,
   Calendar,
   Flag,
+  Check,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import {
   useCreateTask,
@@ -17,7 +21,14 @@ import "react-day-picker/dist/style.css";
 import { DayPicker } from "react-day-picker";
 import type { Task } from "../../types/task";
 import { useProjects } from "../../hooks/useProjects";
-import { useEffect, useState, JSX, ChangeEvent, FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  JSX,
+  ChangeEvent,
+  FormEvent,
+  useRef,
+} from "react";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -73,6 +84,46 @@ const AddNewTask = ({
   // PROJECT SELECTED STATE
   const [projectSelected, setProjectSelected] =
     useState<string>("Select Project");
+  // PROJECT DROPDOWN REF
+  const projectRef = useRef<HTMLDivElement>(null);
+  // STATUS DROPDOWN REF
+  const statusRef = useRef<HTMLDivElement>(null);
+  // PRIORITY DROPDOWN REF
+  const priorityRef = useRef<HTMLDivElement>(null);
+  // HANDLE OUTSIDE CLICK FOR DROPDOWNS
+  useEffect(() => {
+    // HANDLE CLICK OUTSIDE
+    const handleClickOutside = (event: MouseEvent) => {
+      // CHECK PROJECT DROPDOWN
+      if (
+        projectRef.current &&
+        !projectRef.current.contains(event.target as Node)
+      ) {
+        // SET PROJECT DROPDOWN OPEN TO FALSE
+        setIsOpen(false);
+      }
+      // CHECK STATUS DROPDOWN
+      if (
+        statusRef.current &&
+        !statusRef.current.contains(event.target as Node)
+      ) {
+        // SET STATUS DROPDOWN OPEN TO FALSE
+        setIsStatusOpen(false);
+      }
+      // CHECK PRIORITY DROPDOWN
+      if (
+        priorityRef.current &&
+        !priorityRef.current.contains(event.target as Node)
+      ) {
+        // SET PRIORITY DROPDOWN OPEN TO FALSE
+        setIsPriorityOpen(false);
+      }
+    };
+    // ADD EVENT LISTENER
+    document.addEventListener("mousedown", handleClickOutside);
+    // CLEANUP: REMOVE EVENT LISTENER ON UNMOUNT
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   // HELPER FUNCTION TO EXTRACT PROJECT ID FROM INITIAL TASK
   const extractProjectId = (projectIdValue: unknown): string => {
     // IF NO PROJECT ID, RETURN EMPTY STRING
@@ -380,24 +431,32 @@ const AddNewTask = ({
       <form
         id="task-form"
         onSubmit={handleSubmit}
-        className="flex flex-col gap-2.5 w-full p-3 sm:p-4"
+        className="flex flex-col gap-4 w-full p-4"
       >
         {/* PROJECT FIELD */}
-        <div className="flex flex-col gap-1 w-full">
+        <div className="flex flex-col gap-1.5 relative" ref={projectRef}>
           {/* PROJECT LABEL */}
           <label
             htmlFor="project"
             className="text-sm font-medium text-[var(--text-primary)]"
           >
-            Project
+            Project <span className="text-red-500">*</span>
           </label>
           {/* PROJECT DROPDOWN CONTAINER */}
           <div className="relative">
             {/* PROJECT BUTTON */}
             <button
               type="button"
-              onClick={() => setIsOpen(!isOpen)}
-              className="flex justify-between items-center w-full border border-[var(--border)] pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg cursor-pointer bg-[var(--inside-card-bg)] relative"
+              onClick={() => {
+                setIsOpen(!isOpen);
+                setIsStatusOpen(false);
+                setIsPriorityOpen(false);
+              }}
+              className={`flex justify-between items-center w-full border pl-10 pr-3 py-2 text-sm rounded-lg cursor-pointer bg-transparent transition relative text-[var(--text-primary)] ${
+                isOpen
+                  ? "border-[var(--accent-color)]"
+                  : "border-[var(--border)] hover:border-[var(--accent-color)]"
+              }`}
             >
               {/* FOLDER ICON */}
               <Folder
@@ -405,7 +464,13 @@ const AddNewTask = ({
                 className="absolute left-3 text-[var(--light-text)]"
               />
               {/* PROJECT SELECTED TEXT */}
-              <span className="text-xs sm:text-sm font-medium text-[var(--text-primary)]">
+              <span
+                className={
+                  projectSelected === "Select Project"
+                    ? "text-[var(--light-text)]"
+                    : ""
+                }
+              >
                 {projectSelected}
               </span>
               {/* CHEVRON DOWN ICON */}
@@ -418,45 +483,64 @@ const AddNewTask = ({
             </button>
             {/* PROJECT DROPDOWN MENU */}
             {isOpen && (
-              <div className="absolute left-0 right-0 mt-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                {/* PROJECTS LIST */}
-                <ul className="divide-y divide-[var(--border)]">
-                  {/* CHECK IF PROJECTS EXIST */}
-                  {projects.length > 0 ? (
-                    // MAPPING THROUGH PROJECTS
-                    projects.map((project) => (
-                      // PROJECT ITEM
-                      <li
-                        key={project._id}
-                        className="px-4 py-2 text-sm hover:bg-[var(--hover-bg)] cursor-pointer"
-                        onClick={() => {
-                          setProjectSelected(project.title);
-                          setTask((prev) => ({
-                            ...prev,
-                            projectId: project._id,
-                          }));
-                          setIsOpen(false);
-                        }}
-                      >
-                        {project.title}
-                      </li>
-                    ))
-                  ) : (
-                    // EMPTY STATE
-                    <li className="px-4 py-2 text-sm text-[var(--light-text)]">
-                      No projects found
-                    </li>
-                  )}
-                </ul>
+              <div className="absolute z-20 top-full left-0 mt-1 w-full max-h-48 overflow-y-auto bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg">
+                {/* CHECK IF PROJECTS EXIST */}
+                {projects.length > 0 ? (
+                  // MAPPING THROUGH PROJECTS
+                  projects.map((project) => (
+                    // PROJECT ITEM
+                    <button
+                      key={project._id}
+                      type="button"
+                      onClick={() => {
+                        setProjectSelected(project.title);
+                        setTask((prev) => ({
+                          ...prev,
+                          projectId: project._id,
+                        }));
+                        setIsOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--hover-bg)] transition cursor-pointer ${
+                        projectSelected === project.title
+                          ? "text-[var(--accent-color)]"
+                          : "text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <Folder
+                        size={14}
+                        className={
+                          projectSelected === project.title
+                            ? "text-[var(--accent-color)]"
+                            : "text-[var(--light-text)]"
+                        }
+                      />
+                      <span className="flex-1 text-left">{project.title}</span>
+                      {projectSelected === project.title && (
+                        <Check
+                          size={14}
+                          className="text-[var(--accent-color)]"
+                        />
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  // EMPTY STATE
+                  <div className="px-3 py-2 text-sm text-[var(--light-text)]">
+                    No projects found
+                  </div>
+                )}
               </div>
             )}
           </div>
+        </div>
+        {/* TITLE FIELD */}
+        <div className="flex flex-col gap-1.5">
           {/* TITLE LABEL */}
           <label
             htmlFor="title"
             className="text-sm font-medium text-[var(--text-primary)]"
           >
-            Title
+            Title <span className="text-red-500">*</span>
           </label>
           {/* TITLE INPUT CONTAINER */}
           <div className="relative">
@@ -473,12 +557,12 @@ const AddNewTask = ({
               value={task.title}
               onChange={handleChange}
               placeholder="Enter task title"
-              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:ring-none"
+              className="w-full pl-10 pr-3 py-2 text-sm border border-[var(--border)] rounded-lg focus:outline-none focus:border-[var(--accent-color)] bg-transparent text-[var(--text-primary)]"
             />
           </div>
         </div>
         {/* DESCRIPTION FIELD */}
-        <div className="flex flex-col gap-1 w-full">
+        <div className="flex flex-col gap-1.5">
           {/* DESCRIPTION LABEL */}
           <label
             htmlFor="description"
@@ -500,15 +584,15 @@ const AddNewTask = ({
               onChange={handleChange}
               id="description"
               placeholder="Enter task details..."
-              className="w-full pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm placeholder:text-xs sm:placeholder:text-sm border border-[var(--border)] rounded-lg resize-none focus:outline-none focus:ring-none focus:ring-[var(--accent-color)]"
+              className="w-full pl-10 pr-3 py-2 text-sm border border-[var(--border)] rounded-lg resize-none focus:outline-none focus:border-[var(--accent-color)] bg-transparent text-[var(--text-primary)]"
               rows={2}
             ></textarea>
           </div>
         </div>
         {/* DUE DATE AND STATUS ROW */}
-        <div className="flex flex-col sm:flex-row gap-2.5 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* DUE DATE PICKER */}
-          <div className="flex flex-col gap-1 w-full relative">
+          <div className="flex flex-col gap-1.5">
             {/* DUE DATE LABEL */}
             <label
               htmlFor="dueDate"
@@ -523,11 +607,15 @@ const AddNewTask = ({
                 closeAllDropdowns();
                 setIsCalendarOpen((prev) => !prev);
               }}
-              className={`w-full flex items-center justify-between pl-10 pr-3 py-1.5 sm:py-2 border border-[var(--border)] cursor-pointer rounded-lg bg-[var(--inside-card-bg)] ${
+              className={`w-full flex items-center justify-between pl-10 pr-3 py-2 border cursor-pointer rounded-lg bg-transparent transition relative ${
+                isCalendarOpen
+                  ? "border-[var(--accent-color)]"
+                  : "border-[var(--border)] hover:border-[var(--accent-color)]"
+              } ${
                 selected
-                  ? "text-xs sm:text-sm text-[var(--primary-text)]"
-                  : "text-xs sm:text-sm text-[var(--light-text)]"
-              } focus:ring-none focus:ring-[var(--accent-color)] relative`}
+                  ? "text-sm text-[var(--text-primary)]"
+                  : "text-sm text-[var(--light-text)]"
+              }`}
             >
               {/* CALENDAR ICON */}
               <Calendar
@@ -536,7 +624,12 @@ const AddNewTask = ({
               />
               {selected ? formatDate(selected) : "Select a date"}
               {/* CHEVRON DOWN ICON */}
-              <ChevronDown size={16} className="text-[var(--light-text)]" />
+              <ChevronDown
+                size={16}
+                className={`text-[var(--light-text)] transition ${
+                  isCalendarOpen ? "rotate-180" : ""
+                }`}
+              />
             </button>
             {/* CALENDAR DROPDOWN */}
             {isCalendarOpen && (
@@ -562,13 +655,15 @@ const AddNewTask = ({
                     }}
                     disabled={{ before: new Date() }}
                     classNames={{
-                      day_selected: "bg-[#8b5cf6] text-white rounded-full",
+                      day_selected:
+                        "bg-[var(--accent-color)] text-white rounded-full",
+                      day_today: "font-bold text-[var(--accent-color)]",
                       nav_button:
-                        "text-[#8b5cf6] hover:bg-[#f3e8ff] rounded p-1",
+                        "text-[var(--accent-color)] hover:bg-[var(--hover-bg)] rounded p-1",
                       nav_button_next:
-                        "text-[#8b5cf6] hover:bg-[#f3e8ff] rounded p-1",
+                        "text-[var(--accent-color)] hover:bg-[var(--hover-bg)] rounded p-1",
                       nav_button_previous:
-                        "text-[#8b5cf6] hover:bg-[#f3e8ff] rounded p-1",
+                        "text-[var(--accent-color)] hover:bg-[var(--hover-bg)] rounded p-1",
                     }}
                     className="rdp-weekdays-none"
                   />
@@ -577,7 +672,7 @@ const AddNewTask = ({
             )}
           </div>
           {/* STATUS DROPDOWN */}
-          <div className="flex flex-col gap-1 w-full relative">
+          <div className="flex flex-col gap-1.5 relative" ref={statusRef}>
             {/* STATUS LABEL */}
             <label
               htmlFor="status"
@@ -590,14 +685,19 @@ const AddNewTask = ({
               id="status"
               type="button"
               onClick={() => {
-                closeAllDropdowns();
-                setIsStatusOpen((prev) => !prev);
+                setIsStatusOpen(!isStatusOpen);
+                setIsOpen(false);
+                setIsPriorityOpen(false);
               }}
-              className={`w-full flex items-center justify-between pl-10 pr-3 py-1.5 sm:py-2 border cursor-pointer border-[var(--border)] rounded-lg bg-[var(--inside-card-bg)] ${
+              className={`w-full flex items-center justify-between pl-10 pr-3 py-2 border rounded-lg bg-transparent transition cursor-pointer relative ${
+                isStatusOpen
+                  ? "border-[var(--accent-color)]"
+                  : "border-[var(--border)] hover:border-[var(--accent-color)]"
+              } ${
                 status
-                  ? "text-xs sm:text-sm text-[var(--primary-text)]"
-                  : "text-xs sm:text-sm text-[var(--light-text)]"
-              } focus:ring-none focus:ring-[var(--accent-color)] relative`}
+                  ? "text-sm text-[var(--text-primary)]"
+                  : "text-sm text-[var(--light-text)]"
+              }`}
             >
               {/* CIRCLE ICON */}
               <Circle
@@ -606,30 +706,69 @@ const AddNewTask = ({
               />
               {formatStatusForDisplay(status) || "Select status"}
               {/* CHEVRON DOWN ICON */}
-              <ChevronDown size={16} className="text-[var(--light-text)]" />
+              <ChevronDown
+                size={16}
+                className={`text-[var(--light-text)] transition ${
+                  isStatusOpen ? "rotate-180" : ""
+                }`}
+              />
             </button>
             {/* STATUS DROPDOWN MENU */}
             {isStatusOpen && (
-              <div className="absolute z-10 mt-1 w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg">
+              <div className="absolute z-20 top-full left-0 mt-1 w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg">
                 {/* MAPPING THROUGH STATUS OPTIONS */}
-                {["To Do", "In Progress", "Completed"].map((s) => (
-                  <div
-                    key={s}
-                    onClick={() => {
-                      setStatus(s);
-                      setIsStatusOpen(false);
-                    }}
-                    className="px-3 py-2 text-sm text-[var(--primary-text)] hover:bg-[var(--hover-bg)] cursor-pointer"
-                  >
-                    {s}
-                  </div>
-                ))}
+                {[
+                  { value: "To Do", icon: Circle, color: "text-blue-500" },
+                  {
+                    value: "In Progress",
+                    icon: Clock,
+                    color: "text-yellow-500",
+                  },
+                  {
+                    value: "Completed",
+                    icon: CheckCircle2,
+                    color: "text-green-500",
+                  },
+                ].map((option) => {
+                  const IconComponent = option.icon;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setStatus(option.value);
+                        setIsStatusOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--hover-bg)] transition cursor-pointer ${
+                        status === option.value
+                          ? "text-[var(--accent-color)]"
+                          : "text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <IconComponent
+                        size={14}
+                        className={
+                          status === option.value
+                            ? "text-[var(--accent-color)]"
+                            : option.color
+                        }
+                      />
+                      <span className="flex-1 text-left">{option.value}</span>
+                      {status === option.value && (
+                        <Check
+                          size={14}
+                          className="text-[var(--accent-color)]"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
         {/* PRIORITY DROPDOWN */}
-        <div className="flex flex-col gap-1 w-full relative">
+        <div className="flex flex-col gap-1.5 relative" ref={priorityRef}>
           {/* PRIORITY LABEL */}
           <label
             htmlFor="priority"
@@ -642,14 +781,19 @@ const AddNewTask = ({
             id="priority"
             type="button"
             onClick={() => {
-              closeAllDropdowns();
-              setIsPriorityOpen((prev) => !prev);
+              setIsPriorityOpen(!isPriorityOpen);
+              setIsOpen(false);
+              setIsStatusOpen(false);
             }}
-            className={`w-full flex items-center justify-between pl-10 pr-3 py-1.5 sm:py-2 border border-[var(--border)] rounded-lg bg-[var(--inside-card-bg)] cursor-pointer ${
+            className={`w-full flex items-center justify-between pl-10 pr-3 py-2 border rounded-lg bg-transparent transition cursor-pointer relative ${
+              isPriorityOpen
+                ? "border-[var(--accent-color)]"
+                : "border-[var(--border)] hover:border-[var(--accent-color)]"
+            } ${
               priority
-                ? "text-xs sm:text-sm text-[var(--primary-text)]"
-                : "text-xs sm:text-sm text-[var(--light-text)]"
-            } focus:ring-none focus:ring-[var(--accent-color)] relative`}
+                ? "text-sm text-[var(--text-primary)]"
+                : "text-sm text-[var(--light-text)]"
+            }`}
           >
             {/* FLAG ICON */}
             <Flag
@@ -658,38 +802,63 @@ const AddNewTask = ({
             />
             {formatPriorityForDisplay(priority) || "Select priority"}
             {/* CHEVRON DOWN ICON */}
-            <ChevronDown size={16} className="text-[var(--light-text)]" />
+            <ChevronDown
+              size={16}
+              className={`text-[var(--light-text)] transition ${
+                isPriorityOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
           {/* PRIORITY DROPDOWN MENU */}
           {isPriorityOpen && (
-            <div className="absolute z-10 mt-1 w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg">
+            <div className="absolute z-20 top-full left-0 mt-1 w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg shadow-lg">
               {/* MAPPING THROUGH PRIORITY OPTIONS */}
-              {["Low", "Medium", "High"].map((p) => (
-                <div
-                  key={p}
-                  onClick={() => {
-                    setPriority(p);
-                    setIsPriorityOpen(false);
-                  }}
-                  className="px-3 py-2 text-sm text-[var(--primary-text)] hover:bg-[var(--hover-bg)] cursor-pointer"
-                >
-                  {p}
-                </div>
-              ))}
+              {[
+                { value: "Low", icon: Flag, color: "text-green-500" },
+                { value: "Medium", icon: Flag, color: "text-yellow-500" },
+                { value: "High", icon: AlertCircle, color: "text-red-500" },
+              ].map((option) => {
+                const IconComponent = option.icon;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setPriority(option.value);
+                      setIsPriorityOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--hover-bg)] transition cursor-pointer ${
+                      priority === option.value
+                        ? "text-[var(--accent-color)]"
+                        : "text-[var(--text-primary)]"
+                    }`}
+                  >
+                    <IconComponent
+                      size={14}
+                      className={
+                        priority === option.value
+                          ? "text-[var(--accent-color)]"
+                          : option.color
+                      }
+                    />
+                    <span className="flex-1 text-left">{option.value}</span>
+                    {priority === option.value && (
+                      <Check size={14} className="text-[var(--accent-color)]" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
       </form>
       {/* BUTTONS CONTAINER - FIXED FOOTER */}
       {showButtons && (
-        <div
-          className="absolute bottom-0 left-0 right-0 bg-[var(--bg)] flex justify-end gap-2 p-2 sm:p-3 pt-2 border-t border-[var(--border)] z-10 shadow-lg"
-          style={{ height: "auto", minHeight: "auto" }}
-        >
+        <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
           {/* CANCEL BUTTON */}
           <button
             type="button"
-            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer"
+            className="px-4 py-2 rounded-lg text-sm border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] cursor-pointer transition"
             onClick={onClose}
           >
             Cancel
@@ -697,8 +866,10 @@ const AddNewTask = ({
           {/* SUBMIT BUTTON */}
           <button
             type="button"
-            disabled={createTaskMutation.isPending}
-            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-[var(--accent-btn-hover-color)] bg-[var(--accent-color)] text-white shadow cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              createTaskMutation.isPending || updateTaskMutation.isPending
+            }
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleButtonClick}
           >
             {createTaskMutation.isPending || updateTaskMutation.isPending
