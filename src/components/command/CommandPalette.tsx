@@ -529,7 +529,7 @@ const CommandPalette = (): JSX.Element | null => {
   return (
     // BACKDROP
     <div
-      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-start justify-center pt-[12vh] p-4"
+      className="fixed inset-0 z-[100] bg-[var(--black-overlay)] flex items-start justify-center pt-[12vh] p-4"
       onClick={handleBackdropClick}
     >
       {/* COMMAND CONTAINER */}
