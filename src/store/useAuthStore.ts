@@ -10,6 +10,8 @@ export type User = {
   name: string;
   // <== USER EMAIL ==>
   email: string;
+  // <== PROFILE PICTURE ==>
+  profilePic?: string | null;
   // <== RECOVERY EMAIL ==>
   recoveryEmail?: string | null;
   // <== RECOVERY EMAIL VERIFIED ==>
