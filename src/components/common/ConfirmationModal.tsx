@@ -1,12 +1,14 @@
 // <== IMPORTS ==>
-import { JSX, useEffect } from "react";
 import {
   X,
   AlertTriangle,
   CheckCircle2,
   Info,
   AlertCircle,
+  Trash2,
+  Check,
 } from "lucide-react";
+import { JSX, useEffect } from "react";
 
 // <== MODAL TYPE INTERFACE ==>
 export type ModalType = "confirm" | "warning" | "error" | "success" | "info";
@@ -62,25 +64,66 @@ const ConfirmationModal = ({
   }, [isOpen]);
   // IF NOT OPEN, RETURN NULL
   if (!isOpen) return null;
-  // GET ICON BASED ON TYPE
-  const getIcon = (): JSX.Element => {
+  // GET ICON AND COLOR BASED ON TYPE
+  const getIconConfig = (): {
+    icon: JSX.Element;
+    color: string;
+    bgColor: string;
+  } => {
     // SWITCH ON TYPE
     switch (type) {
       // WARNING TYPE
       case "warning":
-        return <AlertTriangle size={48} className="text-yellow-500" />;
+        return {
+          icon: <AlertTriangle size={20} />,
+          color: "text-yellow-500",
+          bgColor: "bg-yellow-500/15",
+        };
       // ERROR TYPE
       case "error":
-        return <AlertCircle size={48} className="text-red-500" />;
+        return {
+          icon: <AlertCircle size={20} />,
+          color: "text-red-500",
+          bgColor: "bg-red-500/15",
+        };
       // SUCCESS TYPE
       case "success":
-        return <CheckCircle2 size={48} className="text-green-500" />;
+        return {
+          icon: <CheckCircle2 size={20} />,
+          color: "text-green-500",
+          bgColor: "bg-green-500/15",
+        };
       // INFO TYPE
       case "info":
-        return <Info size={48} className="text-blue-500" />;
+        return {
+          icon: <Info size={20} />,
+          color: "text-blue-500",
+          bgColor: "bg-blue-500/15",
+        };
       // DEFAULT (CONFIRM) TYPE
       default:
-        return <AlertTriangle size={48} className="text-yellow-500" />;
+        return {
+          icon: <AlertTriangle size={20} />,
+          color: "text-yellow-500",
+          bgColor: "bg-yellow-500/15",
+        };
+    }
+  };
+  // GET ICON CONFIG
+  const iconConfig = getIconConfig();
+  // GET CONFIRM BUTTON ICON
+  const getConfirmIcon = (): JSX.Element | null => {
+    // SWITCH ON TYPE
+    switch (type) {
+      // ERROR TYPE
+      case "error":
+        return <Trash2 size={16} />;
+      // SUCCESS TYPE
+      case "success":
+        return <Check size={16} />;
+      // DEFAULT (CONFIRM) TYPE
+      default:
+        return <Check size={16} />;
     }
   };
   // GET BUTTON STYLES BASED ON TYPE
@@ -116,40 +159,42 @@ const ConfirmationModal = ({
   return (
     // MODAL BACKDROP
     <div
-      className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
       {/* MODAL CONTAINER */}
-      <div className="bg-[var(--bg)] rounded-xl w-full max-w-md shadow-lg relative overflow-hidden border border-[var(--border)]">
+      <div className="bg-[var(--bg)] rounded-2xl w-full max-w-md shadow-xl overflow-hidden border border-[var(--border)] flex flex-col">
         {/* MODAL HEADER */}
-        <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
-          {/* MODAL TITLE */}
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-            {title}
-          </h2>
+        <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+          <div className="flex items-center gap-3">
+            {/* ICON BADGE */}
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconConfig.bgColor}`}
+            >
+              <span className={iconConfig.color}>{iconConfig.icon}</span>
+            </div>
+            {/* TITLE */}
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+              {title}
+            </h2>
+          </div>
           {/* CLOSE BUTTON */}
           <button
             onClick={onClose}
-            className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+            className="p-2 rounded-lg text-[var(--light-text)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
           >
-            {/* CLOSE ICON */}
-            <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <X size={20} />
           </button>
         </div>
         {/* MODAL CONTENT */}
         <div className="p-4 sm:p-6">
-          {/* ICON AND MESSAGE CONTAINER */}
-          <div className="flex flex-col items-center gap-4 text-center">
-            {/* ICON */}
-            <div className="flex-shrink-0">{getIcon()}</div>
-            {/* MESSAGE */}
-            <p className="text-sm sm:text-base text-[var(--text-primary)]">
-              {message}
-            </p>
-          </div>
+          {/* MESSAGE */}
+          <p className="text-sm text-[var(--text-primary)] text-center">
+            {message}
+          </p>
         </div>
         {/* MODAL FOOTER */}
-        <div className="flex justify-end gap-2 p-3 sm:p-4 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)]">
+        <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
           {/* CANCEL BUTTON */}
           {showCancel && (
             <button
@@ -169,8 +214,9 @@ const ConfirmationModal = ({
               // CLOSE MODAL
               onClose();
             }}
-            className={`px-4 py-2 text-sm rounded-lg cursor-pointer transition ${getConfirmButtonStyle()}`}
+            className={`px-4 py-2 text-sm rounded-lg cursor-pointer transition flex items-center gap-2 ${getConfirmButtonStyle()}`}
           >
+            {getConfirmIcon()}
             {confirmText}
           </button>
         </div>
