@@ -213,7 +213,7 @@ const Dropdown = ({ onClose }: DropdownProps): JSX.Element => {
         </button>
         {/* EXPANDABLE CONTENT */}
         {isContextExpanded && (
-          <div className="pb-2 px-2">
+          <div className="pt-1 pb-2 px-2">
             {/* PERSONAL OPTION */}
             <button
               onClick={handlePersonalContext}
