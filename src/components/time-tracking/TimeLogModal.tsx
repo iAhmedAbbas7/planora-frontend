@@ -3,7 +3,7 @@ import "react-day-picker/dist/style.css";
 import { DayPicker } from "react-day-picker";
 import { useState, useEffect, JSX, FormEvent } from "react";
 import { useLogManualTime } from "../../hooks/useTimeTracking";
-import { X, Clock, Calendar, FileText, Timer } from "lucide-react";
+import { X, Clock, Calendar, FileText, Timer, Check } from "lucide-react";
 
 // <== TIME LOG MODAL PROPS ==>
 type TimeLogModalProps = {
@@ -102,11 +102,17 @@ const TimeLogModal = ({
       {/* BACKDROP - CLICK TO CLOSE */}
       <div className="absolute inset-0" onClick={onClose} />
       {/* MODAL */}
-      <div className="relative bg-[var(--bg)] border border-[var(--border)] rounded-xl w-full max-w-md shadow-xl">
+      <div className="relative bg-[var(--bg)] border border-[var(--border)] rounded-2xl w-full max-w-md shadow-xl overflow-hidden flex flex-col">
         {/* HEADER */}
         <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[var(--accent-color)]/20 flex items-center justify-center">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+              }}
+            >
               <Clock size={20} className="text-[var(--accent-color)]" />
             </div>
             <div>
@@ -123,9 +129,9 @@ const TimeLogModal = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-[var(--hover-bg)] rounded-lg transition-colors"
+            className="p-2 rounded-lg text-[var(--light-text)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
           >
-            <X size={18} className="text-[var(--light-text)]" />
+            <X size={20} />
           </button>
         </div>
         {/* FORM */}
@@ -217,27 +223,30 @@ const TimeLogModal = ({
               className="w-full px-3 py-2 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] placeholder-[var(--light-text)] resize-none focus:outline-none focus:border-[var(--accent-color)]"
             />
           </div>
-          {/* SUBMIT BUTTON */}
-          <div className="flex items-center gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 bg-[var(--inside-card-bg)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={
-                logManualTime.isPending ||
-                (parseInt(hours || "0") === 0 && parseInt(minutes || "0") === 0)
-              }
-              className="flex-1 px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {logManualTime.isPending ? "Logging..." : "Log Time"}
-            </button>
-          </div>
         </form>
+        {/* FOOTER */}
+        <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-sm border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] cursor-pointer transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="time-log-form"
+            onClick={handleSubmit as never}
+            disabled={
+              logManualTime.isPending ||
+              (parseInt(hours || "0") === 0 && parseInt(minutes || "0") === 0)
+            }
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] cursor-pointer transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Check size={16} />
+            {logManualTime.isPending ? "Logging..." : "Log Time"}
+          </button>
+        </div>
       </div>
       {/* DATE PICKER MODAL */}
       {isCalendarOpen && (
