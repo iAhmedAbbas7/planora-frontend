@@ -10,6 +10,7 @@ import {
   X,
   Github,
   Building2,
+  GitBranch,
 } from "lucide-react";
 import { useLogout } from "../../hooks/useAuth";
 import LOGO_IMAGE from "../../assets/images/LOGO.png";
@@ -74,6 +75,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
     { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
     { path: "/projects", name: "Projects", icon: Folder },
     { path: "/tasks", name: "Tasks", icon: ListTodo },
+    { path: "/dependencies", name: "Dependencies", icon: GitBranch },
     { path: "/workspaces", name: "Workspaces", icon: Building2 },
     { path: "/github", name: "GitHub", icon: Github },
     { path: "/trash", name: "Trash", icon: Trash },
