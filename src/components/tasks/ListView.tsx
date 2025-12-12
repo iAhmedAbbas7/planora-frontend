@@ -707,7 +707,7 @@ function TaskColumn({
       {/* SELECTED TASKS MODAL */}
       {selectedItems.length > 0 && (
         <div
-          className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               handleCancelSelection();
@@ -716,21 +716,31 @@ function TaskColumn({
         >
           {/* MODAL CONTAINER */}
           <div
-            className="bg-[var(--bg)] rounded-xl w-full max-w-2xl shadow-lg relative overflow-hidden border border-[var(--border)] max-h-[90vh] flex flex-col"
+            className="bg-[var(--bg)] border border-[var(--border)] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* MODAL HEADER */}
-            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
-              {/* MODAL TITLE */}
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Selected Tasks ({selectedItems.length})
-              </h2>
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+              <div className="flex items-center gap-3">
+                {/* ICON BADGE */}
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/15">
+                  <Trash2 size={20} className="text-red-500" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                    Selected Tasks ({selectedItems.length})
+                  </h2>
+                  <p className="text-xs text-[var(--light-text)]">
+                    Review tasks before deletion
+                  </p>
+                </div>
+              </div>
               {/* CLOSE BUTTON */}
               <button
                 onClick={handleCancelSelection}
-                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+                className="p-2 rounded-lg text-[var(--light-text)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
               >
-                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <X size={20} />
               </button>
             </div>
             {/* MODAL CONTENT - SELECTED TASKS LIST */}
@@ -849,17 +859,17 @@ function TaskColumn({
               </div>
             </div>
             {/* MODAL FOOTER - ACTIONS */}
-            <div className="flex justify-end gap-2 p-3 sm:p-4 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)]">
+            <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
               {/* CANCEL BUTTON */}
               <button
-                className="px-4 py-2 text-sm bg-[var(--inside-card-bg)] rounded-lg hover:bg-[var(--hover-bg)] cursor-pointer text-[var(--text-primary)] transition-colors"
+                className="px-4 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] cursor-pointer transition"
                 onClick={handleCancelSelection}
               >
                 Cancel
               </button>
               {/* DELETE BUTTON */}
               <button
-                className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="px-4 py-2 text-sm font-medium cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2"
                 onClick={() => {
                   // CALL BULK DELETE HANDLER
                   onBulkDelete?.(selectedItems);
@@ -867,6 +877,7 @@ function TaskColumn({
                   setSelectedItems([]);
                 }}
               >
+                <Trash2 size={16} />
                 Delete Selected ({selectedItems.length})
               </button>
             </div>
@@ -1485,7 +1496,7 @@ const ListView = ({
       {/* SELECTED TASKS MODAL (FOR SEARCH RESULTS) */}
       {isMainSearchActive && selectedItems.length > 0 && (
         <div
-          className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 min-h-screen bg-[var(--black-overlay)] z-50 flex items-center justify-center p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               handleCancelSelection();
@@ -1494,21 +1505,31 @@ const ListView = ({
         >
           {/* MODAL CONTAINER */}
           <div
-            className="bg-[var(--bg)] rounded-xl w-full max-w-2xl shadow-lg relative overflow-hidden border border-[var(--border)] max-h-[90vh] flex flex-col"
+            className="bg-[var(--bg)] border border-[var(--border)] rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* MODAL HEADER */}
-            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
-              {/* MODAL TITLE */}
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Selected Tasks ({selectedItems.length})
-              </h2>
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+              <div className="flex items-center gap-3">
+                {/* ICON BADGE */}
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/15">
+                  <Trash2 size={20} className="text-red-500" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                    Selected Tasks ({selectedItems.length})
+                  </h2>
+                  <p className="text-xs text-[var(--light-text)]">
+                    Review tasks before deletion
+                  </p>
+                </div>
+              </div>
               {/* CLOSE BUTTON */}
               <button
                 onClick={handleCancelSelection}
-                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+                className="p-2 rounded-lg text-[var(--light-text)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
               >
-                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <X size={20} />
               </button>
             </div>
             {/* MODAL CONTENT - SELECTED TASKS LIST */}
@@ -1627,17 +1648,17 @@ const ListView = ({
               </div>
             </div>
             {/* MODAL FOOTER - ACTIONS */}
-            <div className="flex justify-end gap-2 p-3 sm:p-4 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)]">
+            <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
               {/* CANCEL BUTTON */}
               <button
-                className="px-4 py-2 text-sm bg-[var(--inside-card-bg)] rounded-lg hover:bg-[var(--hover-bg)] cursor-pointer text-[var(--text-primary)] transition-colors"
+                className="px-4 py-2 text-sm rounded-lg border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] cursor-pointer transition"
                 onClick={handleCancelSelection}
               >
                 Cancel
               </button>
               {/* DELETE BUTTON */}
               <button
-                className="px-4 py-2 text-sm cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                className="px-4 py-2 text-sm font-medium cursor-pointer bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2"
                 onClick={() => {
                   // CALL BULK DELETE HANDLER
                   onBulkDelete?.(selectedItems);
@@ -1645,6 +1666,7 @@ const ListView = ({
                   setSelectedItems([]);
                 }}
               >
+                <Trash2 size={16} />
                 Delete Selected ({selectedItems.length})
               </button>
             </div>
