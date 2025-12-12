@@ -1,11 +1,4 @@
 // <== IMPORTS ==>
-import ListView from "./ListView";
-import BoardView from "./BoardView";
-import AddNewTask from "./AddNewTask";
-import type { Task } from "../../types/task";
-import { useEffect, useState, JSX } from "react";
-import ConfirmationModal from "../common/ConfirmationModal";
-import { useTasks, useDeleteTask } from "../../hooks/useTasks";
 import {
   Search,
   List,
@@ -15,6 +8,13 @@ import {
   ClipboardList,
   Check,
 } from "lucide-react";
+import ListView from "./ListView";
+import BoardView from "./BoardView";
+import AddNewTask from "./AddNewTask";
+import type { Task } from "../../types/task";
+import { useEffect, useState, JSX } from "react";
+import ConfirmationModal from "../common/ConfirmationModal";
+import { useTasks, useDeleteTask } from "../../hooks/useTasks";
 
 // <== VIEWS COMBINED COMPONENT ==>
 const ViewsCombined = (): JSX.Element => {
@@ -75,6 +75,34 @@ const ViewsCombined = (): JSX.Element => {
       if (view) setViewMode(view);
     }
   }, []);
+  // HANDLE EDIT TASK FROM URL PARAMS EFFECT
+  useEffect(() => {
+    // CHECK IF WINDOW EXISTS AND TASKS ARE LOADED
+    if (typeof window !== "undefined" && tasks.length > 0) {
+      // GET URL PARAMS
+      const params = new URLSearchParams(window.location.search);
+      // GET EDIT TASK ID FROM PARAMS
+      const editTaskId = params.get("edit");
+      // IF EDIT TASK ID EXISTS, OPEN EDIT MODAL
+      if (editTaskId) {
+        // FIND TASK BY ID
+        const taskToEditFromUrl = tasks.find((t) => t._id === editTaskId);
+        // IF TASK FOUND, OPEN EDIT MODAL
+        if (taskToEditFromUrl) {
+          // SET TASK TO EDIT
+          setTaskToEdit(taskToEditFromUrl);
+          // OPEN MODAL
+          setIsOpen(true);
+          // GET URL
+          const url = new URL(window.location.href);
+          // DELETE EDIT PARAM FROM URL
+          url.searchParams.delete("edit");
+          // REPLACE STATE IN URL
+          window.history.replaceState({}, "", url);
+        }
+      }
+    }
+  }, [tasks]);
   // HANDLE VIEW CHANGE FUNCTION
   const handleViewChange = (mode: "board" | "list"): void => {
     // SET VIEW MODE
