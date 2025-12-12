@@ -18,6 +18,17 @@ export type TaskStats = {
   // <== DUE TODAY COUNT ==>
   dueTodayCount: number;
 };
+// <== TASK DEPENDENCY INTERFACE ==>
+export type TaskDependency = {
+  // <== DEPENDENCY ID ==>
+  _id: string;
+  // <== TASK ID ==>
+  taskId: string;
+  // <== DEPENDENCY TYPE ==>
+  type: "blocks" | "blocked_by" | "relates_to";
+  // <== LINKED AT ==>
+  linkedAt: string;
+};
 // <== TASK TYPE INTERFACE ==>
 export type Task = {
   // <== TASK ID ==>
@@ -44,6 +55,16 @@ export type Task = {
   updatedAt?: string;
   // <== TASK COMPLETED AT ==>
   completedAt?: Date;
+  // <== TASK KEY ==>
+  taskKey?: string;
+  // <== TASK DEPENDENCIES ==>
+  dependencies?: TaskDependency[];
+  // <== SUBTASKS ==>
+  subtasks?: string[];
+  // <== PARENT TASK ID ==>
+  parentTask?: string;
+  // <== IS BLOCKED (VIRTUAL) ==>
+  isBlocked?: boolean;
 };
 // <== API RESPONSE TYPE INTERFACE ==>
 type ApiResponse<T> = {
