@@ -29,6 +29,7 @@ import {
   FormEvent,
   useRef,
 } from "react";
+import { DependencyManager, SubtaskManager } from "../dependencies";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -851,6 +852,18 @@ const AddNewTask = ({
             </div>
           )}
         </div>
+        {/* DEPENDENCY AND SUBTASK MANAGERS - ONLY SHOW WHEN EDITING */}
+        {task._id && (
+          <div className="flex flex-col gap-4 mt-4">
+            {/* DEPENDENCY MANAGER */}
+            <DependencyManager taskId={task._id} taskTitle={task.title} />
+            {/* SUBTASK MANAGER */}
+            <SubtaskManager
+              taskId={task._id}
+              projectId={task.projectId || projectId || undefined}
+            />
+          </div>
+        )}
       </form>
       {/* BUTTONS CONTAINER - FIXED FOOTER */}
       {showButtons && (
