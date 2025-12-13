@@ -1,6 +1,6 @@
 // <== IMPORTS ==>
 import {
-  LayoutDashboard,
+  House,
   Folder,
   ListTodo,
   Settings,
@@ -13,6 +13,7 @@ import {
   Building2,
   GitBranch,
   Target,
+  BarChart3,
 } from "lucide-react";
 import { useLogout } from "../../hooks/useAuth";
 import LOGO_IMAGE from "../../assets/images/LOGO.png";
@@ -91,11 +92,12 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
   };
   // MENU ITEMS ARRAY
   const collection: MenuItem[] = [
-    { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
+    { path: "/dashboard", name: "Dashboard", icon: House },
     { path: "/projects", name: "Projects", icon: Folder },
     { path: "/tasks", name: "Tasks", icon: ListTodo },
     { path: "/dependencies", name: "Dependencies", icon: GitBranch },
     { path: "/focus", name: "Focus", icon: Target },
+    { path: "/reports", name: "Reports", icon: BarChart3 },
     { path: "/workspaces", name: "Workspaces", icon: Building2 },
     { path: "/github", name: "GitHub", icon: Github },
     { path: "/trash", name: "Trash", icon: Trash },
@@ -210,9 +212,13 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
             </div>
           </div>
           {/* MENU CONTAINER */}
-          <div className="flex flex-col flex-1 overflow-y-auto">
+          <div
+            className={`flex flex-col flex-1 ${
+              isCollapsed ? "overflow-hidden" : "overflow-y-auto"
+            }`}
+          >
             {/* MENU SECTION */}
-            <div className="mb-6 pt-3">
+            <div className={`pt-3 ${isCollapsed ? "mb-0" : "mb-6"}`}>
               {/* MENU LABEL */}
               {!isCollapsed && (
                 <p className="text-xs font-semibold text-[var(--primary-text)] mb-1.5 uppercase tracking-widest">
@@ -220,7 +226,9 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
                 </p>
               )}
               {/* MENU NAVIGATION */}
-              <nav className="flex flex-col gap-1">
+              <nav
+                className={`flex flex-col ${isCollapsed ? "gap-1" : "gap-1"}`}
+              >
                 {/* MAPPING THROUGH COLLECTION ITEMS */}
                 {collection.map((item, index) => {
                   const Icon = item.icon;
@@ -231,7 +239,10 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
                     <>
                       {/* MENU ITEM ICON */}
                       {isCollapsed ? (
-                        <Icon className="h-7 w-7" strokeWidth={2} />
+                        <Icon
+                          className="h-[1.625rem] w-[1.625rem]"
+                          strokeWidth={2.5}
+                        />
                       ) : (
                         <>
                           {/* MENU ITEM ICON CONTAINER */}
@@ -326,8 +337,10 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
                 {/* MAPPING THROUGH GENERAL ITEMS */}
                 {general.map((item) => {
                   const Icon = item.icon;
-                  // CHECK IF ITEM IS LOGOUT
+                  // CHECK IF ITEM IS LOGOUT - HIDE IN COLLAPSED STATE
                   if (item.name === "Logout") {
+                    // HIDE LOGOUT BUTTON IN COLLAPSED STATE
+                    if (isCollapsed) return null;
                     return (
                       // LOGOUT BUTTON
                       <button
@@ -335,25 +348,16 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
                         onClick={() => {
                           handleLogout();
                         }}
-                        className={`flex items-center py-1.5 rounded-md text-sm font-medium text-[var(--sidebar-links-color)] cursor-pointer hover:bg-[var(--accent-hover-color)] hover:text-white transition-all ${
-                          isCollapsed ? "justify-center px-0" : "px-3"
-                        }`}
+                        className="flex items-center py-1.5 px-3 rounded-md text-sm font-medium text-[var(--sidebar-links-color)] cursor-pointer hover:bg-[var(--accent-hover-color)] hover:text-white transition-all"
                       >
-                        {/* LOGOUT ICON */}
-                        {isCollapsed ? (
-                          <Icon className="h-7 w-7" strokeWidth={2} />
-                        ) : (
-                          <>
-                            {/* LOGOUT ICON CONTAINER */}
-                            <div className="flex justify-center w-8">
-                              <Icon className="h-5 w-5" strokeWidth={2.5} />
-                            </div>
-                            {/* LOGOUT TEXT */}
-                            <span className="ml-2 transition-all duration-200">
-                              {item.name}
-                            </span>
-                          </>
-                        )}
+                        {/* LOGOUT ICON CONTAINER */}
+                        <div className="flex justify-center w-8">
+                          <Icon className="h-5 w-5" strokeWidth={2.5} />
+                        </div>
+                        {/* LOGOUT TEXT */}
+                        <span className="ml-2 transition-all duration-200">
+                          {item.name}
+                        </span>
                       </button>
                     );
                   }
@@ -374,7 +378,10 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
                     >
                       {/* GENERAL ITEM ICON */}
                       {isCollapsed ? (
-                        <Icon className="h-7 w-7" strokeWidth={2} />
+                        <Icon
+                          className="h-[1.625rem] w-[1.625rem]"
+                          strokeWidth={2.5}
+                        />
                       ) : (
                         <>
                           {/* GENERAL ITEM ICON CONTAINER */}
