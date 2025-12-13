@@ -8,6 +8,7 @@ import TasksPage from "./pages/TasksPage";
 import FocusPage from "./pages/FocusPage";
 import GitHubPage from "./pages/GitHubPage";
 import SignUpPage from "./pages/SignUpPage";
+import ReportsPage from "./pages/ReportsPage";
 import LandingPage from "./pages/LandingPage";
 import RootLayout from "./layouts/RootLayout";
 import SettingsPage from "./pages/SettingsPage";
@@ -147,6 +148,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/focus",
               element: <FocusPage />,
+            },
+            // <== REPORTS ROUTE ==>
+            {
+              path: "/reports",
+              element: <ReportsPage />,
             },
             // <== GITHUB ROUTE ==>
             {
