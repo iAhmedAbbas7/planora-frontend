@@ -221,10 +221,43 @@ input {
 .font-body {
   font-family: var(--font-body);
 }
-/* <== RDP ROOT STYLES ==> */
+/* <== REACT DAY PICKER THEME STYLES ==> */
 .rdp-root {
   --rdp-accent-color: var(--accent-color) !important;
-  --rdp-accent-background-color: #f0f0f0;
+  --rdp-accent-background-color: color-mix(
+    in srgb,
+    var(--accent-color) 15%,
+    transparent
+  ) !important;
+  --rdp-day-height: 36px;
+  --rdp-day-width: 36px;
+  color: var(--text-primary) !important;
+}
+.rdp-month_caption {
+  color: var(--text-primary) !important;
+}
+.rdp-weekday {
+  color: var(--light-text) !important;
+}
+.rdp-day {
+  color: var(--text-primary) !important;
+}
+.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+  background-color: var(--hover-bg) !important;
+}
+.rdp-day_disabled {
+  color: var(--light-text) !important;
+  opacity: 0.4 !important;
+}
+.rdp-day_outside {
+  color: var(--light-text) !important;
+  opacity: 0.5 !important;
+}
+.rdp-nav button {
+  color: var(--accent-color) !important;
+}
+.rdp-nav button:hover {
+  background-color: var(--hover-bg) !important;
 }
 /* <== SONNER TOAST ICON STYLES (BIGGER ICONS) ==> */
 [data-sonner-toast] [data-icon],
