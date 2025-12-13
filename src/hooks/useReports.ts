@@ -216,6 +216,116 @@ type ReportsOverviewResponse = {
   // <== DATA ==>
   data: ReportsOverview;
 };
+// <== WORKSPACE REPORT TYPES ==>
+export type WorkspaceInfo = {
+  // <== WORKSPACE ID ==>
+  id: string;
+  // <== WORKSPACE NAME ==>
+  name: string;
+  // <== WORKSPACE DESCRIPTION ==>
+  description?: string;
+  // <== WORKSPACE VISIBILITY ==>
+  visibility: string;
+  // <== MEMBER COUNT ==>
+  memberCount: number;
+  // <== PROJECT COUNT ==>
+  projectCount: number;
+};
+// <== WORKSPACE SUMMARY TYPE ==>
+export type WorkspaceSummary = {
+  // <== TOTAL TASKS ==>
+  totalTasks: number;
+  // <== COMPLETED TASKS ==>
+  completedTasks: number;
+  // <== IN PROGRESS TASKS ==>
+  inProgressTasks: number;
+  // <== PENDING TASKS ==>
+  pendingTasks: number;
+  // <== OVERDUE TASKS ==>
+  overdueTasks: number;
+  // <== COMPLETED IN PERIOD ==>
+  completedInPeriod: number;
+  // <== COMPLETION RATE ==>
+  completionRate: number;
+  // <== TEAM VELOCITY ==>
+  teamVelocity: number;
+};
+// <== MEMBER CONTRIBUTION TYPE ==>
+export type MemberContribution = {
+  // <== MEMBER ID ==>
+  memberId: string;
+  // <== USERNAME ==>
+  username: string;
+  // <== FULL NAME ==>
+  fullName: string;
+  // <== AVATAR ==>
+  avatar?: string;
+  // <== TASKS COMPLETED ==>
+  tasksCompleted: number;
+  // <== HIGH PRIORITY ==>
+  highPriority: number;
+};
+// <== VELOCITY DATA TYPE ==>
+export type VelocityData = {
+  // <== WEEK ==>
+  week: string;
+  // <== COMPLETED ==>
+  completed: number;
+};
+// <== PROJECT STATUS DATA TYPE ==>
+export type ProjectStatusData = {
+  // <== STATUS ==>
+  status: string;
+  // <== COUNT ==>
+  count: number;
+};
+// <== MEMBER ACTIVITY DATA TYPE ==>
+export type MemberActivityData = {
+  // <== DATE ==>
+  date: string;
+  // <== COMMITS ==>
+  commits: number;
+  // <== TASKS ==>
+  tasks: number;
+  // <== PULL REQUESTS ==>
+  pullRequests: number;
+};
+// <== WORKSPACE REPORT CHARTS TYPE ==>
+export type WorkspaceReportCharts = {
+  // <== WEEKLY VELOCITY ==>
+  weeklyVelocity: VelocityData[];
+  // <== PROJECT STATUS ==>
+  projectStatus: ProjectStatusData[];
+  // <== MEMBER ACTIVITY TREND ==>
+  memberActivityTrend: MemberActivityData[];
+};
+// <== WORKSPACE REPORT DATA TYPE ==>
+export type WorkspaceReportData = {
+  // <== WORKSPACE INFO ==>
+  workspace: WorkspaceInfo;
+  // <== SUMMARY ==>
+  summary: WorkspaceSummary;
+  // <== MEMBERS ==>
+  members: MemberContribution[];
+  // <== CHARTS DATA ==>
+  charts: WorkspaceReportCharts;
+  // <== PERIOD ==>
+  period: ReportPeriod;
+  // <== DATE RANGE ==>
+  dateRange: {
+    // <== START DATE ==>
+    start: string;
+    // <== END DATE ==>
+    end: string;
+  };
+};
+// <== WORKSPACE REPORT RESPONSE TYPE ==>
+type WorkspaceReportResponse = {
+  // <== SUCCESS ==>
+  success: boolean;
+  // <== DATA ==>
+  data: WorkspaceReportData;
+};
 
 // <== FETCH PERSONAL REPORT FUNCTION ==>
 const fetchPersonalReport = async (
@@ -343,4 +453,41 @@ export const formatProductiveHour = (hour: number | null): string => {
   if (hour === 12) return "12 PM";
   if (hour < 12) return `${hour} AM`;
   return `${hour - 12} PM`;
+};
+
+// <== FETCH WORKSPACE REPORT FUNCTION ==>
+const fetchWorkspaceReport = async (
+  workspaceId: string,
+  period: ReportPeriod
+): Promise<WorkspaceReportData> => {
+  // FETCH WORKSPACE REPORT FROM API
+  const response = await apiClient.get<WorkspaceReportResponse>(
+    `/reports/workspace/${workspaceId}?period=${period}`
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== USE WORKSPACE REPORT HOOK ==>
+export const useWorkspaceReport = (
+  workspaceId: string,
+  period: ReportPeriod = "month"
+) => {
+  // GET AUTH STATE
+  const { isAuthenticated, isLoggingOut } = useAuthStore();
+  // FETCH WORKSPACE REPORT
+  return useQuery({
+    // <== QUERY KEY ==>
+    queryKey: ["workspaceReport", workspaceId, period],
+    // <== QUERY FUNCTION ==>
+    queryFn: () => fetchWorkspaceReport(workspaceId, period),
+    // <== ENABLED ==>
+    enabled: isAuthenticated && !isLoggingOut && !!workspaceId,
+    // <== STALE TIME - 5 MINUTES ==>
+    staleTime: 5 * 60 * 1000,
+    // <== GC TIME - 10 MINUTES ==>
+    gcTime: 10 * 60 * 1000,
+    // <== REFETCH ON WINDOW FOCUS ==>
+    refetchOnWindowFocus: false,
+  });
 };
