@@ -5,6 +5,7 @@ import Projects from "./pages/Projects";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import TasksPage from "./pages/TasksPage";
+import FocusPage from "./pages/FocusPage";
 import GitHubPage from "./pages/GitHubPage";
 import SignUpPage from "./pages/SignUpPage";
 import LandingPage from "./pages/LandingPage";
@@ -141,6 +142,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/dependencies",
               element: <DependencyGraphPage />,
+            },
+            // <== FOCUS MODE ROUTE ==>
+            {
+              path: "/focus",
+              element: <FocusPage />,
             },
             // <== GITHUB ROUTE ==>
             {
