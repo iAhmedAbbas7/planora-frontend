@@ -13,6 +13,7 @@ import {
   Send,
   Trash2,
   Github,
+  BarChart3,
 } from "lucide-react";
 import {
   useCommentsByProjectId,
@@ -21,11 +22,12 @@ import {
   Comment as CommentType,
 } from "../../hooks/useComments";
 import AddNewTask from "../tasks/AddNewTask";
+import ProjectReportTab from "./ProjectReportTab";
+import { AITaskGenerator } from "./AITaskGenerator";
 import { useState, useEffect, useRef, JSX } from "react";
 import { useProjectById } from "../../hooks/useProjects";
 import { useTasksByProjectId } from "../../hooks/useTasks";
 import ProjectGitHubTab, { FullDrawerRepoSelector } from "./ProjectGitHubTab";
-import { AITaskGenerator } from "./AITaskGenerator";
 
 // <== TASK TYPE INTERFACE (LOCAL) ==>
 type TaskLocal = {
@@ -82,9 +84,9 @@ const ProjectDetails = ({
   // COMMENT INPUT REF
   const commentInputRef = useRef<HTMLInputElement>(null);
   // ACTIVE TAB STATE
-  const [activeTab, setActiveTab] = useState<"tasks" | "comments" | "github">(
-    "tasks"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "tasks" | "comments" | "github" | "reports"
+  >("tasks");
   // EDIT TASK MODAL STATE
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] =
     useState<boolean>(false);
@@ -450,6 +452,18 @@ const ProjectDetails = ({
                   <Github size={16} />
                   <span>GitHub</span>
                 </button>
+                {/* REPORTS TAB */}
+                <button
+                  onClick={() => setActiveTab("reports")}
+                  className={`flex items-center gap-2 px-4 py-2 font-medium cursor-pointer transition-colors ${
+                    activeTab === "reports"
+                      ? "text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]"
+                      : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  <BarChart3 size={16} />
+                  <span>Reports</span>
+                </button>
               </div>
               {/* TAB CONTENT */}
               <div className="p-4 text-sm flex-1 overflow-y-auto custom-scroll">
@@ -684,7 +698,7 @@ const ProjectDetails = ({
                       </div>
                     )}
                   </div>
-                ) : (
+                ) : activeTab === "github" ? (
                   // GITHUB TAB CONTENT
                   <ProjectGitHubTab
                     projectId={projectId || ""}
@@ -692,6 +706,9 @@ const ProjectDetails = ({
                     onShowFullSelector={() => setShowFullRepoSelector(true)}
                     onShowAIGenerator={() => setShowAIGenerator(true)}
                   />
+                ) : (
+                  // REPORTS TAB CONTENT
+                  <ProjectReportTab projectId={projectId || ""} />
                 )}
               </div>
             </div>
