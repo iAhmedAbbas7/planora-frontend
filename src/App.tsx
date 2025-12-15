@@ -18,6 +18,7 @@ import GitHubRepoPage from "./pages/GitHubRepoPage";
 import WorkspacesPage from "./pages/WorkspacesPage";
 import GitHubFilesPage from "./pages/GitHubFilesPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import SharedReportPage from "./pages/SharedReportPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import GitHubIssuesPage from "./pages/GitHubIssuesPage";
 import GitHubCommitsPage from "./pages/GitHubCommitsPage";
@@ -115,6 +116,11 @@ const appRouter = createBrowserRouter(
         {
           path: "/access-denied",
           element: <AccessDenied />,
+        },
+        // <== SHARED REPORT ROUTE (PUBLIC) ==>
+        {
+          path: "/shared-report/:shareToken",
+          element: <SharedReportPage />,
         },
         // <== DASHBOARD LAYOUT ROUTE ==>
         {
