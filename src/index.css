@@ -416,6 +416,19 @@ html.dark .toast-authenticated.toast-warning {
     opacity: 0;
   }
 }
+/* <== SHIMMER ANIMATION KEYFRAMES (FOR SHARED REPORT) ==> */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+/* <== SHIMMER ANIMATION CLASS ==> */
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
 /* <== GITHUB README CONTENT STYLES ==> */
 .github-readme-content {
   line-height: 1.7;
