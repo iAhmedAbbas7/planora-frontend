@@ -326,6 +326,62 @@ type WorkspaceReportResponse = {
   // <== DATA ==>
   data: WorkspaceReportData;
 };
+// <== SHARED REPORT TYPE ==>
+export type SharedReportData = {
+  // <== ID ==>
+  id: string;
+  // <== REPORT TYPE ==>
+  reportType: "personal" | "project" | "workspace";
+  // <== PERIOD ==>
+  period: ReportPeriod;
+  // <== SHARE URL ==>
+  shareUrl: string;
+  // <== SHARE TOKEN ==>
+  shareToken: string;
+  // <== PROJECT NAME ==>
+  projectName: string | null;
+  // <== WORKSPACE NAME ==>
+  workspaceName: string | null;
+  // <== ACCESS COUNT ==>
+  accessCount: number;
+  // <== LAST ACCESSED AT ==>
+  lastAccessedAt: string | null;
+  // <== EXPIRES AT ==>
+  expiresAt: string;
+  // <== CREATED AT ==>
+  createdAt: string;
+};
+// <== CREATE SHARE LINK REQUEST TYPE ==>
+export type CreateShareLinkRequest = {
+  // <== REPORT TYPE ==>
+  reportType: "personal" | "project" | "workspace";
+  // <== PROJECT ID (FOR PROJECT REPORTS) ==>
+  projectId?: string;
+  // <== WORKSPACE ID (FOR WORKSPACE REPORTS) ==>
+  workspaceId?: string;
+  // <== PERIOD ==>
+  period: ReportPeriod;
+  // <== EXPIRES IN DAYS ==>
+  expiresInDays: number;
+};
+// <== CREATE SHARE LINK RESPONSE TYPE ==>
+export type CreateShareLinkResponse = {
+  // <== SUCCESS ==>
+  success: boolean;
+  // <== DATA ==>
+  data: {
+    // <== SHARE URL ==>
+    shareUrl: string;
+    // <== SHARE TOKEN ==>
+    shareToken: string;
+    // <== EXPIRES AT ==>
+    expiresAt: string;
+    // <== REPORT TYPE ==>
+    reportType: string;
+    // <== PERIOD ==>
+    period: string;
+  };
+};
 
 // <== FETCH PERSONAL REPORT FUNCTION ==>
 const fetchPersonalReport = async (
@@ -490,4 +546,296 @@ export const useWorkspaceReport = (
     // <== REFETCH ON WINDOW FOCUS ==>
     refetchOnWindowFocus: false,
   });
+};
+
+// <== EXPORT PERSONAL REPORT TO EXCEL ==>
+export const exportPersonalReportToExcel = async (
+  period: ReportPeriod
+): Promise<void> => {
+  // FETCH EXCEL FILE FROM API
+  const response = await apiClient.get(
+    `/reports/export/excel/personal?period=${period}`,
+    {
+      responseType: "blob",
+    }
+  );
+  // CREATE OBJECT URL
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  // CREATE LINK ELEMENT
+  const link = document.createElement("a");
+  // SET LINK HREF
+  link.href = url;
+  // SET LINK ATTRIBUTE
+  link.setAttribute("download", `planora-personal-report-${period}.xlsx`);
+  // APPEND LINK TO BODY
+  document.body.appendChild(link);
+  // CLICK LINK
+  link.click();
+  // REMOVE LINK FROM BODY
+  link.parentNode?.removeChild(link);
+  // REVOKE OBJECT URL
+  window.URL.revokeObjectURL(url);
+};
+
+// <== EXPORT PROJECT REPORT TO EXCEL ==>
+export const exportProjectReportToExcel = async (
+  projectId: string,
+  period: ReportPeriod,
+  projectName?: string
+): Promise<void> => {
+  // FETCH EXCEL FILE FROM API
+  const response = await apiClient.get(
+    `/reports/export/excel/project/${projectId}?period=${period}`,
+    {
+      responseType: "blob",
+    }
+  );
+  // SANITIZE PROJECT NAME FOR FILENAME
+  const sanitizedName = projectName
+    ? projectName.replace(/[^a-z0-9]/gi, "-").toLowerCase()
+    : "project";
+  // CREATE OBJECT URL
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  // CREATE LINK ELEMENT
+  const link = document.createElement("a");
+  // SET LINK HREF
+  link.href = url;
+  // SET LINK ATTRIBUTE
+  link.setAttribute(
+    "download",
+    `planora-project-${sanitizedName}-${period}.xlsx`
+  );
+  // APPEND LINK TO BODY
+  document.body.appendChild(link);
+  // CLICK LINK
+  link.click();
+  // REMOVE LINK FROM BODY
+  link.parentNode?.removeChild(link);
+  // REVOKE OBJECT URL
+  window.URL.revokeObjectURL(url);
+};
+
+// <== EXPORT WORKSPACE REPORT TO EXCEL ==>
+export const exportWorkspaceReportToExcel = async (
+  workspaceId: string,
+  period: ReportPeriod,
+  workspaceName?: string
+): Promise<void> => {
+  // FETCH EXCEL FILE FROM API
+  const response = await apiClient.get(
+    `/reports/export/excel/workspace/${workspaceId}?period=${period}`,
+    {
+      responseType: "blob",
+    }
+  );
+  // SANITIZE WORKSPACE NAME FOR FILENAME
+  const sanitizedName = workspaceName
+    ? workspaceName.replace(/[^a-z0-9]/gi, "-").toLowerCase()
+    : "workspace";
+  // CREATE OBJECT URL
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  // CREATE LINK ELEMENT
+  const link = document.createElement("a");
+  // SET LINK HREF
+  link.href = url;
+  // SET LINK ATTRIBUTE
+  link.setAttribute(
+    "download",
+    `planora-workspace-${sanitizedName}-${period}.xlsx`
+  );
+  // APPEND LINK TO BODY
+  document.body.appendChild(link);
+  // CLICK LINK
+  link.click();
+  // REMOVE LINK FROM BODY
+  link.parentNode?.removeChild(link);
+  // REVOKE OBJECT URL
+  window.URL.revokeObjectURL(url);
+};
+
+// <== EXPORT PERSONAL REPORT TO PDF ==>
+export const exportPersonalReportToPDF = async (
+  period: ReportPeriod
+): Promise<void> => {
+  // FETCH PDF FILE FROM API
+  const response = await apiClient.get(
+    `/reports/export/pdf/personal?period=${period}`,
+    {
+      responseType: "blob",
+    }
+  );
+  // CREATE OBJECT URL
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  // CREATE LINK ELEMENT
+  const link = document.createElement("a");
+  // SET LINK HREF
+  link.href = url;
+  // SET LINK ATTRIBUTE
+  link.setAttribute("download", `planora-personal-report-${period}.pdf`);
+  // APPEND LINK TO BODY
+  document.body.appendChild(link);
+  // CLICK LINK
+  link.click();
+  // REMOVE LINK FROM BODY
+  link.parentNode?.removeChild(link);
+  // REVOKE OBJECT URL
+  window.URL.revokeObjectURL(url);
+};
+
+// <== EXPORT PROJECT REPORT TO PDF ==>
+export const exportProjectReportToPDF = async (
+  projectId: string,
+  period: ReportPeriod,
+  projectName?: string
+): Promise<void> => {
+  // FETCH PDF FILE FROM API
+  const response = await apiClient.get(
+    `/reports/export/pdf/project/${projectId}?period=${period}`,
+    {
+      responseType: "blob",
+    }
+  );
+  // SANITIZE PROJECT NAME FOR FILENAME
+  const sanitizedName = projectName
+    ? projectName.replace(/[^a-z0-9]/gi, "-").toLowerCase()
+    : "project";
+  // CREATE OBJECT URL
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  // CREATE LINK ELEMENT
+  const link = document.createElement("a");
+  // SET LINK HREF
+  link.href = url;
+  // SET LINK ATTRIBUTE
+  link.setAttribute(
+    "download",
+    `planora-project-${sanitizedName}-${period}.pdf`
+  );
+  // APPEND LINK TO BODY
+  document.body.appendChild(link);
+  // CLICK LINK
+  link.click();
+  // REMOVE LINK FROM BODY
+  link.parentNode?.removeChild(link);
+  // REVOKE OBJECT URL
+  window.URL.revokeObjectURL(url);
+};
+
+// <== EXPORT WORKSPACE REPORT TO PDF ==>
+export const exportWorkspaceReportToPDF = async (
+  workspaceId: string,
+  period: ReportPeriod,
+  workspaceName?: string
+): Promise<void> => {
+  // FETCH PDF FILE FROM API
+  const response = await apiClient.get(
+    `/reports/export/pdf/workspace/${workspaceId}?period=${period}`,
+    {
+      responseType: "blob",
+    }
+  );
+  // SANITIZE WORKSPACE NAME FOR FILENAME
+  const sanitizedName = workspaceName
+    ? workspaceName.replace(/[^a-z0-9]/gi, "-").toLowerCase()
+    : "workspace";
+  // CREATE OBJECT URL
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  // CREATE LINK ELEMENT
+  const link = document.createElement("a");
+  // SET LINK HREF
+  link.href = url;
+  // SET LINK ATTRIBUTE
+  link.setAttribute(
+    "download",
+    `planora-workspace-${sanitizedName}-${period}.pdf`
+  );
+  // APPEND LINK TO BODY
+  document.body.appendChild(link);
+  // CLICK LINK
+  link.click();
+  // REMOVE LINK FROM BODY
+  link.parentNode?.removeChild(link);
+  // REVOKE OBJECT URL
+  window.URL.revokeObjectURL(url);
+};
+
+// <== CREATE SHAREABLE LINK ==>
+export const createShareableLink = async (
+  request: CreateShareLinkRequest
+): Promise<CreateShareLinkResponse["data"]> => {
+  // CREATE SHAREABLE LINK
+  const response = await apiClient.post<CreateShareLinkResponse>(
+    "/reports/share",
+    request
+  );
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== FETCH USER SHARED REPORTS ==>
+const fetchUserSharedReports = async (): Promise<SharedReportData[]> => {
+  // FETCH SHARED REPORTS FROM API
+  const response = await apiClient.get<{
+    success: boolean;
+    data: SharedReportData[];
+  }>("/reports/shared-links");
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== USE USER SHARED REPORTS HOOK ==>
+export const useUserSharedReports = () => {
+  // GET AUTH STATE
+  const { isAuthenticated, isLoggingOut } = useAuthStore();
+  // FETCH USER SHARED REPORTS
+  return useQuery({
+    // <== QUERY KEY ==>
+    queryKey: ["userSharedReports"],
+    // <== QUERY FUNCTION ==>
+    queryFn: fetchUserSharedReports,
+    // <== ENABLED ==>
+    enabled: isAuthenticated && !isLoggingOut,
+    // <== STALE TIME - 2 MINUTES ==>
+    staleTime: 2 * 60 * 1000,
+    // <== GC TIME - 5 MINUTES ==>
+    gcTime: 5 * 60 * 1000,
+  });
+};
+
+// <== REVOKE SHAREABLE LINK ==>
+export const revokeShareableLink = async (
+  shareToken: string
+): Promise<void> => {
+  // REVOKE SHAREABLE LINK
+  await apiClient.delete(`/reports/share/${shareToken}`);
+};
+
+// <== FETCH SHARED REPORT (PUBLIC) ==>
+export const fetchSharedReport = async (
+  shareToken: string
+): Promise<{
+  type: "personal" | "project" | "workspace";
+  user?: { name: string; avatar?: string | null };
+  project?: { title: string; description: string; status: string };
+  workspace?: {
+    name: string;
+    description: string;
+    memberCount: number;
+    projectCount: number;
+  };
+  summary: {
+    totalTasks: number;
+    completedTasks: number;
+    inProgressTasks: number;
+    pendingTasks: number;
+  };
+  period: ReportPeriod;
+  dateRange: {
+    start: string;
+    end: string;
+  };
+}> => {
+  // FETCH SHARED REPORT FROM API
+  const response = await apiClient.get(`/reports/shared/${shareToken}`);
+  // RETURN DATA
+  return response.data.data;
 };
