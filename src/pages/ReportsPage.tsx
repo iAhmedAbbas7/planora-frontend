@@ -19,6 +19,8 @@ import {
   Building2,
   Users,
   Check,
+  Download,
+  Share2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -53,6 +55,7 @@ import useTitle from "../hooks/useTitle";
 import { useProjects } from "../hooks/useProjects";
 import { useWorkspaces } from "../hooks/useWorkspace";
 import DashboardHeader from "../components/layout/DashboardHeader";
+import { ExportModal, ShareReportModal } from "../components/reports";
 
 // <== PERIOD OPTIONS ==>
 const PERIOD_OPTIONS: { value: ReportPeriod; label: string }[] = [
@@ -144,6 +147,10 @@ const ReportsPage = (): JSX.Element => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>("");
   // WORKSPACE DROPDOWN STATE
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  // EXPORT MODAL STATE
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  // SHARE MODAL STATE
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   // FETCH PERSONAL REPORT
   const { data: report, isLoading, isError } = usePersonalReport(period);
   // FETCH PROJECTS
@@ -225,6 +232,37 @@ const ReportsPage = (): JSX.Element => {
                 {opt.label}
               </button>
             ))}
+          </div>
+          {/* ACTION BUTTONS */}
+          <div className="flex items-center gap-2">
+            {/* EXPORT BUTTON */}
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              disabled={
+                (activeTab === "personal" && !report) ||
+                (activeTab === "project" && !projectReport) ||
+                (activeTab === "workspace" && !workspaceReport)
+              }
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[var(--cards-bg)] border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--accent-color)]/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Export to Excel"
+            >
+              <Download size={16} />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+            {/* SHARE BUTTON */}
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              disabled={
+                (activeTab === "personal" && !report) ||
+                (activeTab === "project" && !projectReport) ||
+                (activeTab === "workspace" && !workspaceReport)
+              }
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-[var(--accent-color)] text-white hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Share Report"
+            >
+              <Share2 size={16} />
+              <span className="hidden sm:inline">Share</span>
+            </button>
           </div>
         </div>
         {/* PERSONAL REPORT TAB */}
@@ -1551,6 +1589,32 @@ const ReportsPage = (): JSX.Element => {
           </>
         )}
       </main>
+      {/* EXPORT MODAL */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        reportType={activeTab}
+        period={period}
+        projectId={selectedProjectId || undefined}
+        projectName={projects?.find((p) => p._id === selectedProjectId)?.title}
+        workspaceId={selectedWorkspaceId || undefined}
+        workspaceName={
+          workspaces?.find((w) => w._id === selectedWorkspaceId)?.name
+        }
+      />
+      {/* SHARE MODAL */}
+      <ShareReportModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        reportType={activeTab}
+        period={period}
+        projectId={selectedProjectId || undefined}
+        projectName={projects?.find((p) => p._id === selectedProjectId)?.title}
+        workspaceId={selectedWorkspaceId || undefined}
+        workspaceName={
+          workspaces?.find((w) => w._id === selectedWorkspaceId)?.name
+        }
+      />
     </div>
   );
 };
