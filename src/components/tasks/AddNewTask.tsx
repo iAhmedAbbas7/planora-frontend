@@ -10,17 +10,19 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import {
   useCreateTask,
   useUpdateTask,
   Task as TaskType,
 } from "../../hooks/useTasks";
-import { toast } from "../../lib/toast";
-import "react-day-picker/dist/style.css";
-import { DayPicker } from "react-day-picker";
-import type { Task } from "../../types/task";
-import { useProjects } from "../../hooks/useProjects";
+import {
+  useSuggestDueDate,
+  formatSuggestedDate,
+  getConfidenceColor,
+} from "../../hooks/useSuggestDueDate";
 import {
   useEffect,
   useState,
@@ -30,6 +32,12 @@ import {
   useRef,
 } from "react";
 import { DependencyManager, SubtaskManager } from "../dependencies";
+import { toast } from "../../lib/toast";
+import "react-day-picker/dist/style.css";
+import { DayPicker } from "react-day-picker";
+import RecurrenceSelector from "./RecurrenceSelector";
+import { useProjects } from "../../hooks/useProjects";
+import type { Task, Recurrence } from "../../types/task";
 
 // <== PROJECT TYPE INTERFACE ==>
 type Project = {
@@ -91,6 +99,18 @@ const AddNewTask = ({
   const statusRef = useRef<HTMLDivElement>(null);
   // PRIORITY DROPDOWN REF
   const priorityRef = useRef<HTMLDivElement>(null);
+  // RECURRENCE STATE
+  const [recurrence, setRecurrence] = useState<Partial<Recurrence> | null>(
+    initialTask?.recurrence || null
+  );
+  // SUGGEST DUE DATE MUTATION
+  const suggestDueDateMutation = useSuggestDueDate();
+  // SUGGESTION DATA STATE
+  const [dueDateSuggestion, setDueDateSuggestion] = useState<{
+    date: Date;
+    reasoning: string;
+    confidence: "high" | "medium" | "low";
+  } | null>(null);
   // HANDLE OUTSIDE CLICK FOR DROPDOWNS
   useEffect(() => {
     // HANDLE CLICK OUTSIDE
@@ -209,6 +229,10 @@ const AddNewTask = ({
       }
       // SET SELECTED DATE IF EXISTS
       if (initialTask.dueDate) setSelected(new Date(initialTask.dueDate));
+      // SET RECURRENCE IF EXISTS
+      if (initialTask.recurrence) {
+        setRecurrence(initialTask.recurrence);
+      }
       // SET PROJECT IF EXISTS AND PROJECTS ARE LOADED
       const initialProjectId = extractProjectId(initialTask.projectId);
       // GET THE EFFECTIVE PROJECT ID (USE PROVIDED PROJECT ID OR GET FROM INITIAL TASK)
@@ -308,6 +332,43 @@ const AddNewTask = ({
     // SET CALENDAR OPEN TO FALSE
     setIsCalendarOpen(false);
   };
+  // HANDLE SUGGEST DUE DATE FUNCTION
+  const handleSuggestDueDate = async (): Promise<void> => {
+    // VALIDATE TITLE IS PROVIDED
+    if (!task.title.trim()) {
+      toast.error("Please enter a task title first.");
+      return;
+    }
+    // CALL MUTATION
+    suggestDueDateMutation.mutate(
+      {
+        title: task.title,
+        description: task.description || undefined,
+        priority:
+          (priority?.toLowerCase() as "low" | "medium" | "high") || "medium",
+        projectId: task.projectId || projectId || undefined,
+      },
+      {
+        // <== ON SUCCESS ==>
+        onSuccess: (data) => {
+          // SET SELECTED DATE
+          const suggestedDate = new Date(data.suggestedDate);
+          // SET SELECTED DATE
+          setSelected(suggestedDate);
+          // SET SUGGESTION DATA FOR DISPLAY
+          setDueDateSuggestion({
+            date: suggestedDate,
+            reasoning: data.reasoning,
+            confidence: data.confidence,
+          });
+          // SHOW SUCCESS TOAST
+          toast.success(
+            `Suggested: ${formatSuggestedDate(data.suggestedDate)}`
+          );
+        },
+      }
+    );
+  };
   // HANDLE BUTTON CLICK FUNCTION
   const handleButtonClick = (): void => {
     // GET FORM ELEMENT
@@ -355,6 +416,19 @@ const AddNewTask = ({
       priority: priority?.toLowerCase() || "medium",
       dueDate: selected ? selected.toISOString() : null,
       projectId: finalProjectId,
+      recurrence: recurrence?.isRecurring
+        ? {
+            isRecurring: true,
+            pattern: recurrence.pattern || "daily",
+            interval: recurrence.interval || 1,
+            daysOfWeek: recurrence.daysOfWeek || [],
+            dayOfMonth: recurrence.dayOfMonth || null,
+            endDate: recurrence.endDate
+              ? new Date(recurrence.endDate).toISOString()
+              : null,
+            skipWeekends: recurrence.skipWeekends || false,
+          }
+        : { isRecurring: false },
     };
     // CHECK IF EDITING
     if (task._id) {
@@ -388,6 +462,10 @@ const AddNewTask = ({
             setStatus(null);
             // SET SELECTED TO NULL
             setSelected(null);
+            // SET RECURRENCE TO NULL
+            setRecurrence(null);
+            // SET DUE DATE SUGGESTION TO NULL
+            setDueDateSuggestion(null);
             // CLOSE MODAL
             onClose?.();
           },
@@ -419,6 +497,10 @@ const AddNewTask = ({
           setStatus(null);
           // SET SELECTED TO NULL
           setSelected(null);
+          // SET RECURRENCE TO NULL
+          setRecurrence(null);
+          // SET DUE DATE SUGGESTION TO NULL
+          setDueDateSuggestion(null);
           // CLOSE MODAL
           onClose?.();
         },
@@ -594,13 +676,32 @@ const AddNewTask = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* DUE DATE PICKER */}
           <div className="flex flex-col gap-1.5">
-            {/* DUE DATE LABEL */}
-            <label
-              htmlFor="dueDate"
-              className="text-sm font-medium text-[var(--text-primary)]"
-            >
-              Due Date <span className="text-red-500">*</span>
-            </label>
+            {/* DUE DATE LABEL WITH AI BUTTON */}
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="dueDate"
+                className="text-sm font-medium text-[var(--text-primary)]"
+              >
+                Due Date <span className="text-red-500">*</span>
+              </label>
+              {/* AI SUGGEST BUTTON */}
+              <button
+                type="button"
+                onClick={handleSuggestDueDate}
+                disabled={
+                  suggestDueDateMutation.isPending || !task.title.trim()
+                }
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-600 dark:text-purple-400 hover:from-purple-500/20 hover:to-pink-500/20 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                title="AI will suggest a due date based on task complexity and your workload"
+              >
+                {suggestDueDateMutation.isPending ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <Sparkles size={12} />
+                )}
+                <span>AI Suggest</span>
+              </button>
+            </div>
             {/* DUE DATE BUTTON */}
             <button
               type="button"
@@ -668,6 +769,31 @@ const AddNewTask = ({
                     }}
                     className="rdp-weekdays-none"
                   />
+                </div>
+              </div>
+            )}
+            {/* AI SUGGESTION INFO */}
+            {dueDateSuggestion && selected && (
+              <div className="mt-2 p-2 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-lg border border-purple-500/20">
+                <div className="flex items-start gap-2">
+                  <Sparkles
+                    size={14}
+                    className="text-purple-500 mt-0.5 flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-[var(--text-primary)] line-clamp-2">
+                      {dueDateSuggestion.reasoning}
+                    </p>
+                    <span
+                      className={`text-xs ${getConfidenceColor(
+                        dueDateSuggestion.confidence
+                      )}`}
+                    >
+                      {dueDateSuggestion.confidence.charAt(0).toUpperCase() +
+                        dueDateSuggestion.confidence.slice(1)}{" "}
+                      confidence
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
@@ -852,11 +978,19 @@ const AddNewTask = ({
             </div>
           )}
         </div>
+        {/* RECURRENCE SELECTOR */}
+        <RecurrenceSelector
+          value={recurrence}
+          onChange={setRecurrence}
+          disabled={
+            createTaskMutation.isPending || updateTaskMutation.isPending
+          }
+        />
         {/* DEPENDENCY AND SUBTASK MANAGERS - ONLY SHOW WHEN EDITING */}
         {task._id && (
           <div className="flex flex-col gap-4 mt-4">
             {/* DEPENDENCY MANAGER */}
-            <DependencyManager taskId={task._id} taskTitle={task.title} />
+            <DependencyManager taskId={task._id} />
             {/* SUBTASK MANAGER */}
             <SubtaskManager
               taskId={task._id}
