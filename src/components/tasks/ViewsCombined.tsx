@@ -7,10 +7,16 @@ import {
   X,
   ClipboardList,
   Check,
+  Calendar,
+  Table2,
+  GanttChart,
 } from "lucide-react";
 import ListView from "./ListView";
 import BoardView from "./BoardView";
+import TableView from "./TableView";
 import AddNewTask from "./AddNewTask";
+import CalendarView from "./CalendarView";
+import TimelineView from "./TimelineView";
 import type { Task } from "../../types/task";
 import { useEffect, useState, JSX } from "react";
 import ConfirmationModal from "../common/ConfirmationModal";
@@ -44,7 +50,9 @@ const ViewsCombined = (): JSX.Element => {
   // DELETE TASK MUTATION
   const deleteTaskMutation = useDeleteTask();
   // VIEW MODE STATE
-  const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [viewMode, setViewMode] = useState<
+    "board" | "list" | "table" | "calendar" | "timeline"
+  >("board");
   // TASKS STATE (LOCAL STATE FOR UI UPDATES)
   const [tasks, setTasks] = useState<Task[]>(
     Array.isArray(fetchedTasks) ? (fetchedTasks as Task[]) : []
@@ -70,9 +78,19 @@ const ViewsCombined = (): JSX.Element => {
       // GET URL PARAMS
       const params = new URLSearchParams(window.location.search);
       // GET VIEW MODE FROM PARAMS
-      const view = params.get("view") as "board" | "list";
-      // SET VIEW MODE IF EXISTS
-      if (view) setViewMode(view);
+      const view = params.get("view") as
+        | "board"
+        | "list"
+        | "table"
+        | "calendar"
+        | "timeline";
+      // SET VIEW MODE IF EXISTS AND VALID
+      if (
+        view &&
+        ["board", "list", "table", "calendar", "timeline"].includes(view)
+      ) {
+        setViewMode(view);
+      }
     }
   }, []);
   // HANDLE EDIT TASK FROM URL PARAMS EFFECT
@@ -104,7 +122,9 @@ const ViewsCombined = (): JSX.Element => {
     }
   }, [tasks]);
   // HANDLE VIEW CHANGE FUNCTION
-  const handleViewChange = (mode: "board" | "list"): void => {
+  const handleViewChange = (
+    mode: "board" | "list" | "table" | "calendar" | "timeline"
+  ): void => {
     // SET VIEW MODE
     setViewMode(mode);
     // UPDATE URL PARAMS
@@ -253,30 +273,71 @@ const ViewsCombined = (): JSX.Element => {
           {/* ACTIONS */}
           <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 sm:gap-3">
             {/* TOGGLE VIEW BUTTONS */}
-            <div className="flex gap-2">
-              {/* LIST VIEW BUTTON */}
-              <button
-                onClick={() => handleViewChange("list")}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors ${
-                  viewMode === "list"
-                    ? "border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)] hover:text-white"
-                    : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
-                }`}
-              >
-                <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">List</span>
-              </button>
+            <div className="flex gap-1 p-1 bg-[var(--hover-bg)] rounded-lg">
               {/* BOARD VIEW BUTTON */}
               <button
                 onClick={() => handleViewChange("board")}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors ${
+                className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded-md cursor-pointer transition-colors ${
                   viewMode === "board"
-                    ? "border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-btn-hover-color)] hover:text-white"
-                    : "border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)]"
+                    ? "bg-[var(--accent-color)] text-white"
+                    : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
                 }`}
+                title="Board View"
               >
-                <LayoutGrid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Board</span>
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Board</span>
+              </button>
+              {/* LIST VIEW BUTTON */}
+              <button
+                onClick={() => handleViewChange("list")}
+                className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded-md cursor-pointer transition-colors ${
+                  viewMode === "list"
+                    ? "bg-[var(--accent-color)] text-white"
+                    : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                }`}
+                title="List View"
+              >
+                <List className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">List</span>
+              </button>
+              {/* TABLE VIEW BUTTON */}
+              <button
+                onClick={() => handleViewChange("table")}
+                className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded-md cursor-pointer transition-colors ${
+                  viewMode === "table"
+                    ? "bg-[var(--accent-color)] text-white"
+                    : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                }`}
+                title="Table View"
+              >
+                <Table2 className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Table</span>
+              </button>
+              {/* CALENDAR VIEW BUTTON */}
+              <button
+                onClick={() => handleViewChange("calendar")}
+                className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded-md cursor-pointer transition-colors ${
+                  viewMode === "calendar"
+                    ? "bg-[var(--accent-color)] text-white"
+                    : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                }`}
+                title="Calendar View"
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Calendar</span>
+              </button>
+              {/* TIMELINE VIEW BUTTON */}
+              <button
+                onClick={() => handleViewChange("timeline")}
+                className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded-md cursor-pointer transition-colors ${
+                  viewMode === "timeline"
+                    ? "bg-[var(--accent-color)] text-white"
+                    : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
+                }`}
+                title="Timeline View"
+              >
+                <GanttChart className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Timeline</span>
               </button>
             </div>
             {/* ADD TASK BUTTON */}
@@ -298,8 +359,7 @@ const ViewsCombined = (): JSX.Element => {
       {/* MAIN CONTENT */}
       <main className="overflow-x-auto">
         {/* RENDER VIEW MODE */}
-        {viewMode === "board" ? (
-          // BOARD VIEW
+        {viewMode === "board" && (
           <BoardView
             tasks={tasks}
             filteredTasks={filteredTasks}
@@ -312,8 +372,8 @@ const ViewsCombined = (): JSX.Element => {
             onBulkDelete={handleBulkDelete}
             parentModalOpen={isOpen}
           />
-        ) : (
-          // LIST VIEW
+        )}
+        {viewMode === "list" && (
           <ListView
             tasks={tasks}
             filteredTasks={filteredTasks}
@@ -325,6 +385,38 @@ const ViewsCombined = (): JSX.Element => {
             onTaskEdited={handleEditTask}
             onBulkDelete={handleBulkDelete}
             parentModalOpen={isOpen}
+          />
+        )}
+        {viewMode === "table" && (
+          <TableView
+            tasks={tasks}
+            filteredTasks={filteredTasks}
+            searchTerm={searchTerm}
+            loading={isLoading}
+            hasLoaded={hasLoaded}
+            onTaskDeleted={handleDeleteTask}
+            onTaskEdited={handleEditTask}
+            onBulkDelete={handleBulkDelete}
+          />
+        )}
+        {viewMode === "calendar" && (
+          <CalendarView
+            tasks={tasks}
+            filteredTasks={filteredTasks}
+            searchTerm={searchTerm}
+            loading={isLoading}
+            hasLoaded={hasLoaded}
+            onTaskEdited={handleEditTask}
+          />
+        )}
+        {viewMode === "timeline" && (
+          <TimelineView
+            tasks={tasks}
+            filteredTasks={filteredTasks}
+            searchTerm={searchTerm}
+            loading={isLoading}
+            hasLoaded={hasLoaded}
+            onTaskEdited={handleEditTask}
           />
         )}
       </main>
