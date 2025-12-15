@@ -178,14 +178,14 @@ const ReportsPage = (): JSX.Element => {
         subtitle="Track your productivity and progress"
       />
       {/* MAIN CONTENT */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 overflow-x-hidden">
         {/* TABS AND PERIOD SELECTOR */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           {/* TABS */}
-          <div className="flex items-center gap-1 p-1 bg-[var(--hover-bg)] rounded-lg">
+          <div className="flex items-center gap-1 p-1 bg-[var(--hover-bg)] rounded-lg w-full sm:w-fit">
             <button
               onClick={() => setActiveTab("personal")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition flex-1 sm:flex-none whitespace-nowrap ${
                 activeTab === "personal"
                   ? "bg-[var(--accent-color)] text-white"
                   : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
@@ -196,7 +196,7 @@ const ReportsPage = (): JSX.Element => {
             </button>
             <button
               onClick={() => setActiveTab("project")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition flex-1 sm:flex-none whitespace-nowrap ${
                 activeTab === "project"
                   ? "bg-[var(--accent-color)] text-white"
                   : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
@@ -207,7 +207,7 @@ const ReportsPage = (): JSX.Element => {
             </button>
             <button
               onClick={() => setActiveTab("workspace")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition flex-1 sm:flex-none whitespace-nowrap ${
                 activeTab === "workspace"
                   ? "bg-[var(--accent-color)] text-white"
                   : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
@@ -218,12 +218,12 @@ const ReportsPage = (): JSX.Element => {
             </button>
           </div>
           {/* PERIOD BUTTONS */}
-          <div className="flex items-center gap-1 p-1 bg-[var(--hover-bg)] rounded-lg">
+          <div className="flex items-center gap-1 p-1 bg-[var(--hover-bg)] rounded-lg w-full sm:w-fit">
             {PERIOD_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setPeriod(opt.value)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex-1 sm:flex-none whitespace-nowrap ${
                   period === opt.value
                     ? "bg-[var(--accent-color)] text-white"
                     : "text-[var(--light-text)] hover:text-[var(--text-primary)]"
@@ -234,7 +234,7 @@ const ReportsPage = (): JSX.Element => {
             ))}
           </div>
           {/* ACTION BUTTONS */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             {/* EXPORT BUTTON */}
             <button
               onClick={() => setIsExportModalOpen(true)}
@@ -247,7 +247,7 @@ const ReportsPage = (): JSX.Element => {
               title="Export to Excel"
             >
               <Download size={16} />
-              <span className="hidden sm:inline">Export</span>
+              <span className="hidden md:inline">Export</span>
             </button>
             {/* SHARE BUTTON */}
             <button
@@ -261,7 +261,7 @@ const ReportsPage = (): JSX.Element => {
               title="Share Report"
             >
               <Share2 size={16} />
-              <span className="hidden sm:inline">Share</span>
+              <span className="hidden md:inline">Share</span>
             </button>
           </div>
         </div>
