@@ -90,18 +90,48 @@ type CreateTaskRequest = {
   // <== PROJECT ID ==>
   projectId: string;
 };
+// <== RECURRENCE TYPE INTERFACE ==>
+export type TaskRecurrence = {
+  // <== IS RECURRING FLAG ==>
+  isRecurring: boolean;
+  // <== RECURRENCE PATTERN ==>
+  pattern: "daily" | "weekly" | "monthly" | "yearly" | "custom" | null;
+  // <== INTERVAL ==>
+  interval: number;
+  // <== DAYS OF WEEK ==>
+  daysOfWeek: number[];
+  // <== DAY OF MONTH ==>
+  dayOfMonth: number | null;
+  // <== END DATE ==>
+  endDate: string | null;
+  // <== SKIP WEEKENDS ==>
+  skipWeekends: boolean;
+  // <== NEXT OCCURRENCE ==>
+  nextOccurrence: string | null;
+  // <== LAST GENERATED AT ==>
+  lastGeneratedAt: string | null;
+  // <== ORIGINAL TASK ID ==>
+  originalTaskId: string | null;
+  // <== OCCURRENCE COUNT ==>
+  occurrenceCount: number;
+};
+// <== RECURRING TASK TYPE ==>
+export type RecurringTask = Task & {
+  // <== RECURRENCE ==>
+  recurrence?: TaskRecurrence;
+};
 
-/**
- * FETCH TASK STATISTICS
- * @returns Task Statistics
- */
+// <== FETCH TASK STATISTICS FUNCTION ==>
 const fetchTaskStats = async (): Promise<TaskStats> => {
+  // TRY TO FETCH TASK STATISTICS
   try {
+    // FETCH TASK STATISTICS
     const response = await apiClient.get<ApiResponse<TaskStats>>(
       "/tasks/stats"
     );
     // RETURN DEFAULT STATS IF NO DATA
     if (!response.data?.data) {
+      // RETURN DEFAULT STATS
       return {
         totalCount: 0,
         completedCount: 0,
@@ -117,6 +147,7 @@ const fetchTaskStats = async (): Promise<TaskStats> => {
     const axiosError = error as AxiosError;
     // DON'T RETURN IF 404
     if (axiosError.response?.status === 404) {
+      // RETURN DEFAULT STATS
       return {
         totalCount: 0,
         completedCount: 0,
@@ -130,15 +161,15 @@ const fetchTaskStats = async (): Promise<TaskStats> => {
   }
 };
 
-/**
- * FETCH ALL TASKS
- * @returns Tasks Array
- */
+// <== FETCH ALL TASKS FUNCTION ==>
 const fetchTasks = async (): Promise<Task[]> => {
+  // TRY TO FETCH ALL TASKS
   try {
+    // FETCH ALL TASKS
     const response = await apiClient.get<ApiResponse<Task[]>>("/tasks");
     // CHECK IF DATA EXISTS
     if (!response.data?.data || !Array.isArray(response.data.data)) {
+      // RETURN EMPTY ARRAY
       return [];
     }
     // RETURN ALL TASKS (FILTER OUT TRASHED)
@@ -148,6 +179,7 @@ const fetchTasks = async (): Promise<Task[]> => {
     const axiosError = error as AxiosError;
     // DON'T RETURN IF 404
     if (axiosError.response?.status === 404) {
+      // RETURN EMPTY ARRAY
       return [];
     }
     // FOR OTHER ERRORS, RE-THROW
@@ -155,25 +187,20 @@ const fetchTasks = async (): Promise<Task[]> => {
   }
 };
 
-/**
- * CREATE TASK
- * @param taskData - Task Data
- * @returns Created Task
- */
+// <== CREATE TASK FUNCTION ==>
 const createTaskAPI = async (taskData: CreateTaskRequest): Promise<Task> => {
+  // CREATE TASK
   const response = await apiClient.post<ApiResponse<Task>>("/tasks", taskData);
+  // CHECK IF DATA EXISTS
   if (!response.data?.data) {
+    // THROW ERROR
     throw new Error("Failed to create task");
   }
+  // RETURN CREATED TASK
   return response.data.data;
 };
 
-/**
- * UPDATE TASK
- * @param taskId - Task ID
- * @param taskData - Task Data to Update
- * @returns Updated Task
- */
+// <== UPDATE TASK FUNCTION ==>
 const updateTaskAPI = async (
   taskId: string,
   taskData: Partial<CreateTaskRequest>
@@ -192,20 +219,13 @@ const updateTaskAPI = async (
   return response.data.data;
 };
 
-/**
- * DELETE TASK
- * @param taskId - Task ID
- * @returns Success Response
- */
+// <== DELETE TASK FUNCTION ==>
 const deleteTaskAPI = async (taskId: string): Promise<void> => {
   // DELETE TASK
   await apiClient.delete<ApiResponse<void>>(`/tasks/${taskId}`);
 };
 
-/**
- * USE TASKS DATA HOOK
- * @returns Tasks Data Query
- */
+// <== USE TASKS DATA HOOK ==>
 export const useTasks = () => {
   // GET AUTH STATE
   const { isAuthenticated, isLoggingOut } = useAuthStore();
@@ -233,6 +253,7 @@ export const useTasks = () => {
       const axiosError = error as AxiosError;
       // DON'T RETRY ON 404
       if (axiosError?.response?.status === 404) {
+        // DON'T RETRY
         return false;
       }
       // RETRY OTHER ERRORS UP TO 3 TIMES (MAX RETRIES)
@@ -270,6 +291,7 @@ export const useTasks = () => {
       const axiosError = error as AxiosError;
       // DON'T RETRY ON 404
       if (axiosError?.response?.status === 404) {
+        // DON'T RETRY
         return false;
       }
       // RETRY OTHER ERRORS UP TO 3 TIMES (MAX RETRIES)
@@ -312,12 +334,9 @@ export const useTasks = () => {
   };
 };
 
-/**
- * FETCH TASKS BY PROJECT ID
- * @param projectId - Project ID
- * @returns Tasks Array
- */
+// <== FETCH TASKS BY PROJECT ID FUNCTION ==>
 const fetchTasksByProjectId = async (projectId: string): Promise<Task[]> => {
+  // TRY TO FETCH TASKS BY PROJECT ID
   try {
     // FETCH TASKS BY PROJECT ID
     const response = await apiClient.get<ApiResponse<Task[]>>(
@@ -325,6 +344,7 @@ const fetchTasksByProjectId = async (projectId: string): Promise<Task[]> => {
     );
     // CHECK IF DATA EXISTS
     if (!response.data?.data || !Array.isArray(response.data.data)) {
+      // RETURN EMPTY ARRAY
       return [];
     }
     // RETURN ALL TASKS (FILTER OUT TRASHED)
@@ -334,6 +354,7 @@ const fetchTasksByProjectId = async (projectId: string): Promise<Task[]> => {
     const axiosError = error as AxiosError;
     // DON'T RETURN IF 404
     if (axiosError.response?.status === 404) {
+      // RETURN EMPTY ARRAY
       return [];
     }
     // FOR OTHER ERRORS, RE-THROW
@@ -341,10 +362,7 @@ const fetchTasksByProjectId = async (projectId: string): Promise<Task[]> => {
   }
 };
 
-/**
- * USE CREATE TASK HOOK
- * @returns Create Task Mutation
- */
+// <== USE CREATE TASK HOOK ==>
 export const useCreateTask = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -377,10 +395,7 @@ export const useCreateTask = () => {
   });
 };
 
-/**
- * USE UPDATE TASK HOOK
- * @returns Update Task Mutation
- */
+// <== USE UPDATE TASK HOOK ==>
 export const useUpdateTask = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -419,10 +434,7 @@ export const useUpdateTask = () => {
   });
 };
 
-/**
- * USE DELETE TASK HOOK
- * @returns Delete Task Mutation
- */
+// <== USE DELETE TASK HOOK ==>
 export const useDeleteTask = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -455,11 +467,7 @@ export const useDeleteTask = () => {
   });
 };
 
-/**
- * USE TASKS BY PROJECT ID HOOK
- * @param projectId - Project ID
- * @returns Tasks Query
- */
+// <== USE TASKS BY PROJECT ID HOOK ==>
 export const useTasksByProjectId = (projectId: string | null) => {
   // GET AUTH STATE
   const { isAuthenticated, isLoggingOut } = useAuthStore();
@@ -487,6 +495,7 @@ export const useTasksByProjectId = (projectId: string | null) => {
       const axiosError = error as AxiosError;
       // DON'T RETRY ON 404
       if (axiosError?.response?.status === 404) {
+        // DON'T RETRY
         return false;
       }
       // RETRY OTHER ERRORS UP TO 3 TIMES (MAX RETRIES)
@@ -499,5 +508,171 @@ export const useTasksByProjectId = (projectId: string | null) => {
       // DON'T THROW ON 404
       return axiosError?.response?.status !== 404;
     },
+  });
+};
+
+// <== FETCH RECURRING TASKS FUNCTION ==>
+const fetchRecurringTasks = async (): Promise<RecurringTask[]> => {
+  // TRY TO FETCH RECURRING TASKS
+  try {
+    // FETCH RECURRING TASKS
+    const response = await apiClient.get<ApiResponse<RecurringTask[]>>(
+      "/tasks/recurring"
+    );
+    // CHECK IF DATA EXISTS
+    if (!response.data?.data || !Array.isArray(response.data.data)) {
+      // RETURN EMPTY ARRAY
+      return [];
+    }
+    // RETURN RECURRING TASKS
+    return response.data.data;
+  } catch (error: unknown) {
+    // GET AXIOS ERROR
+    const axiosError = error as AxiosError<{ message?: string }>;
+    // THROW ERROR
+    throw new Error(
+      axiosError?.response?.data?.message || "Failed to fetch recurring tasks"
+    );
+  }
+};
+
+// <== USE RECURRING TASKS HOOK ==>
+export const useRecurringTasks = () => {
+  // GET AUTH STATE
+  const { isAuthenticated, isLoggingOut } = useAuthStore();
+  // FETCH RECURRING TASKS
+  return useQuery({
+    // <== QUERY KEY ==>
+    queryKey: ["tasks", "recurring"],
+    // <== QUERY FUNCTION ==>
+    queryFn: fetchRecurringTasks,
+    // <== ENABLED ==>
+    enabled: isAuthenticated && !isLoggingOut,
+    // <== STALE TIME ==>
+    staleTime: 2 * 60 * 1000,
+    // <== GC TIME ==>
+    gcTime: 5 * 60 * 1000,
+    // <== REFETCH ON MOUNT ==>
+    refetchOnMount: true,
+    // <== REFETCH ON WINDOW FOCUS ==>
+    refetchOnWindowFocus: false,
+  });
+};
+
+// <== GENERATE RECURRING TASK OCCURRENCE FUNCTION ==>
+const generateRecurringTaskOccurrence = async (
+  taskId: string
+): Promise<RecurringTask> => {
+  // TRY TO GENERATE RECURRING TASK OCCURRENCE
+  const response = await apiClient.post<ApiResponse<RecurringTask>>(
+    `/tasks/${taskId}/generate-occurrence`
+  );
+  // CHECK IF DATA EXISTS
+  return response.data.data;
+};
+
+// <== USE GENERATE RECURRING TASK MUTATION ==>
+export const useGenerateRecurringTask = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // RETURN MUTATION
+  return useMutation({
+    // <== MUTATION FUNCTION ==>
+    mutationFn: generateRecurringTaskOccurrence,
+    // <== ON SUCCESS ==>
+    onSuccess: () => {
+      // INVALIDATE TASKS QUERIES
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Recurring task occurrence generated!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // GET AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to generate recurring task occurrence.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== UPDATE TASK RECURRENCE FUNCTION ==>
+const updateTaskRecurrence = async ({
+  taskId,
+  recurrence,
+}: {
+  taskId: string;
+  recurrence: Partial<TaskRecurrence>;
+}): Promise<RecurringTask> => {
+  // TRY TO UPDATE TASK RECURRENCE
+  const response = await apiClient.put<ApiResponse<RecurringTask>>(
+    `/tasks/${taskId}/recurrence`,
+    { recurrence }
+  );
+  // CHECK IF DATA EXISTS
+  return response.data.data;
+};
+
+// <== USE UPDATE TASK RECURRENCE MUTATION ==>
+export const useUpdateTaskRecurrence = () => {
+  // GET QUERY CLIENT
+  const queryClient = useQueryClient();
+  // RETURN MUTATION
+  return useMutation({
+    // <== MUTATION FUNCTION ==>
+    mutationFn: updateTaskRecurrence,
+    // <== ON SUCCESS ==>
+    onSuccess: () => {
+      // INVALIDATE TASKS QUERIES
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      // SHOW SUCCESS TOAST
+      toast.success("Task recurrence updated!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // GET AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to update task recurrence.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== FETCH TASK OCCURRENCES FUNCTION ==>
+const fetchTaskOccurrences = async (
+  taskId: string
+): Promise<RecurringTask[]> => {
+  // TRY TO FETCH TASK OCCURRENCES
+  const response = await apiClient.get<ApiResponse<RecurringTask[]>>(
+    `/tasks/${taskId}/occurrences`
+  );
+  // CHECK IF DATA EXISTS
+  return response.data.data;
+};
+
+// <== USE TASK OCCURRENCES HOOK ==>
+export const useTaskOccurrences = (taskId: string | null) => {
+  // GET AUTH STATE
+  const { isAuthenticated, isLoggingOut } = useAuthStore();
+  // FETCH TASK OCCURRENCES
+  return useQuery({
+    // <== QUERY KEY ==>
+    queryKey: ["tasks", "occurrences", taskId],
+    // <== QUERY FUNCTION ==>
+    queryFn: () => fetchTaskOccurrences(taskId!),
+    // <== ENABLED ==>
+    enabled: isAuthenticated && !isLoggingOut && !!taskId,
+    // <== STALE TIME ==>
+    staleTime: 2 * 60 * 1000,
+    // <== GC TIME ==>
+    gcTime: 5 * 60 * 1000,
   });
 };
