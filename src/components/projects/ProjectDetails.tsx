@@ -14,6 +14,8 @@ import {
   Trash2,
   Github,
   BarChart3,
+  ClipboardList,
+  Check,
 } from "lucide-react";
 import {
   useCommentsByProjectId,
@@ -717,25 +719,54 @@ const ProjectDetails = ({
       </div>
       {/* EDIT TASK MODAL */}
       {isEditTaskModalOpen && selectedTaskForEdit && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-2 sm:p-4">
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsEditTaskModalOpen(false);
+              setSelectedTaskForEdit(null);
+            }
+          }}
+        >
           {/* MODAL CONTAINER */}
-          <div className="bg-[var(--bg)] rounded-xl w-full max-w-md max-h-[95vh] flex flex-col relative overflow-hidden">
+          <div
+            className="bg-[var(--bg)] border border-[var(--border)] rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* MODAL HEADER */}
-            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
-              {/* MODAL TITLE */}
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Edit Task
-              </h2>
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+              <div className="flex items-center gap-3">
+                {/* ICON BADGE */}
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{
+                    backgroundColor:
+                      "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+                  }}
+                >
+                  <ClipboardList
+                    size={20}
+                    className="text-[var(--accent-color)]"
+                  />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                    Edit Task
+                  </h2>
+                  <p className="text-xs text-[var(--light-text)]">
+                    Update task details
+                  </p>
+                </div>
+              </div>
               {/* CLOSE BUTTON */}
               <button
                 onClick={() => {
                   setIsEditTaskModalOpen(false);
                   setSelectedTaskForEdit(null);
                 }}
-                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
+                className="p-2 rounded-lg text-[var(--light-text)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
               >
-                {/* CLOSE ICON */}
-                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <X size={20} />
               </button>
             </div>
             {/* SCROLLABLE CONTENT AREA - FORM ONLY */}
@@ -775,11 +806,11 @@ const ProjectDetails = ({
               />
             </div>
             {/* FIXED FOOTER - BUTTONS */}
-            <div className="flex justify-end gap-2 p-2 sm:p-3 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)] rounded-b-xl">
+            <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
               {/* CANCEL BUTTON */}
               <button
                 type="button"
-                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer"
+                className="px-4 py-2 rounded-lg text-sm border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] cursor-pointer transition"
                 onClick={() => {
                   setIsEditTaskModalOpen(false);
                   setSelectedTaskForEdit(null);
@@ -791,8 +822,9 @@ const ProjectDetails = ({
               <button
                 type="submit"
                 form="task-form"
-                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer"
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] cursor-pointer transition flex items-center gap-2"
               >
+                <Check size={16} />
                 Update Task
               </button>
             </div>
