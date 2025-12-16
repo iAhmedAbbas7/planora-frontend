@@ -34,6 +34,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import GitHubInsightsPage from "./pages/GitHubInsightsPage";
 import DependencyGraphPage from "./pages/DependencyGraphPage";
+import ProjectDashboardPage from "./pages/ProjectDashboardPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import GitHubDiscussionsPage from "./pages/GitHubDiscussionsPage";
 import GitHubDeploymentsPage from "./pages/GitHubDeploymentsPage";
@@ -139,6 +140,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/projects",
               element: <Projects />,
+            },
+            // <== PROJECT DASHBOARD ROUTE ==>
+            {
+              path: "/projects/:id/dashboard",
+              element: <ProjectDashboardPage />,
             },
             // <== TASKS ROUTE ==>
             {
