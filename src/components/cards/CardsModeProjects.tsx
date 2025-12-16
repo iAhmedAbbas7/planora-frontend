@@ -22,6 +22,7 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import ProjectDetails from "../projects/ProjectDetails";
 import ActionDropdown from "../projects/dropdown/ActionDropdown";
 
@@ -93,6 +94,8 @@ const CardsModeProjects = ({
   searchTerm,
   hasProjects,
 }: CardsModeProps): JSX.Element => {
+  // NAVIGATE HOOK
+  const navigate = useNavigate();
   // DROPDOWN OPEN STATE
   const [isDropdownOpen, setIsDropdownOpen] = useState<string | null>(null);
   // DROPDOWN REF
@@ -215,6 +218,10 @@ const CardsModeProjects = ({
                       <ActionDropdown
                         onViewDetails={() => {
                           setSelectedProjectId(item._id);
+                          setIsDropdownOpen(null);
+                        }}
+                        onViewDashboard={() => {
+                          navigate(`/projects/${item._id}/dashboard`);
                           setIsDropdownOpen(null);
                         }}
                         onEditProject={() => handleEdit(item)}
