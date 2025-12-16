@@ -33,6 +33,15 @@ export type GitHubRepoLink = {
   // <== LINKED AT ==>
   linkedAt: string;
 };
+// <== LINKED REPOSITORY TYPE INTERFACE (EXTENDED) ==>
+export type LinkedRepository = GitHubRepoLink & {
+  // <== IS PRIMARY REPOSITORY ==>
+  isPrimary?: boolean;
+  // <== REPOSITORY DESCRIPTION ==>
+  description?: string | null;
+  // <== DEFAULT BRANCH ==>
+  defaultBranch?: string;
+};
 // <== PROJECT TYPE INTERFACE ==>
 export type Project = {
   // <== PROJECT ID ==>
@@ -61,8 +70,10 @@ export type Project = {
   userId?: string;
   // <== PROJECT CREATED AT ==>
   createdAt?: string;
-  // <== GITHUB REPO ==>
+  // <== GITHUB REPO (LEGACY) ==>
   githubRepo?: GitHubRepoLink;
+  // <== LINKED REPOSITORIES (MULTIPLE REPOS SUPPORT) ==>
+  linkedRepositories?: LinkedRepository[];
 };
 // <== API RESPONSE TYPE INTERFACE ==>
 type ApiResponse<T> = {
@@ -90,18 +101,39 @@ type CreateProjectRequest = {
   // <== DUE DATE ==>
   dueDate?: string | null;
 };
+// <== ADD LINKED REPOSITORY REQUEST TYPE ==>
+type AddLinkedRepositoryRequest = {
+  // <== PROJECT ID ==>
+  projectId: string;
+  // <== REPOSITORY OWNER ==>
+  owner: string;
+  // <== REPOSITORY NAME ==>
+  name: string;
+  // <== REPOSITORY FULL NAME ==>
+  fullName?: string;
+  // <== REPOSITORY ID ==>
+  repoId: number;
+  // <== REPOSITORY HTML URL ==>
+  htmlUrl: string;
+  // <== IS PRIMARY ==>
+  isPrimary?: boolean;
+  // <== DESCRIPTION ==>
+  description?: string;
+  // <== DEFAULT BRANCH ==>
+  defaultBranch?: string;
+};
 
-/**
- * FETCH PROJECT STATISTICS
- * @returns Project Statistics
- */
+// <== FETCH PROJECT STATISTICS ==>
 const fetchProjectStats = async (): Promise<ProjectStats> => {
+  // TRY TO FETCH PROJECT STATISTICS
   try {
+    // FETCH PROJECT STATISTICS
     const response = await apiClient.get<ApiResponse<ProjectStats>>(
       "/projects/stats"
     );
     // RETURN DEFAULT STATS IF NO DATA
     if (!response.data?.data) {
+      // RETURN DEFAULT STATS
       return {
         totalCount: 0,
         completedCount: 0,
@@ -117,6 +149,7 @@ const fetchProjectStats = async (): Promise<ProjectStats> => {
     const axiosError = error as AxiosError;
     // DON'T RETURN ON 404
     if (axiosError.response?.status === 404) {
+      // RETURN DEFAULT STATS
       return {
         totalCount: 0,
         completedCount: 0,
@@ -130,15 +163,15 @@ const fetchProjectStats = async (): Promise<ProjectStats> => {
   }
 };
 
-/**
- * FETCH ALL PROJECTS
- * @returns Projects Array
- */
+// <== FETCH ALL PROJECTS ==>
 const fetchProjects = async (): Promise<Project[]> => {
+  // TRY TO FETCH ALL PROJECTS
   try {
+    // FETCH ALL PROJECTS
     const response = await apiClient.get<ApiResponse<Project[]>>("/projects");
     // DON'T RETURN IF NO DATA OR NOT AN ARRAY
     if (!response.data?.data || !Array.isArray(response.data.data)) {
+      // RETURN EMPTY ARRAY
       return [];
     }
     // RETURN ALL PROJECTS WITH FILTERED TRASHED
@@ -155,11 +188,7 @@ const fetchProjects = async (): Promise<Project[]> => {
   }
 };
 
-/**
- * CREATE PROJECT
- * @param projectData - Project Data
- * @returns Created Project
- */
+// <== CREATE PROJECT ==>
 const createProjectAPI = async (
   projectData: CreateProjectRequest
 ): Promise<Project> => {
@@ -177,12 +206,9 @@ const createProjectAPI = async (
   return response.data.data;
 };
 
-/**
- * FETCH SINGLE PROJECT BY ID
- * @param projectId - Project ID
- * @returns Project
- */
+// <== FETCH SINGLE PROJECT BY ID ==>
 const fetchProjectById = async (projectId: string): Promise<Project> => {
+  // TRY TO FETCH PROJECT BY ID
   try {
     // FETCH PROJECT BY ID
     const response = await apiClient.get<ApiResponse<Project>>(
@@ -190,6 +216,7 @@ const fetchProjectById = async (projectId: string): Promise<Project> => {
     );
     // CHECK IF DATA EXISTS
     if (!response.data?.data) {
+      // THROW ERROR
       throw new Error("Project not found");
     }
     // RETURN PROJECT
@@ -199,6 +226,7 @@ const fetchProjectById = async (projectId: string): Promise<Project> => {
     const axiosError = error as AxiosError;
     // DON'T RETURN IF 404
     if (axiosError.response?.status === 404) {
+      // THROW ERROR
       throw new Error("Project not found");
     }
     // FOR OTHER ERRORS, RE-THROW
@@ -206,12 +234,7 @@ const fetchProjectById = async (projectId: string): Promise<Project> => {
   }
 };
 
-/**
- * UPDATE PROJECT
- * @param projectId - Project ID
- * @param projectData - Project Data to Update
- * @returns Updated Project
- */
+// <== UPDATE PROJECT ==>
 const updateProjectAPI = async (
   projectId: string,
   projectData: Partial<CreateProjectRequest>
@@ -230,11 +253,7 @@ const updateProjectAPI = async (
   return response.data.data;
 };
 
-/**
- * DELETE PROJECT
- * @param projectId - Project ID
- * @returns void
- */
+// <== DELETE PROJECT ==>
 const deleteProjectAPI = async (projectId: string): Promise<void> => {
   // DELETE PROJECT
   const response = await apiClient.delete<ApiResponse<void>>(
@@ -249,10 +268,7 @@ const deleteProjectAPI = async (projectId: string): Promise<void> => {
   return;
 };
 
-/**
- * USE PROJECTS DATA HOOK
- * @returns Projects Data Query
- */
+// <== USE PROJECTS DATA HOOK ==>
 export const useProjects = (): {
   // PROJECTS QUERY
   projects: Project[];
@@ -384,10 +400,7 @@ export const useProjects = (): {
   };
 };
 
-/**
- * USE CREATE PROJECT HOOK
- * @returns Create Project Mutation
- */
+// <== USE CREATE PROJECT HOOK ==>
 export const useCreateProject = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -418,11 +431,7 @@ export const useCreateProject = () => {
   });
 };
 
-/**
- * USE PROJECT BY ID HOOK
- * @param projectId - Project ID
- * @returns Project Query
- */
+// <== USE PROJECT BY ID HOOK ==>
 export const useProjectById = (projectId: string | null) => {
   // GET AUTH STATE
   const { isAuthenticated, isLoggingOut } = useAuthStore();
@@ -465,10 +474,7 @@ export const useProjectById = (projectId: string | null) => {
   });
 };
 
-/**
- * USE UPDATE PROJECT HOOK
- * @returns Update Project Mutation
- */
+// <== USE UPDATE PROJECT HOOK ==>
 export const useUpdateProject = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -509,10 +515,7 @@ export const useUpdateProject = () => {
   });
 };
 
-/**
- * USE DELETE PROJECT HOOK
- * @returns Delete Project Mutation
- */
+// <== USE DELETE PROJECT HOOK ==>
 export const useDeleteProject = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -559,11 +562,7 @@ type LinkGitHubRepoRequest = {
   htmlUrl?: string;
 };
 
-/**
- * LINK GITHUB REPO TO PROJECT
- * @param data - Link GitHub Repo Data
- * @returns Linked Project
- */
+// <== LINK GITHUB REPO TO PROJECT ==>
 const linkGitHubRepoAPI = async (
   data: LinkGitHubRepoRequest
 ): Promise<{ projectId: string; githubRepo: GitHubRepoLink }> => {
@@ -586,11 +585,7 @@ const linkGitHubRepoAPI = async (
   return response.data.data;
 };
 
-/**
- * UNLINK GITHUB REPO FROM PROJECT
- * @param projectId - Project ID
- * @returns void
- */
+// <== UNLINK GITHUB REPO FROM PROJECT ==>
 const unlinkGitHubRepoAPI = async (projectId: string): Promise<void> => {
   // UNLINK GITHUB REPO
   const response = await apiClient.delete<ApiResponse<void>>(
@@ -605,10 +600,7 @@ const unlinkGitHubRepoAPI = async (projectId: string): Promise<void> => {
   return;
 };
 
-/**
- * USE LINK GITHUB REPO HOOK
- * @returns Link GitHub Repo Mutation
- */
+// <== USE LINK GITHUB REPO HOOK ==>
 export const useLinkGitHubRepo = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -641,10 +633,7 @@ export const useLinkGitHubRepo = () => {
   });
 };
 
-/**
- * USE UNLINK GITHUB REPO HOOK
- * @returns Unlink GitHub Repo Mutation
- */
+// <== USE UNLINK GITHUB REPO HOOK ==>
 export const useUnlinkGitHubRepo = () => {
   // QUERY CLIENT
   const queryClient = useQueryClient();
@@ -671,6 +660,227 @@ export const useUnlinkGitHubRepo = () => {
       const errorMessage =
         axiosError?.response?.data?.message ||
         "Failed to unlink GitHub repository. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== FETCH LINKED REPOSITORIES FOR A PROJECT ==>
+const fetchLinkedRepositories = async (
+  projectId: string
+): Promise<LinkedRepository[]> => {
+  // FETCH LINKED REPOSITORIES
+  const response = await apiClient.get<
+    ApiResponse<{ linkedRepositories: LinkedRepository[] }>
+  >(`/projects/${projectId}/repositories`);
+  // CHECK IF DATA EXISTS
+  if (!response.data?.data) {
+    // RETURN EMPTY ARRAY
+    return [];
+  }
+  // RETURN LINKED REPOSITORIES
+  return response.data.data.linkedRepositories || [];
+};
+
+// <== ADD LINKED REPOSITORY TO PROJECT ==>
+const addLinkedRepositoryAPI = async (
+  data: AddLinkedRepositoryRequest
+): Promise<{ projectId: string; linkedRepository: LinkedRepository }> => {
+  // ADD LINKED REPOSITORY
+  const response = await apiClient.post<
+    ApiResponse<{ projectId: string; linkedRepository: LinkedRepository }>
+  >(`/projects/${data.projectId}/repositories`, {
+    owner: data.owner,
+    name: data.name,
+    fullName: data.fullName,
+    repoId: data.repoId,
+    htmlUrl: data.htmlUrl,
+    isPrimary: data.isPrimary,
+    description: data.description,
+    defaultBranch: data.defaultBranch,
+  });
+  // CHECK IF DATA EXISTS
+  if (!response.data?.data) {
+    // THROW ERROR
+    throw new Error("Failed to link repository");
+  }
+  // RETURN DATA
+  return response.data.data;
+};
+
+// <== REMOVE LINKED REPOSITORY FROM PROJECT ==>
+const removeLinkedRepositoryAPI = async (
+  projectId: string,
+  repoId: number
+): Promise<void> => {
+  // REMOVE LINKED REPOSITORY
+  const response = await apiClient.delete<ApiResponse<void>>(
+    `/projects/${projectId}/repositories/${repoId}`
+  );
+  // CHECK IF SUCCESS
+  if (!response.data?.success) {
+    // THROW ERROR
+    throw new Error("Failed to unlink repository");
+  }
+  // RETURN VOID
+  return;
+};
+
+// <== SET PRIMARY REPOSITORY ==>
+const setPrimaryRepositoryAPI = async (
+  projectId: string,
+  repoId: number
+): Promise<void> => {
+  // SET PRIMARY REPOSITORY
+  const response = await apiClient.put<ApiResponse<void>>(
+    `/projects/${projectId}/repositories/${repoId}/primary`
+  );
+  // CHECK IF SUCCESS
+  if (!response.data?.success) {
+    // THROW ERROR
+    throw new Error("Failed to set primary repository");
+  }
+  // RETURN VOID
+  return;
+};
+
+// <== USE LINKED REPOSITORIES HOOK ==>
+export const useLinkedRepositories = (projectId: string | null) => {
+  // GET AUTH STATE
+  const { isAuthenticated, isLoggingOut } = useAuthStore();
+  // FETCH LINKED REPOSITORIES
+  return useQuery({
+    // <== QUERY KEY ==>
+    queryKey: ["linkedRepositories", projectId],
+    // <== QUERY FUNCTION ==>
+    queryFn: () => fetchLinkedRepositories(projectId!),
+    // <== ENABLED ==>
+    enabled: isAuthenticated && !isLoggingOut && !!projectId,
+    // <== STALE TIME ==>
+    staleTime: 2 * 60 * 1000,
+    // <== GC TIME ==>
+    gcTime: 5 * 60 * 1000,
+  });
+};
+
+// <== USE ADD LINKED REPOSITORY HOOK ==>
+export const useAddLinkedRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // ADD LINKED REPOSITORY MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: addLinkedRepositoryAPI,
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE SPECIFIC PROJECT QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["project", variables.projectId],
+      });
+      // INVALIDATE LINKED REPOSITORIES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["linkedRepositories", variables.projectId],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Repository linked successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to link repository. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== USE REMOVE LINKED REPOSITORY HOOK ==>
+export const useRemoveLinkedRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // REMOVE LINKED REPOSITORY MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: ({
+      projectId,
+      repoId,
+    }: {
+      projectId: string;
+      repoId: number;
+    }) => removeLinkedRepositoryAPI(projectId, repoId),
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE SPECIFIC PROJECT QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["project", variables.projectId],
+      });
+      // INVALIDATE LINKED REPOSITORIES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["linkedRepositories", variables.projectId],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Repository unlinked successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to unlink repository. Please try again.";
+      // SHOW ERROR TOAST
+      toast.error(errorMessage);
+    },
+  });
+};
+
+// <== USE SET PRIMARY REPOSITORY HOOK ==>
+export const useSetPrimaryRepository = () => {
+  // QUERY CLIENT
+  const queryClient = useQueryClient();
+  // SET PRIMARY REPOSITORY MUTATION
+  return useMutation({
+    // <== MUTATION FN ==>
+    mutationFn: ({
+      projectId,
+      repoId,
+    }: {
+      projectId: string;
+      repoId: number;
+    }) => setPrimaryRepositoryAPI(projectId, repoId),
+    // <== ON SUCCESS ==>
+    onSuccess: (_, variables) => {
+      // INVALIDATE PROJECTS QUERY
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // INVALIDATE SPECIFIC PROJECT QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["project", variables.projectId],
+      });
+      // INVALIDATE LINKED REPOSITORIES QUERY
+      queryClient.invalidateQueries({
+        queryKey: ["linkedRepositories", variables.projectId],
+      });
+      // SHOW SUCCESS TOAST
+      toast.success("Primary repository set successfully!");
+    },
+    // <== ON ERROR ==>
+    onError: (error: unknown) => {
+      // TYPE ERROR AS AXIOS ERROR
+      const axiosError = error as AxiosError<{ message?: string }>;
+      // GET ERROR MESSAGE
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        "Failed to set primary repository. Please try again.";
       // SHOW ERROR TOAST
       toast.error(errorMessage);
     },
