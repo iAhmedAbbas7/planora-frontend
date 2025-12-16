@@ -1,11 +1,13 @@
 // <== IMPORTS ==>
 import { JSX } from "react";
-import { Eye, Edit, Plus, Trash2 } from "lucide-react";
+import { Eye, Edit, Plus, Trash2, LayoutDashboard } from "lucide-react";
 
 // <== ACTION DROPDOWN PROPS TYPE INTERFACE ==>
 type ActionDropdownProps = {
   // <== ON VIEW DETAILS FUNCTION ==>
   onViewDetails?: () => void;
+  // <== ON VIEW DASHBOARD FUNCTION ==>
+  onViewDashboard?: () => void;
   // <== ON EDIT PROJECT FUNCTION ==>
   onEditProject?: () => void;
   // <== ON ADD TASK FUNCTION ==>
@@ -17,6 +19,7 @@ type ActionDropdownProps = {
 // <== ACTION DROPDOWN COMPONENT ==>
 const ActionDropdown = ({
   onViewDetails,
+  onViewDashboard,
   onEditProject,
   onAddTask,
   onDeleteProject,
@@ -24,6 +27,7 @@ const ActionDropdown = ({
   // ACTIONS ARRAY
   const actions = [
     { label: "View Details", onClick: onViewDetails, icon: Eye },
+    { label: "Dashboard", onClick: onViewDashboard, icon: LayoutDashboard },
     { label: "Edit Project", onClick: onEditProject, icon: Edit },
     { label: "Add Task", onClick: onAddTask, icon: Plus },
     { label: "Delete Project", onClick: onDeleteProject, icon: Trash2 },
