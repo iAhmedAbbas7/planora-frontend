@@ -19,6 +19,7 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import ProjectDetails from "../projects/ProjectDetails";
 import ActionDropdown from "../projects/dropdown/ActionDropdown";
 
@@ -80,6 +81,8 @@ const ListModeProjects = ({
   searchTerm,
   hasProjects,
 }: ListModeProps): JSX.Element => {
+  // NAVIGATE HOOK
+  const navigate = useNavigate();
   // DROPDOWN OPEN STATE
   const [isDropdownOpen, setIsDropdownOpen] = useState<string | null>(null);
   // MOBILE DROPDOWN OPEN STATE
@@ -379,6 +382,12 @@ const ListModeProjects = ({
                     setSelectedProjectId(isDropdownOpen);
                     setIsDropdownOpen(null);
                   }}
+                  onViewDashboard={() => {
+                    if (isDropdownOpen) {
+                      navigate(`/projects/${isDropdownOpen}/dashboard`);
+                    }
+                    setIsDropdownOpen(null);
+                  }}
                   onEditProject={() => {
                     const project = currentProjects.find(
                       (p) => p._id === isDropdownOpen
@@ -439,6 +448,10 @@ const ListModeProjects = ({
                         <ActionDropdown
                           onViewDetails={() => {
                             setSelectedProjectId(project._id);
+                            setIsSmScreenDropdownOpen(null);
+                          }}
+                          onViewDashboard={() => {
+                            navigate(`/projects/${project._id}/dashboard`);
                             setIsSmScreenDropdownOpen(null);
                           }}
                           onEditProject={() => handleEdit(project)}
