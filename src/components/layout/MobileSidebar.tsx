@@ -5,7 +5,6 @@ import {
   ListTodo,
   Settings,
   Trash,
-  LogOut,
   Bell,
   X,
   Github,
@@ -13,8 +12,8 @@ import {
   GitBranch,
   Target,
   BarChart3,
+  Crosshair,
 } from "lucide-react";
-import { useLogout } from "../../hooks/useAuth";
 import LOGO_IMAGE from "../../assets/images/LOGO.png";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import { useState, useEffect, JSX, ComponentType } from "react";
@@ -72,11 +71,12 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
     // UPDATE NOTIFICATIONS STATE
     setIsNotificationsOpen((prev) => !prev);
   };
-  // MENU ITEMS ARRAY
-  const collection: MenuItem[] = [
+  // MENU ITEMS ARRAY (ALL ITEMS COMBINED - MATCHING DESKTOP SIDEBAR)
+  const menuItems: MenuItem[] = [
     { path: "/dashboard", name: "Dashboard", icon: House },
     { path: "/projects", name: "Projects", icon: Folder },
     { path: "/tasks", name: "Tasks", icon: ListTodo },
+    { path: "/goals", name: "Goals", icon: Crosshair },
     { path: "/dependencies", name: "Dependencies", icon: GitBranch },
     { path: "/focus", name: "Focus", icon: Target },
     { path: "/reports", name: "Reports", icon: BarChart3 },
@@ -89,26 +89,13 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
       icon: Bell,
       onClick: handleNotificationsClick,
     },
-  ];
-  // GENERAL ITEMS ARRAY
-  const general: MenuItem[] = [
     { path: "/settings", name: "Settings", icon: Settings },
-    { path: "/logout", name: "Logout", icon: LogOut },
   ];
   // CLOSE SIDEBAR ON ROUTE CHANGE EFFECT
   useEffect(() => {
     // CLOSE SIDEBAR WHEN LOCATION CHANGES
     closeSidebar();
   }, [location.pathname, closeSidebar]);
-  // LOGOUT MUTATION
-  const logoutMutation = useLogout();
-  // HANDLE LOGOUT FUNCTION
-  const handleLogout = (): void => {
-    // CLOSE SIDEBAR
-    closeSidebar();
-    // CALL LOGOUT MUTATION
-    logoutMutation.mutate();
-  };
   // RETURNING THE MOBILE SIDEBAR COMPONENT
   return (
     // MOBILE SIDEBAR MAIN CONTAINER
@@ -130,7 +117,7 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
         {/* SIDEBAR CONTENT CONTAINER */}
         <div className="flex flex-col justify-between h-full p-4">
           {/* LOGO AND CONTROLS CONTAINER */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             {/* LOGO CONTAINER */}
             <div className="flex items-center gap-2">
               {/* LOGO IMAGE */}
@@ -155,155 +142,84 @@ const MobileSidebar = ({ setIsOpen }: MobileSidebarProps): JSX.Element => {
           </div>
           {/* MENU CONTAINER */}
           <div className="flex flex-col flex-1 overflow-y-auto">
-            {/* MENU SECTION */}
-            <div className="mb-6 pt-3">
-              {/* MENU LABEL */}
-              <p className="text-xs font-semibold text-[var(--primary-text)] mb-1.5 uppercase tracking-widest">
-                Menu
-              </p>
-              {/* MENU NAVIGATION */}
-              <nav className="flex flex-col gap-1">
-                {/* MAPPING THROUGH COLLECTION ITEMS */}
-                {collection.map((item, index) => {
-                  const Icon = item.icon;
-                  // CHECK IF ITEM IS ACTIVE
-                  const isActive = item.path && location.pathname === item.path;
-                  // CHECK IF NOTIFICATIONS ITEM
-                  if (item.name === "Notifications" && item.path) {
-                    // RETURN NOTIFICATIONS ITEM WITH CUSTOM HANDLING
-                    return (
-                      <div key={index} className="relative">
-                        <Link
-                          to={item.path}
-                          onClick={(e) => {
-                            // PREVENT DEFAULT NAVIGATION
-                            e.preventDefault();
-                            // CALL CUSTOM ONCLICK HANDLER
-                            item.onClick?.();
-                          }}
-                          className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                            isActive
-                              ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
-                              : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
-                          }`}
-                        >
-                          {/* MENU ITEM ICON CONTAINER */}
-                          <div className="flex justify-center w-8">
-                            <Icon className="h-5 w-5" strokeWidth={2.5} />
-                          </div>
-                          {/* MENU ITEM TEXT */}
-                          <span className="ml-2 transition-all duration-200">
-                            {item.name}
-                          </span>
-                        </Link>
-                      </div>
-                    );
-                  }
-                  // RETURN MENU ITEM WITH PATH
-                  return item.path ? (
-                    // MENU ITEM LINK
-                    <Link
-                      key={index}
-                      to={item.path}
-                      onClick={closeSidebar}
-                      className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                        isActive
-                          ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
-                          : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
-                      }`}
-                    >
-                      {/* MENU ITEM ICON CONTAINER */}
-                      <div className="flex justify-center w-8">
-                        <Icon className="h-5 w-5" strokeWidth={2.5} />
-                      </div>
-                      {/* MENU ITEM TEXT */}
-                      <span className="ml-2 transition-all duration-200">
-                        {item.name}
-                      </span>
-                    </Link>
-                  ) : (
-                    // MENU ITEM BUTTON (NO PATH)
+            {/* NAVIGATION */}
+            <nav className="flex flex-col gap-1">
+              {/* MAPPING THROUGH MENU ITEMS */}
+              {menuItems.map((item, index) => {
+                // GET ICON FROM ITEM
+                const Icon = item.icon;
+                // CHECK IF ITEM IS ACTIVE
+                const isActive = item.path && location.pathname === item.path;
+                // MENU ITEM CONTENT
+                const content = (
+                  <>
+                    {/* MENU ITEM ICON CONTAINER */}
+                    <div className="flex justify-center w-8">
+                      <Icon
+                        className="h-[1.375rem] w-[1.375rem]"
+                        strokeWidth={2.5}
+                      />
+                    </div>
+                    {/* MENU ITEM TEXT */}
+                    <span className="ml-2 text-[0.9375rem] transition-all duration-200">
+                      {item.name}
+                    </span>
+                  </>
+                );
+                // CHECK IF NOTIFICATIONS ITEM
+                if (item.name === "Notifications" && item.path) {
+                  // RETURN NOTIFICATIONS ITEM WITH CUSTOM HANDLING
+                  return (
                     <div key={index} className="relative">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          // PREVENT DEFAULT
+                          e.preventDefault();
+                          // CALL CUSTOM ONCLICK HANDLER
                           item.onClick?.();
-                          closeSidebar();
                         }}
-                        className="sidebar-item flex items-center w-full px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-[var(--primary-text)] transition-all"
+                        className={`flex items-center w-full px-3 py-1.5 rounded-md font-medium transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
+                            : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
+                        }`}
                       >
-{/* MENU ITEM ICON CONTAINER */}
-                      <div className="flex justify-center w-8">
-                        <Icon className="h-5 w-5" strokeWidth={2.5} />
-                      </div>
-                      {/* MENU ITEM TEXT */}
-                      <span className="ml-2 transition-all duration-200">
-                        {item.name}
-                      </span>
+                        {content}
+                      </button>
+                    </div>
+                  );
+                }
+                // RETURN MENU ITEM WITH PATH
+                return item.path ? (
+                  // MENU ITEM LINK
+                  <Link
+                    key={index}
+                    to={item.path}
+                    onClick={closeSidebar}
+                    className={`flex items-center px-3 py-1.5 rounded-md font-medium transition-all ${
+                      isActive
+                        ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
+                        : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
+                    }`}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  // MENU ITEM BUTTON (NO PATH)
+                  <div key={index} className="relative">
+                    <button
+                      onClick={() => {
+                        item.onClick?.();
+                        closeSidebar();
+                      }}
+                      className="sidebar-item flex items-center w-full px-3 py-1.5 rounded-md font-medium cursor-pointer text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-[var(--primary-text)] transition-all"
+                    >
+                      {content}
                     </button>
                   </div>
                 );
               })}
             </nav>
-          </div>
-          {/* GENERAL SECTION */}
-          <div>
-            {/* GENERAL LABEL */}
-            <p className="text-xs font-semibold text-[var(--primary-text)] mb-1.5 uppercase tracking-widest">
-              General
-            </p>
-            {/* GENERAL NAVIGATION */}
-            <nav className="flex flex-col gap-0.5">
-              {/* MAPPING THROUGH GENERAL ITEMS */}
-              {general.map((item) => {
-                const Icon = item.icon;
-                // CHECK IF ITEM IS LOGOUT
-                if (item.name === "Logout") {
-                  return (
-                    // LOGOUT BUTTON
-                    <button
-                      key={item.name}
-                      onClick={() => {
-                        handleLogout();
-                      }}
-                      className="flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-[var(--sidebar-links-color)] cursor-pointer hover:bg-[var(--accent-hover-color)] hover:text-white transition-all"
-                    >
-                      {/* LOGOUT ICON CONTAINER */}
-                      <div className="flex justify-center w-8">
-                        <Icon className="h-5 w-5" strokeWidth={2.5} />
-                      </div>
-                        {/* LOGOUT TEXT */}
-                        <span className="ml-2 transition-all duration-200">
-                          {item.name}
-                        </span>
-                      </button>
-                    );
-                  }
-                  // RETURN GENERAL ITEM LINK
-                  return (
-                    // GENERAL ITEM LINK
-                    <Link
-                      key={item.path}
-                      to={item.path!}
-                      onClick={closeSidebar}
-                      className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                        location.pathname === item.path
-                          ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
-                          : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
-                      }`}
-                    >
-                      {/* GENERAL ITEM ICON CONTAINER */}
-                      <div className="flex justify-center w-8">
-                        <Icon className="h-5 w-5" strokeWidth={2.5} />
-                      </div>
-                      {/* GENERAL ITEM TEXT */}
-                      <span className="ml-2 transition-all duration-200">
-                        {item.name}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
           </div>
         </div>
       </div>
