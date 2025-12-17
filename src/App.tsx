@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import TasksPage from "./pages/TasksPage";
 import FocusPage from "./pages/FocusPage";
+import GoalsPage from "./pages/GoalsPage";
 import GitHubPage from "./pages/GitHubPage";
 import SignUpPage from "./pages/SignUpPage";
 import ReportsPage from "./pages/ReportsPage";
@@ -160,6 +161,11 @@ const appRouter = createBrowserRouter(
             {
               path: "/focus",
               element: <FocusPage />,
+            },
+            // <== GOALS & OKRs ROUTE ==>
+            {
+              path: "/goals",
+              element: <GoalsPage />,
             },
             // <== REPORTS ROUTE ==>
             {
