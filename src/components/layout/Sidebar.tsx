@@ -5,7 +5,6 @@ import {
   ListTodo,
   Settings,
   Trash,
-  LogOut,
   ChevronLeft,
   Bell,
   ChevronRight,
@@ -14,8 +13,8 @@ import {
   GitBranch,
   Target,
   BarChart3,
+  Crosshair,
 } from "lucide-react";
-import { useLogout } from "../../hooks/useAuth";
 import LOGO_IMAGE from "../../assets/images/LOGO.png";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import { useState, useEffect, JSX, ComponentType } from "react";
@@ -90,11 +89,12 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
       }
     }
   };
-  // MENU ITEMS ARRAY
-  const collection: MenuItem[] = [
+  // MENU ITEMS ARRAY (ALL ITEMS COMBINED)
+  const menuItems: MenuItem[] = [
     { path: "/dashboard", name: "Dashboard", icon: House },
     { path: "/projects", name: "Projects", icon: Folder },
     { path: "/tasks", name: "Tasks", icon: ListTodo },
+    { path: "/goals", name: "Goals", icon: Crosshair },
     { path: "/dependencies", name: "Dependencies", icon: GitBranch },
     { path: "/focus", name: "Focus", icon: Target },
     { path: "/reports", name: "Reports", icon: BarChart3 },
@@ -107,11 +107,7 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
       icon: Bell,
       onClick: handleNotificationsClick,
     },
-  ];
-  // GENERAL ITEMS ARRAY
-  const general: MenuItem[] = [
     { path: "/settings", name: "Settings", icon: Settings },
-    { path: "/logout", name: "Logout", icon: LogOut },
   ];
   // CLOSE SIDEBAR ON ROUTE CHANGE EFFECT
   useEffect(() => {
@@ -149,15 +145,6 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
     // CLEANUP
     return () => window.removeEventListener("resize", handleResize);
   }, [isOpen, isMobile]);
-  // LOGOUT MUTATION
-  const logoutMutation = useLogout();
-  // HANDLE LOGOUT FUNCTION
-  const handleLogout = (): void => {
-    // CLOSE SIDEBAR
-    closeSidebar();
-    // CALL LOGOUT MUTATION
-    logoutMutation.mutate();
-  };
   // RETURNING THE SIDEBAR COMPONENT
   return (
     // SIDEBAR MAIN CONTAINER (DESKTOP ONLY)
@@ -187,7 +174,7 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
         <div className="flex flex-col justify-between h-full p-4">
           {/* LOGO AND CONTROLS CONTAINER */}
           <div
-            className={`flex items-center mb-6 transition-all duration-300 ${
+            className={`flex items-center mb-4 transition-all duration-300 ${
               isCollapsed ? "justify-center w-full" : "justify-between"
             }`}
           >
@@ -217,188 +204,110 @@ const Sidebar = ({ setIsOpen }: SidebarProps): JSX.Element => {
               isCollapsed ? "overflow-hidden" : "overflow-y-auto"
             }`}
           >
-            {/* MENU SECTION */}
-            <div className={`pt-3 ${isCollapsed ? "mb-0" : "mb-6"}`}>
-              {/* MENU LABEL */}
-              {!isCollapsed && (
-                <p className="text-xs font-semibold text-[var(--primary-text)] mb-1.5 uppercase tracking-widest">
-                  Menu
-                </p>
-              )}
-              {/* MENU NAVIGATION */}
-              <nav
-                className={`flex flex-col ${isCollapsed ? "gap-1" : "gap-1"}`}
-              >
-                {/* MAPPING THROUGH COLLECTION ITEMS */}
-                {collection.map((item, index) => {
-                  const Icon = item.icon;
-                  // CHECK IF ITEM IS ACTIVE
-                  const isActive = item.path && location.pathname === item.path;
-                  // MENU ITEM CONTENT
-                  const content = (
-                    <>
-                      {/* MENU ITEM ICON */}
-                      {isCollapsed ? (
-                        <Icon
-                          className="h-[1.625rem] w-[1.625rem]"
-                          strokeWidth={2.5}
-                        />
-                      ) : (
-                        <>
-                          {/* MENU ITEM ICON CONTAINER */}
-                          <div className="flex justify-center w-8">
-                            <Icon className="h-5 w-5" strokeWidth={2.5} />
-                          </div>
-                          {/* MENU ITEM TEXT */}
-                          <span className="ml-2 transition-all duration-200">
-                            {item.name}
-                          </span>
-                        </>
-                      )}
-                    </>
-                  );
-                  // CHECK IF NOTIFICATIONS ITEM
-                  if (item.name === "Notifications" && item.path) {
-                    // RETURN NOTIFICATIONS ITEM WITH CUSTOM HANDLING
-                    return (
-                      <div key={index} className="relative">
-                        <button
-                          data-notification-tab="true"
-                          onClick={(e) => {
-                            // PREVENT DEFAULT NAVIGATION
-                            e.preventDefault();
-                            // STOP PROPAGATION TO PREVENT CLICK-OUTSIDE HANDLER
-                            e.stopPropagation();
-                            // CALL CUSTOM ONCLICK HANDLER
-                            handleNotificationsClick();
-                          }}
-                          className={`flex items-center w-full py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${
-                            isCollapsed ? "justify-center px-0" : "px-3"
-                          } ${
-                            isActive
-                              ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
-                              : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
-                          }`}
-                        >
-                          {content}
-                        </button>
-                      </div>
-                    );
-                  }
-                  // RETURN MENU ITEM WITH PATH
-                  return item.path ? (
-                    // MENU ITEM LINK
-                    <Link
-                      key={index}
-                      to={item.path}
-                      onClick={closeSidebar}
-                      className={`flex items-center py-1.5 rounded-md text-sm font-medium transition-all ${
-                        isCollapsed ? "justify-center px-0" : "px-3"
-                      } ${
-                        isActive
-                          ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
-                          : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
-                      }`}
-                    >
-                      {content}
-                    </Link>
-                  ) : (
-                    // MENU ITEM BUTTON (NO PATH)
+            {/* NAVIGATION */}
+            <nav className={`flex flex-col ${isCollapsed ? "gap-1" : "gap-1"}`}>
+              {/* MAPPING THROUGH MENU ITEMS */}
+              {menuItems.map((item, index) => {
+                // GET ICON FROM ITEM
+                const Icon = item.icon;
+                // CHECK IF ITEM IS ACTIVE
+                const isActive = item.path && location.pathname === item.path;
+                // MENU ITEM CONTENT
+                const content = (
+                  <>
+                    {/* MENU ITEM ICON */}
+                    {isCollapsed ? (
+                      <Icon
+                        className="h-[1.625rem] w-[1.625rem]"
+                        strokeWidth={2.5}
+                      />
+                    ) : (
+                      <>
+                        {/* MENU ITEM ICON CONTAINER */}
+                        <div className="flex justify-center w-8">
+                          <Icon
+                            className="h-[1.375rem] w-[1.375rem]"
+                            strokeWidth={2.5}
+                          />
+                        </div>
+                        {/* MENU ITEM TEXT */}
+                        <span className="ml-2 text-[0.9375rem] transition-all duration-200">
+                          {item.name}
+                        </span>
+                      </>
+                    )}
+                  </>
+                );
+                // CHECK IF NOTIFICATIONS ITEM
+                if (item.name === "Notifications" && item.path) {
+                  // RETURN NOTIFICATIONS ITEM WITH CUSTOM HANDLING
+                  return (
                     <div key={index} className="relative">
                       <button
-                        onClick={() => {
-                          item.onClick?.();
-                          // DON'T CLOSE SIDEBAR FOR NOTIFICATIONS
-                          if (item.name !== "Notifications") {
-                            closeSidebar();
-                          }
+                        data-notification-tab="true"
+                        onClick={(e) => {
+                          // PREVENT DEFAULT NAVIGATION
+                          e.preventDefault();
+                          // STOP PROPAGATION TO PREVENT CLICK-OUTSIDE HANDLER
+                          e.stopPropagation();
+                          // CALL CUSTOM ONCLICK HANDLER
+                          handleNotificationsClick();
                         }}
-                        className={`sidebar-item flex items-center w-full py-1.5 rounded-md text-sm font-medium cursor-pointer text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-[var(--primary-text)] transition-all ${
-                          isCollapsed ? "justify-center px-0" : "px-3"
+                        className={`flex items-center w-full rounded-md font-medium transition-all cursor-pointer ${
+                          isCollapsed
+                            ? "justify-center px-0 py-1.5"
+                            : "px-3 py-1.5"
+                        } ${
+                          isActive
+                            ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
+                            : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
                         }`}
                       >
                         {content}
                       </button>
                     </div>
                   );
-                })}
-              </nav>
-            </div>
-            {/* GENERAL SECTION */}
-            <div>
-              {/* GENERAL LABEL */}
-              {!isCollapsed && (
-                <p className="text-xs font-semibold text-[var(--primary-text)] mb-1.5 uppercase tracking-widest">
-                  General
-                </p>
-              )}
-              {/* GENERAL NAVIGATION */}
-              <nav className="flex flex-col gap-0.5">
-                {/* MAPPING THROUGH GENERAL ITEMS */}
-                {general.map((item) => {
-                  const Icon = item.icon;
-                  // CHECK IF ITEM IS LOGOUT - HIDE IN COLLAPSED STATE
-                  if (item.name === "Logout") {
-                    // HIDE LOGOUT BUTTON IN COLLAPSED STATE
-                    if (isCollapsed) return null;
-                    return (
-                      // LOGOUT BUTTON
-                      <button
-                        key={item.name}
-                        onClick={() => {
-                          handleLogout();
-                        }}
-                        className="flex items-center py-1.5 px-3 rounded-md text-sm font-medium text-[var(--sidebar-links-color)] cursor-pointer hover:bg-[var(--accent-hover-color)] hover:text-white transition-all"
-                      >
-                        {/* LOGOUT ICON CONTAINER */}
-                        <div className="flex justify-center w-8">
-                          <Icon className="h-5 w-5" strokeWidth={2.5} />
-                        </div>
-                        {/* LOGOUT TEXT */}
-                        <span className="ml-2 transition-all duration-200">
-                          {item.name}
-                        </span>
-                      </button>
-                    );
-                  }
-                  // RETURN GENERAL ITEM LINK
-                  return (
-                    // GENERAL ITEM LINK
-                    <Link
-                      key={item.path}
-                      to={item.path!}
-                      onClick={closeSidebar}
-                      className={`flex items-center py-1.5 rounded-md text-sm font-medium transition-all ${
-                        isCollapsed ? "justify-center px-0" : "px-3"
-                      } ${
-                        location.pathname === item.path
-                          ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
-                          : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
+                }
+                // RETURN MENU ITEM WITH PATH
+                return item.path ? (
+                  // MENU ITEM LINK
+                  <Link
+                    key={index}
+                    to={item.path}
+                    onClick={closeSidebar}
+                    className={`flex items-center rounded-md font-medium transition-all ${
+                      isCollapsed ? "justify-center px-0 py-1.5" : "px-3 py-1.5"
+                    } ${
+                      isActive
+                        ? "bg-[var(--bg)] text-[var(--accent-highlight-color)]"
+                        : "text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-white"
+                    }`}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  // MENU ITEM BUTTON (NO PATH)
+                  <div key={index} className="relative">
+                    <button
+                      onClick={() => {
+                        item.onClick?.();
+                        // DON'T CLOSE SIDEBAR FOR NOTIFICATIONS
+                        if (item.name !== "Notifications") {
+                          closeSidebar();
+                        }
+                      }}
+                      className={`sidebar-item flex items-center w-full rounded-md font-medium cursor-pointer text-[var(--sidebar-links-color)] hover:bg-[var(--accent-hover-color)] hover:text-[var(--primary-text)] transition-all ${
+                        isCollapsed
+                          ? "justify-center px-0 py-1.5"
+                          : "px-3 py-1.5"
                       }`}
                     >
-                      {/* GENERAL ITEM ICON */}
-                      {isCollapsed ? (
-                        <Icon
-                          className="h-[1.625rem] w-[1.625rem]"
-                          strokeWidth={2.5}
-                        />
-                      ) : (
-                        <>
-                          {/* GENERAL ITEM ICON CONTAINER */}
-                          <div className="flex justify-center w-8">
-                            <Icon className="h-5 w-5" strokeWidth={2.5} />
-                          </div>
-                          {/* GENERAL ITEM TEXT */}
-                          <span className="ml-2 transition-all duration-200">
-                            {item.name}
-                          </span>
-                        </>
-                      )}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
+                      {content}
+                    </button>
+                  </div>
+                );
+              })}
+            </nav>
           </div>
         </div>
       </div>
