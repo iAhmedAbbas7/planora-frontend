@@ -6,8 +6,10 @@ import {
   Calendar,
   Flag,
   Circle,
+  Check,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 import AddNewTask from "../tasks/AddNewTask";
 import { JSX, useState, useEffect } from "react";
 import { useDashboardStore } from "../../store/useDashboardStore";
@@ -206,57 +208,88 @@ const TasksCreatedToday = (): JSX.Element => {
           </Link>
         </div>
       )}
-      {/* ADD TASK MODAL */}
-      {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-2 sm:p-4">
-          {/* MODAL CONTAINER */}
-          <div className="bg-[var(--bg)] rounded-xl w-full max-w-md max-h-[95vh] flex flex-col relative overflow-hidden">
-            {/* MODAL HEADER */}
-            <div className="flex justify-between items-center p-3 sm:p-4 pb-2 border-b border-[var(--border)] flex-shrink-0">
-              {/* MODAL TITLE */}
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Add Task
-              </h2>
-              {/* CLOSE BUTTON */}
-              <button
-                onClick={() => setIsOpen(false)}
-                className="cursor-pointer bg-[var(--accent-color)] rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-[var(--accent-btn-hover-color)] transition"
-              >
-                {/* CLOSE ICON */}
-                <X size={16} className="sm:w-[18px] sm:h-[18px]" />
-              </button>
+      {/* ADD TASK MODAL - RENDERED IN PORTAL */}
+      {isOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 flex items-center justify-center bg-[var(--black-overlay)] z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setIsOpen(false);
+              }
+            }}
+          >
+            {/* MODAL CONTAINER */}
+            <div
+              className="bg-[var(--bg)] border border-[var(--border)] rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* MODAL HEADER */}
+              <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+                <div className="flex items-center gap-3">
+                  {/* ICON BADGE */}
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{
+                      backgroundColor:
+                        "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+                    }}
+                  >
+                    <ClipboardList
+                      size={20}
+                      className="text-[var(--accent-color)]"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                      Create New Task
+                    </h2>
+                    <p className="text-xs text-[var(--light-text)]">
+                      Add a new task to your project
+                    </p>
+                  </div>
+                </div>
+                {/* CLOSE BUTTON */}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 rounded-lg text-[var(--light-text)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              {/* SCROLLABLE CONTENT AREA - FORM ONLY */}
+              <div className="overflow-y-auto flex-1 min-h-0">
+                {/* ADD NEW TASK FORM */}
+                <AddNewTask
+                  onClose={() => setIsOpen(false)}
+                  onTaskAdded={handleTaskAdded}
+                  showButtons={false}
+                />
+              </div>
+              {/* FIXED FOOTER - BUTTONS */}
+              <div className="flex justify-end gap-2 p-4 border-t border-[var(--border)]">
+                {/* CANCEL BUTTON */}
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg text-sm border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--hover-bg)] cursor-pointer transition"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancel
+                </button>
+                {/* SUBMIT BUTTON */}
+                <button
+                  type="submit"
+                  form="task-form"
+                  className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] cursor-pointer transition flex items-center gap-2"
+                >
+                  <Check size={16} />
+                  Create Task
+                </button>
+              </div>
             </div>
-            {/* SCROLLABLE CONTENT AREA - FORM ONLY */}
-            <div className="overflow-y-auto flex-1 min-h-0">
-              {/* ADD NEW TASK FORM */}
-              <AddNewTask
-                onClose={() => setIsOpen(false)}
-                onTaskAdded={handleTaskAdded}
-                showButtons={false}
-              />
-            </div>
-            {/* FIXED FOOTER - BUTTONS */}
-            <div className="flex justify-end gap-2 p-2 sm:p-3 pt-2 border-t border-[var(--border)] flex-shrink-0 bg-[var(--bg)] rounded-b-xl">
-              {/* CANCEL BUTTON */}
-              <button
-                type="button"
-                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm border border-[var(--border)] hover:bg-[var(--hover-bg)] cursor-pointer"
-                onClick={() => setIsOpen(false)}
-              >
-                Cancel
-              </button>
-              {/* SUBMIT BUTTON */}
-              <button
-                type="submit"
-                form="task-form"
-                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm bg-[var(--accent-color)] text-white hover:bg-[var(--accent-btn-hover-color)] shadow cursor-pointer"
-              >
-                Add Task
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
