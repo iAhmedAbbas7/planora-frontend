@@ -6,16 +6,36 @@ import {
   useTrustDevice,
   useUntrustDevice,
 } from "../../hooks/useSessions";
-import { JSX } from "react";
 import { useState } from "react";
+import { JSX, useMemo } from "react";
 import SessionCard from "./SessionCard";
 import { Monitor, LogOut } from "lucide-react";
 import ConfirmationModal from "../common/ConfirmationModal";
+
+// <== HELPER TO GET SESSION ID FROM COOKIE ==>
+const getSessionIdFromCookie = (): string | null => {
+  // GET COOKIES
+  const cookies = document.cookie.split(";");
+  // LOOP THROUGH COOKIES
+  for (const cookie of cookies) {
+    // SPLIT COOKIE INTO NAME AND VALUE
+    const [name, value] = cookie.trim().split("=");
+    // IF NAME IS SESSION ID, RETURN VALUE
+    if (name === "sessionId") {
+      // DECODE VALUE
+      return decodeURIComponent(value);
+    }
+  }
+  // IF NO SESSION ID FOUND, RETURN NULL
+  return null;
+};
 
 // <== SESSION LIST COMPONENT ==>
 const SessionList = (): JSX.Element => {
   // GET SESSIONS
   const { data: sessions, isLoading, refetch } = useGetSessions();
+  // GET CURRENT SESSION ID FROM COOKIE
+  const currentSessionId = useMemo(() => getSessionIdFromCookie(), []);
   // REVOKE SESSION MUTATION
   const revokeSessionMutation = useRevokeSession();
   // REVOKE ALL OTHER SESSIONS MUTATION
@@ -121,10 +141,10 @@ const SessionList = (): JSX.Element => {
       </div>
     );
   }
-  // GET CURRENT SESSION
-  const currentSession = sessions.find((s) => s.isCurrent);
+  // GET CURRENT SESSION (BASED ON SESSION ID COOKIE, NOT SERVER FLAG)
+  const currentSession = sessions.find((s) => s.sessionId === currentSessionId);
   // GET OTHER SESSIONS
-  const otherSessions = sessions.filter((s) => !s.isCurrent);
+  const otherSessions = sessions.filter((s) => s.sessionId !== currentSessionId);
   // RETURN LIST
   return (
     <div className="space-y-6">
@@ -141,14 +161,15 @@ const SessionList = (): JSX.Element => {
           </button>
         </div>
       )}
-      {/* CURRENT SESSION */}
+      {/* CURRENT SESSION (THIS DEVICE) */}
       {currentSession && (
         <div>
           <h4 className="text-sm font-medium text-[var(--text-primary)] mb-3">
-            Current Session
+            This Device
           </h4>
           <SessionCard
             session={currentSession}
+            isCurrentSession={true}
             onRevoke={handleRevokeSession}
             onTrust={handleTrustDevice}
             onUntrust={handleUntrustDevice}
@@ -159,17 +180,18 @@ const SessionList = (): JSX.Element => {
           />
         </div>
       )}
-      {/* OTHER SESSIONS */}
+      {/* OTHER SESSIONS (OTHER DEVICES) */}
       {otherSessions.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-[var(--text-primary)] mb-3">
-            Other Sessions ({otherSessions.length})
+            Other Devices ({otherSessions.length})
           </h4>
           <div className="space-y-3">
             {otherSessions.map((session) => (
               <SessionCard
                 key={session.sessionId}
                 session={session}
+                isCurrentSession={false}
                 onRevoke={handleRevokeSession}
                 onTrust={handleTrustDevice}
                 onUntrust={handleUntrustDevice}
