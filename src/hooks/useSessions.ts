@@ -35,8 +35,6 @@ export type Session = {
   locationCity: string;
   // <== LOCATION REGION ==>
   locationRegion: string;
-  // <== IS CURRENT SESSION ==>
-  isCurrent: boolean;
   // <== IS TRUSTED ==>
   isTrusted: boolean;
   // <== LAST ACTIVITY ==>
