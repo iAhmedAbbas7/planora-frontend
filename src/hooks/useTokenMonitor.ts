@@ -87,12 +87,13 @@ export const useTokenMonitor = (): void => {
       const errorMessage = axiosError.response?.data?.message || "";
       // GET STATUS CODE
       const status = axiosError.response?.status;
-      // IF REFRESH TOKEN IS MISSING OR INVALID, SESSION IS EXPIRED
+      // IF REFRESH TOKEN IS MISSING OR INVALID OR SESSION IS REVOKED, SESSION IS EXPIRED
       if (
         status === 401 &&
         (errorMessage.includes("Refresh token not found") ||
           errorMessage.includes("Invalid or expired refresh token") ||
-          errorMessage.includes("Refresh token not found or expired"))
+          errorMessage.includes("Refresh token not found or expired") ||
+          errorMessage.includes("Session has been revoked or expired"))
       ) {
         // SET SESSION EXPIRED TO TRUE
         setSessionExpired(true);
