@@ -10,11 +10,11 @@ import {
   Phone,
 } from "lucide-react";
 import { toast } from "../lib/toast";
-import { Link } from "react-router-dom";
 import useTitle from "../hooks/useTitle";
 import "react-phone-number-input/style.css";
 import { useSignup } from "../hooks/useAuth";
 import PhoneInput from "react-phone-number-input";
+import { Link, useSearchParams } from "react-router-dom";
 import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 import { useState, useEffect, ChangeEvent, FormEvent, JSX } from "react";
 
@@ -54,10 +54,39 @@ const ConditionItem = ({
   </div>
 );
 
+// <== PLAN DISPLAY NAMES ==>
+const PLAN_DISPLAY_NAMES: Record<string, string> = {
+  individual: "Individual",
+  team: "Team",
+  enterprise: "Enterprise",
+};
+
 // <== SIGN UP PAGE COMPONENT ==>
 const SignUpPage = (): JSX.Element => {
   // SET PAGE TITLE
   useTitle("PlanOra - Sign Up");
+  // GET URL SEARCH PARAMS
+  const [searchParams] = useSearchParams();
+  // GET SELECTED PLAN AND CYCLE FROM URL SEARCH PARAMS
+  const selectedPlan = searchParams.get("plan");
+  // GET SELECTED CYCLE FROM URL SEARCH PARAMS
+  const selectedCycle = searchParams.get("cycle") || "monthly";
+  // BUILD OAUTH URL WITH PLAN INFO
+  const buildOAuthUrl = (provider: "google" | "github"): string => {
+    // BUILD BASE URL
+    const baseUrl = `${import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"}/auth/${provider}`;
+    // BUILD URL SEARCH PARAMS
+    const params = new URLSearchParams({ mode: "register" });
+    // ADD PLAN AND CYCLE TO URL SEARCH PARAMS IF SELECTED
+    if (selectedPlan) {
+      // ADD PLAN TO URL SEARCH PARAMS
+      params.append("plan", selectedPlan);
+      // ADD CYCLE TO URL SEARCH PARAMS
+      params.append("cycle", selectedCycle);
+    }
+    // RETURN COMPLETE URL
+    return `${baseUrl}?${params.toString()}`;
+  };
   // SIGN UP INFO STATE
   const [signupInfo, setSignUpInfo] = useState<SignUpInfo>({
     name: "",
@@ -523,13 +552,23 @@ const SignUpPage = (): JSX.Element => {
             </span>
           </div>
         </div>
+        {/* SELECTED PLAN INDICATOR */}
+        {selectedPlan && PLAN_DISPLAY_NAMES[selectedPlan] && (
+          <div className="mb-4 p-3 rounded-lg bg-violet-50 border border-violet-200">
+            <p className="text-sm text-violet-700">
+              <span className="font-medium">Selected Plan:</span>{" "}
+              {PLAN_DISPLAY_NAMES[selectedPlan]} ({selectedCycle})
+            </p>
+            <p className="text-xs text-violet-600 mt-1">
+              You'll be redirected to payment after signup
+            </p>
+          </div>
+        )}
         {/* OAUTH BUTTONS */}
         <div className="flex flex-col gap-2">
-          {/* GOOGLE OAUTH BUTTON */}
+          {/* GOOGLE OAUTH BUTTON - MODE=REGISTER */}
           <a
-            href={`${
-              import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"
-            }/auth/google`}
+            href={buildOAuthUrl("google")}
             className="w-full py-2 px-4 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm sm:text-base text-gray-700"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -550,13 +589,11 @@ const SignUpPage = (): JSX.Element => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span>Continue with Google</span>
+            <span>Sign up with Google</span>
           </a>
-          {/* GITHUB OAUTH BUTTON */}
+          {/* GITHUB OAUTH BUTTON - MODE=REGISTER */}
           <a
-            href={`${
-              import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"
-            }/auth/github`}
+            href={buildOAuthUrl("github")}
             className="w-full py-2 px-4 bg-gray-900 border border-gray-900 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base text-white"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -566,7 +603,7 @@ const SignUpPage = (): JSX.Element => {
                 clipRule="evenodd"
               />
             </svg>
-            <span>Continue with GitHub</span>
+            <span>Sign up with GitHub</span>
           </a>
         </div>
         {/* LOGIN LINK */}
