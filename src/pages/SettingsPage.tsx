@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import Profile from "../components/settings/Profile";
 import Account from "../components/settings/Account";
 import Security from "../components/settings/Security";
+import { BillingSettings } from "../components/billing";
 import Appearance from "../components/settings/Appearance";
 import Integrations from "../components/settings/Integrations";
 import Notifications from "../components/settings/Notifications";
@@ -24,6 +25,7 @@ const SettingsPage = (): JSX.Element => {
     | "Account"
     | "Security"
     | "Integrations"
+    | "Billing"
     | null;
   // DERIVE ACTIVE TAB FROM URL PARAM
   const activeTab:
@@ -32,7 +34,8 @@ const SettingsPage = (): JSX.Element => {
     | "Notifications"
     | "Account"
     | "Security"
-    | "Integrations" = tabParam || "Profile";
+    | "Integrations"
+    | "Billing" = tabParam || "Profile";
   // HANDLE TAB CHANGE FUNCTION
   const handleTabChange = (
     tab:
@@ -42,6 +45,7 @@ const SettingsPage = (): JSX.Element => {
       | "Account"
       | "Security"
       | "Integrations"
+      | "Billing"
   ): void => {
     // UPDATE URL PARAM (THIS WILL TRIGGER RE-RENDER WITH NEW TAB)
     setSearchParams({ tab });
@@ -73,6 +77,7 @@ const SettingsPage = (): JSX.Element => {
             "Account",
             "Security",
             "Integrations",
+            "Billing",
           ].map((tab) => (
             // TAB BUTTON
             <button
@@ -86,6 +91,7 @@ const SettingsPage = (): JSX.Element => {
                     | "Account"
                     | "Security"
                     | "Integrations"
+                    | "Billing"
                 )
               }
               className={`px-4 py-1.5 text-sm sm:text-base font-medium rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer ${
@@ -112,6 +118,8 @@ const SettingsPage = (): JSX.Element => {
       {activeTab === "Security" && <Security />}
       {/* INTEGRATIONS TAB */}
       {activeTab === "Integrations" && <Integrations />}
+      {/* BILLING TAB */}
+      {activeTab === "Billing" && <BillingSettings />}
     </div>
   );
 };
