@@ -501,11 +501,11 @@ const LoginPage = (): JSX.Element => {
             </div>
             {/* OAUTH BUTTONS */}
             <div className="flex flex-col gap-2">
-              {/* GOOGLE OAUTH BUTTON */}
+              {/* GOOGLE OAUTH BUTTON - MODE=LOGIN (SIGNIN ONLY) */}
               <a
                 href={`${
                   import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"
-                }/auth/google`}
+                }/auth/google?mode=login`}
                 className="w-full py-2 px-4 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm sm:text-base text-gray-700"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -526,13 +526,13 @@ const LoginPage = (): JSX.Element => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                <span>Continue with Google</span>
+                <span>Sign in with Google</span>
               </a>
-              {/* GITHUB OAUTH BUTTON */}
+              {/* GITHUB OAUTH BUTTON - MODE=LOGIN (SIGNIN ONLY) */}
               <a
                 href={`${
                   import.meta.env.VITE_API_URL || "http://localhost:7000/api/v1"
-                }/auth/github`}
+                }/auth/github?mode=login`}
                 className="w-full py-2 px-4 bg-gray-900 border border-gray-900 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base text-white"
               >
                 <svg
@@ -546,7 +546,7 @@ const LoginPage = (): JSX.Element => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>Continue with GitHub</span>
+                <span>Sign in with GitHub</span>
               </a>
             </div>
             {/* SIGN UP LINK */}
