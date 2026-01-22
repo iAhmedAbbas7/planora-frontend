@@ -29,11 +29,13 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PublicRoute from "./components/common/PublicRoute";
 import GitHubActionsPage from "./pages/GitHubActionsPage";
+import PlanSelectionPage from "./pages/PlanSelectionPage";
 import GitHubBranchesPage from "./pages/GitHubBranchesPage";
 import GitHubReleasesPage from "./pages/GitHubReleasesPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import GitHubInsightsPage from "./pages/GitHubInsightsPage";
+import OnboardingSetupPage from "./pages/OnboardingSetupPage";
 import DependencyGraphPage from "./pages/DependencyGraphPage";
 import ProjectDashboardPage from "./pages/ProjectDashboardPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -123,6 +125,24 @@ const appRouter = createBrowserRouter(
         {
           path: "/shared-report/:shareToken",
           element: <SharedReportPage />,
+        },
+        // <== PLAN SELECTION ROUTE ==>
+        {
+          path: "/onboarding",
+          element: (
+            <ProtectedRoute skipOnboardingCheck={true}>
+              <PlanSelectionPage />
+            </ProtectedRoute>
+          ),
+        },
+        // <== ONBOARDING SETUP ROUTE ==>
+        {
+          path: "/onboarding/setup",
+          element: (
+            <ProtectedRoute skipOnboardingCheck={true}>
+              <OnboardingSetupPage />
+            </ProtectedRoute>
+          ),
         },
         // <== DASHBOARD LAYOUT ROUTE ==>
         {
