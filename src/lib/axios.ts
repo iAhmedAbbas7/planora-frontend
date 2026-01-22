@@ -93,10 +93,16 @@ apiClient.interceptors.response.use(
         lowerErrorMessage.includes("refresh token not found") ||
         lowerErrorMessage.includes("refresh token not found or expired") ||
         lowerErrorMessage.includes("no refresh token") ||
+        lowerErrorMessage.includes("session has been revoked or expired") ||
         errorCode === "REFRESH_TOKEN_NOT_FOUND" ||
-        errorCode === "NO_REFRESH_TOKEN"
+        errorCode === "NO_REFRESH_TOKEN" ||
+        errorCode === "SESSION_REVOKED"
       ) {
-        // NO REFRESH TOKEN AVAILABLE - DON'T TRY TO REFRESH
+        // DISPATCH SESSION EXPIRED EVENT
+        const event = new CustomEvent("session-expired");
+        // DISPATCH EVENT
+        window.dispatchEvent(event);
+        // RETURN ERROR
         return Promise.reject(error);
       }
       // IF ACCESS TOKEN EXPIRED, TRY TO REFRESH
