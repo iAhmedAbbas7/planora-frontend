@@ -15,6 +15,8 @@ import { Session } from "../../hooks/useSessions";
 type SessionCardProps = {
   // <== SESSION ==>
   session: Session;
+  // <== IS CURRENT SESSION (DETERMINED BY COOKIE MATCH) ==>
+  isCurrentSession?: boolean;
   // <== ON REVOKE ==>
   onRevoke: (sessionId: string) => void;
   // <== ON TRUST ==>
@@ -30,6 +32,7 @@ type SessionCardProps = {
 // <== SESSION CARD COMPONENT ==>
 const SessionCard = ({
   session,
+  isCurrentSession = false,
   onRevoke,
   onTrust,
   onUntrust,
@@ -57,7 +60,7 @@ const SessionCard = ({
   return (
     <div
       className={`p-4 rounded-lg border ${
-        session.isCurrent
+        isCurrentSession
           ? "border-[var(--accent-color)] bg-[var(--inside-card-bg)]"
           : "border-[var(--border)] bg-[var(--inside-card-bg)]"
       }`}
@@ -71,12 +74,12 @@ const SessionCard = ({
               <h3 className="font-semibold text-[var(--text-primary)]">
                 {session.deviceName || "Unknown Device"}
               </h3>
-              {session.isCurrent && (
+              {isCurrentSession && (
                 <span
                   className="px-2 py-0.5 text-xs font-medium text-white rounded"
                   style={{ backgroundColor: "var(--accent-color)" }}
                 >
-                  Current
+                  This Device
                 </span>
               )}
               {session.isTrusted && (
@@ -98,7 +101,7 @@ const SessionCard = ({
             </p>
           </div>
         </div>
-        {!session.isCurrent && (
+        {!isCurrentSession && (
           <button
             onClick={() => onRevoke(session.sessionId)}
             disabled={isRevoking}
@@ -129,7 +132,7 @@ const SessionCard = ({
         )}
       </div>
       {/* ACTIONS */}
-      {!session.isCurrent && (
+      {!isCurrentSession && (
         <div className="mt-3 pt-3 border-t border-[var(--border)] flex gap-2">
           {session.isTrusted ? (
             <button
