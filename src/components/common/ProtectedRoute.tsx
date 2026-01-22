@@ -10,6 +10,8 @@ import { JSX, useEffect, useLayoutEffect, useRef } from "react";
 type ProtectedRouteProps = {
   // <== CHILDREN ==>
   children: JSX.Element;
+  // <== SKIP ONBOARDING CHECK (FOR CERTAIN ROUTES) ==>
+  skipOnboardingCheck?: boolean;
 };
 // <== USER RESPONSE TYPE ==>
 type UserResponse = {
@@ -27,9 +29,26 @@ type UserResponse = {
     email: string;
   };
 };
+// <== ONBOARDING RESPONSE TYPE ==>
+type OnboardingResponse = {
+  // <== SUCCESS ==>
+  success: boolean;
+  // <== MESSAGE ==>
+  message: string;
+  // <== DATA ==>
+  data: {
+    // <== ONBOARDING COMPLETED ==>
+    onboardingCompleted: boolean;
+    // <== SELECTED PLAN ==>
+    selectedPlan: string | null;
+  };
+};
 
 // <== PROTECTED ROUTE COMPONENT ==>
-const ProtectedRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
+const ProtectedRoute = ({
+  children,
+  skipOnboardingCheck = false,
+}: ProtectedRouteProps): JSX.Element => {
   // AUTH STORE
   const {
     isAuthenticated,
@@ -134,13 +153,41 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
     setCheckingAuth,
     isOAuthCallback,
   ]);
-  // DETERMINE IF WE ARE ACTUALLY CHECKING AUTH
+  // FETCH ONBOARDING STATUS (ONLY IF AUTHENTICATED AND NOT SKIPPING CHECK)
+  const {
+    data: onboardingData,
+    isLoading: isLoadingOnboarding,
+  } = useQuery({
+    // QUERY KEY
+    queryKey: ["onboarding", "status", "protected-route"],
+    // QUERY FUNCTION
+    queryFn: async (): Promise<OnboardingResponse> => {
+      // CALL GET ONBOARDING STATUS API
+      const response = await apiClient.get<OnboardingResponse>(
+        "/auth/onboarding/status"
+      );
+      // RETURN RESPONSE DATA
+      return response.data;
+    },
+    // ENABLED
+    enabled: isAuthenticated && !skipOnboardingCheck,
+    // RETRY
+    retry: false,
+    // REFETCH ON WINDOW FOCUS
+    refetchOnWindowFocus: false,
+    // STALE TIME
+    staleTime: 5 * 60 * 1000,
+  });
+  // IF CHECKING AUTH OR ONBOARDING STATUS, SHOW LOADING
   const isActuallyChecking =
     !isAuthenticated &&
     shouldCheckAuth &&
     (isLoading || isFetching || isCheckingAuth);
-  // IF CHECKING AUTH, RETURN SPLASH SCREEN STYLE LOADING STATE
-  if (isActuallyChecking) {
+  // IF CHECKING ONBOARDING STATUS, SHOW LOADING
+  const isCheckingOnboarding =
+    isAuthenticated && !skipOnboardingCheck && isLoadingOnboarding;
+  // IF CHECKING AUTH OR ONBOARDING, RETURN SPLASH SCREEN STYLE LOADING STATE
+  if (isActuallyChecking || isCheckingOnboarding) {
     // RETURN SPLASH SCREEN STYLE LOADING STATE WHILE CHECKING
     return (
       <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-white">
@@ -167,7 +214,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
     // OTHERWISE, REDIRECT TO ACCESS DENIED
     return <Navigate to="/access-denied" replace />;
   }
-  // RETURN CHILDREN IF AUTHENTICATED
+  // CHECK IF ONBOARDING IS REQUIRED (USER AUTHENTICATED BUT ONBOARDING NOT COMPLETE)
+  if (
+    !skipOnboardingCheck &&
+    onboardingData?.data &&
+    !onboardingData.data.onboardingCompleted
+  ) {
+    // REDIRECT TO ONBOARDING PAGE
+    return <Navigate to="/onboarding" replace />;
+  }
+  // RETURN CHILDREN IF AUTHENTICATED AND ONBOARDING COMPLETE
   return children;
 };
 
