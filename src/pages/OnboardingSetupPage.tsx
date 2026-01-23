@@ -182,8 +182,9 @@ const OnboardingSetupPage = (): JSX.Element => {
         account_linked: "This GitHub account is already linked to another user.",
         callback_error: "An error occurred during GitHub connection.",
       };
+      // SHOW ERROR TOAST
       toast.error(errorMessages[githubError] || "Failed to connect GitHub. Please try again.");
-      // STAY ON GITHUB STEP
+      // SET CURRENT STEP TO GITHUB
       setCurrentStep("github");
     }
   }, [searchParams, setSearchParams, refetchStatus]);
@@ -234,6 +235,11 @@ const OnboardingSetupPage = (): JSX.Element => {
         // NAVIGATE TO DASHBOARD
         navigate("/dashboard");
       },
+      // ON ERROR
+      onError: () => {
+        // SHOW ERROR TOAST
+        toast.error("Failed to complete onboarding. Please try again.");
+      },
     });
   };
   // HANDLE CONNECT GITHUB
@@ -252,6 +258,11 @@ const OnboardingSetupPage = (): JSX.Element => {
       onSuccess: () => {
         // NAVIGATE TO DASHBOARD
         navigate("/dashboard");
+      },
+      // ON ERROR
+      onError: () => {
+        // SHOW ERROR TOAST
+        toast.error("Failed to skip onboarding. Please try again.");
       },
     });
   };
