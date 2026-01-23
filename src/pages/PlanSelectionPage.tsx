@@ -30,8 +30,11 @@ import PURPLE_LOGO from "../assets/images/LOGO-PURPLE.png";
 
 // <== PLAN ICONS ==>
 const PlanIcons: Record<string, typeof Sparkles> = {
+  // INDIVIDUAL PLAN ICON
   individual: Sparkles,
+  // TEAM PLAN ICON
   team: Building2,
+  // ENTERPRISE PLAN ICON
   enterprise: Crown,
 };
 
